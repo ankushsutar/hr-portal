@@ -33,6 +33,8 @@ import { BulkImportWizard } from './features/import/BulkImportWizard'
 import { ImportHistory } from './features/import/ImportHistory'
 import { ExitDashboard } from './features/lifecycle/ExitDashboard'
 import { MyAttendance } from './features/attendance/MyAttendance'
+import { DataQualityCenter } from './features/reports/DataQualityCenter'
+import { ReportsDashboard } from './features/reports/ReportsDashboard'
 
 // --- ROUTER SETUP ---
 
@@ -221,6 +223,18 @@ const hrTasksRoute = createRoute({
   component: HRTaskCenter,
 })
 
+const dataQualityRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/data-quality',
+  component: DataQualityCenter,
+})
+
+const reportsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/reports',
+  component: ReportsDashboard,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
@@ -229,6 +243,8 @@ const routeTree = rootRoute.addChildren([
     indexRoute, 
     inboxRoute, 
     hrTasksRoute,
+    dataQualityRoute,
+    reportsRoute,
     attendanceRoute, 
     leaveRoute, 
     payrollRoute, 
