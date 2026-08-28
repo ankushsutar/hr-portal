@@ -1,10 +1,13 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck, Search, Shield, ChevronRight, Cpu } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck, Search, Shield, ChevronRight, Cpu, CheckSquare, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
-  { name: 'Inbox', href: '/inbox', icon: Clock, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'Universal Inbox', href: '/inbox', icon: CheckSquare, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'HR Task Center', href: '/hr-tasks', icon: Clock, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'My Attendance', href: '/my/attendance', icon: UserCheck, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'People', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
@@ -22,6 +25,21 @@ const navigation = [
 export const Layout = () => {
   const { user, logout, hasRole } = useAuth() as any
   const routerState = useRouterState()
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
+
+  const { data: notifsData } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const res = await fetch('/api/v1/workflow/notifications', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('hrms_token') || localStorage.getItem('token')}` }
+      })
+      if (!res.ok) return { data: [] }
+      return res.json()
+    }
+  })
+
+  const notifications = notifsData?.data || []
+  const unreadCount = notifications.filter((n: any) => !n.is_read).length
   
   const currentNav = navigation.find(n => n.href === routerState.location.pathname) || 
                      navigation.find(n => routerState.location.pathname.startsWith(n.href) && n.href !== '/')
@@ -108,10 +126,47 @@ export const Layout = () => {
               </kbd>
             </div>
 
-            <button className="relative p-2 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-800/60 transition-colors">
-              <span className="absolute top-1.5 right-1.5 block h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-              <Bell className="h-4 w-4" />
-            </button>
+            {/* Notification Bell */}
+            <div className="relative">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className="relative p-2 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-800/60 transition-colors"
+              >
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+                )}
+                <Bell className="h-4 w-4" />
+              </button>
+
+              {/* Notification Drawer Popover */}
+              {isNotifOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-[#111827] border border-slate-800 rounded-lg shadow-2xl z-50 overflow-hidden animate-fade-in font-mono text-xs">
+                  <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
+                    <span className="font-semibold text-slate-200 text-xs">System Alerts ({unreadCount} unread)</span>
+                    <button onClick={() => setIsNotifOpen(false)} className="text-slate-500 hover:text-slate-300">
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-800/60">
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-center text-slate-500 text-[11px]">No alerts</div>
+                    ) : (
+                      notifications.map((n: any) => (
+                        <div key={n.id} className={`p-3 hover:bg-slate-800/40 transition-colors ${!n.is_read ? 'bg-blue-500/5' : ''}`}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-slate-200 text-xs truncate max-w-[180px]">{n.title}</span>
+                            <span className="text-[10px] text-blue-400 uppercase bg-blue-500/10 px-1 py-0.2 rounded border border-blue-500/20">
+                              {n.module}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-tight">{n.message}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

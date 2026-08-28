@@ -16,6 +16,7 @@ import { EmployeeDirectory } from './features/employees/EmployeeDirectory'
 import { EmployeeProfile } from './features/employees/EmployeeProfile'
 import { ProbationDashboard } from './features/lifecycle/ProbationDashboard'
 import { PendingApprovals } from './features/workflow/PendingApprovals'
+import { HRTaskCenter } from './features/workflow/HRTaskCenter'
 import { LeaveDashboard } from './features/leave/LeaveDashboard'
 import { AttendanceDashboard } from './features/attendance/AttendanceDashboard'
 import { PayrollDashboard } from './features/payroll/PayrollDashboard'
@@ -214,6 +215,12 @@ const myAttendanceRoute = createRoute({
   component: MyAttendance,
 })
 
+const hrTasksRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/hr-tasks',
+  component: HRTaskCenter,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
@@ -221,6 +228,7 @@ const routeTree = rootRoute.addChildren([
   appRoute.addChildren([
     indexRoute, 
     inboxRoute, 
+    hrTasksRoute,
     attendanceRoute, 
     leaveRoute, 
     payrollRoute, 
