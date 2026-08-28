@@ -24,12 +24,12 @@ interface Role {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  SUPER_ADMIN:   'bg-purple-50 text-purple-700 border border-purple-200',
-  HR_ADMIN:      'bg-blue-50 text-blue-700 border border-blue-200',
-  HR_MANAGER:    'bg-indigo-50 text-indigo-700 border border-indigo-200',
-  MANAGER:       'bg-cyan-50 text-cyan-700 border border-cyan-200',
-  PAYROLL_ADMIN: 'bg-amber-50 text-amber-700 border border-amber-200',
-  EMPLOYEE:      'bg-gray-100 text-gray-600 border border-gray-200',
+  SUPER_ADMIN:   'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+  HR_ADMIN:      'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+  HR_MANAGER:    'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+  MANAGER:       'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
+  PAYROLL_ADMIN: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+  EMPLOYEE:      'bg-slate-800 text-slate-300 border border-slate-700',
 }
 
 function authHeader() {
@@ -223,12 +223,12 @@ export const Users = () => {
                           <ChevronDown size={10} />
                         </button>
                         {openMenu === u.id + '-role' && (
-                          <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-md min-w-[160px] py-1">
+                          <div className="absolute left-0 top-full mt-1 z-20 bg-slate-900 border border-slate-800 rounded shadow-xl min-w-[160px] py-1 font-mono text-xs">
                             {roles.map(r => (
                               <button
                                 key={r.id}
                                 onClick={() => changeRole.mutate({ id: u.id, newRole: r.name })}
-                                className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 text-gray-700"
+                                className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-300 transition-colors"
                               >
                                 {r.name}
                               </button>
@@ -239,47 +239,47 @@ export const Users = () => {
                     </td>
                     <td className="py-3 px-4">
                       {u.is_active ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-full border border-green-200">
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full border border-gray-200">
-                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
+                          <span className="w-1.5 h-1.5 bg-slate-500 rounded-full" />
                           Inactive
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">
+                    <td className="py-3 px-4 text-xs text-slate-400">
                       {u.last_login ? new Date(u.last_login).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500 font-mono">
+                    <td className="py-3 px-4 text-xs text-slate-400 font-mono">
                       {u.employee_id ? (
-                        <span className="text-blue-600 text-xs">Linked</span>
+                        <span className="text-blue-400 text-xs">Linked</span>
                       ) : (
-                        <span className="text-gray-300 text-xs">—</span>
+                        <span className="text-slate-600 text-xs">—</span>
                       )}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="relative inline-block">
                         <button
                           onClick={() => setOpenMenu(openMenu === u.id ? null : u.id)}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors"
                         >
                           <MoreHorizontal size={15} />
                         </button>
                         {openMenu === u.id && (
-                          <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-md min-w-[160px] py-1">
+                          <div className="absolute right-0 top-full mt-1 z-20 bg-slate-900 border border-slate-800 rounded shadow-xl min-w-[160px] py-1 font-mono text-xs">
                             <button
                               onClick={() => { toggleStatus.mutate({ id: u.id, isActive: u.is_active }); setOpenMenu(null) }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                              className="w-full text-left px-3 py-1.5 hover:bg-slate-800 flex items-center gap-2 text-slate-300"
                             >
-                              {u.is_active ? <><X size={13} className="text-red-500" /> Suspend</> : <><Check size={13} className="text-green-500" /> Activate</>}
+                              {u.is_active ? <><X size={13} className="text-rose-400" /> Suspend</> : <><Check size={13} className="text-emerald-400" /> Activate</>}
                             </button>
-                            <div className="border-t border-gray-100 my-1" />
+                            <div className="border-t border-slate-800 my-1" />
                             <button
                               onClick={() => { if (confirm('Delete this user? This cannot be undone.')) deleteUser.mutate(u.id) }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-red-50 flex items-center gap-2 text-red-600"
+                              className="w-full text-left px-3 py-1.5 hover:bg-rose-500/10 flex items-center gap-2 text-rose-400"
                             >
                               <Trash2 size={13} /> Delete
                             </button>
@@ -297,52 +297,48 @@ export const Users = () => {
 
       {/* Invite Modal */}
       {isInviteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-          <Card className="w-full max-w-md bg-white shadow-xl">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-mono text-xs">
+          <Card className="w-full max-w-md bg-[#111827] border-slate-800 p-5 shadow-2xl">
+            <div>
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Invite New User</h3>
-                  <p className="text-sm text-gray-500 mt-0.5">They'll receive an invitation to set their password.</p>
+                  <h3 className="text-sm font-semibold text-slate-100">Invite New Platform User</h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">SEND ONBOARDING INVITATION TOKEN</p>
                 </div>
-                <button onClick={() => setIsInviteOpen(false)} className="p-1 text-gray-400 hover:text-gray-600">
-                  <X size={18} />
+                <button onClick={() => setIsInviteOpen(false)} className="text-slate-500 hover:text-slate-300">
+                  <X size={16} />
                 </button>
               </div>
 
               {inviteResult ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm font-medium text-green-800 mb-2">✓ Invitation created successfully</p>
-                    <p className="text-xs text-green-700 mb-2">Share this token with the user to set their password:</p>
-                    <code className="block text-xs bg-white border border-green-200 p-2 rounded font-mono break-all text-gray-700">{inviteResult}</code>
-                    <p className="text-xs text-gray-500 mt-2">In production, this token is sent via email automatically.</p>
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded">
+                    <p className="text-xs font-bold text-emerald-400 mb-1">✓ Invitation token created</p>
+                    <p className="text-[11px] text-slate-300 mb-2">Share this token with the user to activate account:</p>
+                    <code className="block text-xs bg-[#0B0F19] border border-slate-800 p-2 rounded font-mono break-all text-emerald-400">{inviteResult}</code>
                   </div>
-                  <button
-                    onClick={() => { setIsInviteOpen(false); setInviteResult(null) }}
-                    className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
-                  >
-                    Done
+                  <button onClick={() => { setIsInviteOpen(false); setInviteResult(null) }} className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-semibold">
+                    Close
                   </button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address <span className="text-red-500">*</span></label>
+                    <label className="block text-slate-400 mb-1">Work Email Address *</label>
                     <input
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                      className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500"
                       placeholder="name@company.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">System Role <span className="text-red-500">*</span></label>
+                    <label className="block text-slate-400 mb-1">System Role *</label>
                     <select
                       value={role}
                       onChange={e => setRole(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white"
+                      className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500"
                     >
                       {roles.length > 0 ? roles.map(r => (
                         <option key={r.id} value={r.name}>{r.name}</option>
@@ -359,19 +355,19 @@ export const Users = () => {
                     </select>
                   </div>
                   {inviteMutation.isError && (
-                    <p className="text-sm text-red-600">{String(inviteMutation.error)}</p>
+                    <p className="text-xs text-rose-400">{String(inviteMutation.error)}</p>
                   )}
                   <div className="flex gap-3 pt-2">
                     <button
                       onClick={() => setIsInviteOpen(false)}
-                      className="flex-1 px-4 py-2 text-sm border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50"
+                      className="flex-1 px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 border border-slate-800 text-slate-300 rounded font-semibold"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={() => inviteMutation.mutate({ email, role })}
                       disabled={inviteMutation.isPending || !email}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {inviteMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
                       Send Invitation

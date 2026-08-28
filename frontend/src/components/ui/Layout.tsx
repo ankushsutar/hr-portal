@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck, Search, Shield, ChevronRight, Cpu, CheckSquare, X } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck, Search, Shield, ChevronRight, Cpu, CheckSquare, X, Menu } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -26,6 +26,7 @@ export const Layout = () => {
   const { user, logout, hasRole } = useAuth() as any
   const routerState = useRouterState()
   const [isNotifOpen, setIsNotifOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const { data: notifsData } = useQuery({
     queryKey: ['notifications'],
@@ -47,10 +48,12 @@ export const Layout = () => {
 
   return (
     <div className="flex h-screen bg-[#0B0F19] text-slate-100 font-sans overflow-hidden">
-      {/* Dark Compact Developer Sidebar */}
-      <aside className="w-64 hidden md:flex flex-col bg-[#111827] border-r border-slate-800/80 z-20">
+      {/* Sidebar for Desktop & Mobile Overlay */}
+      <aside className={`w-64 flex flex-col bg-[#111827] border-r border-slate-800/80 z-30 transition-all duration-200 fixed md:static inset-y-0 left-0 ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
         {/* Console Header */}
-        <div className="h-16 flex items-center px-5 border-b border-slate-800/80 bg-[#111827]">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800/80 bg-[#111827]">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded bg-blue-600 flex items-center justify-center font-mono font-bold text-white text-xs shadow-sm">
               H
@@ -60,6 +63,12 @@ export const Layout = () => {
               <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 uppercase tracking-widest font-semibold">CORE</span>
             </div>
           </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden text-slate-400 hover:text-slate-200"
+          >
+            <X size={18} />
+          </button>
         </div>
         
         {/* Navigation List */}
@@ -71,6 +80,7 @@ export const Layout = () => {
             <Link
               key={item.name}
               to={item.href}
+              onClick={() => setIsMobileMenuOpen(false)}
               className="group flex items-center px-3 py-2 text-xs font-medium rounded-md text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all duration-150 [&.active]:bg-blue-500/10 [&.active]:text-blue-400 [&.active]:font-semibold [&.active]:border-l-2 [&.active]:border-blue-500"
             >
               <item.icon className="mr-2.5 h-4 w-4 shrink-0 text-slate-500 group-hover:text-slate-300 group-[.active]:text-blue-400 transition-colors" />
@@ -102,14 +112,30 @@ export const Layout = () => {
         </div>
       </aside>
 
+      {/* Backdrop overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/60 z-20 md:hidden backdrop-blur-xs"
+        />
+      )}
+
       {/* Main Console Workspace */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#0B0F19]">
         {/* Top Header / Breadcrumb Bar */}
         <header className="h-16 bg-[#111827]/80 backdrop-blur border-b border-slate-800/80 flex items-center justify-between px-6 sticky top-0 z-10">
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-            <span className="text-slate-500">console</span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-            <span className="text-slate-100 font-semibold">{pageTitle.toLowerCase()}</span>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden text-slate-400 hover:text-slate-200 p-1"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <span className="text-slate-500">console</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+              <span className="text-slate-100 font-semibold">{pageTitle.toLowerCase()}</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

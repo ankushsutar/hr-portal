@@ -6,6 +6,7 @@ import {
   Shield, Calendar, CreditCard, ArrowLeft, Upload, UserMinus
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { Card } from '../../components/ui/Card'
 
 function initials(f: string, l: string) {
   return `${f?.[0] ?? ''}${l?.[0] ?? ''}`.toUpperCase()
@@ -13,21 +14,21 @@ function initials(f: string, l: string) {
 
 function avatarColor(name: string) {
   const colors = [
-    'bg-blue-100 text-blue-700',
-    'bg-indigo-100 text-indigo-700',
-    'bg-violet-100 text-violet-700',
-    'bg-emerald-100 text-emerald-700',
-    'bg-amber-100 text-amber-700',
-    'bg-rose-100 text-rose-700',
-    'bg-cyan-100 text-cyan-700',
+    'bg-blue-900/60 text-blue-300 border border-blue-700/50',
+    'bg-indigo-900/60 text-indigo-300 border border-indigo-700/50',
+    'bg-violet-900/60 text-violet-300 border border-violet-700/50',
+    'bg-emerald-900/60 text-emerald-300 border border-emerald-700/50',
+    'bg-amber-900/60 text-amber-300 border border-amber-700/50',
+    'bg-rose-900/60 text-rose-300 border border-rose-700/50',
+    'bg-cyan-900/60 text-cyan-300 border border-cyan-700/50',
   ]
   return colors[(name?.charCodeAt(0) ?? 0) % colors.length]
 }
 
 const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="py-3 border-b border-gray-100 last:border-0 flex sm:flex-row flex-col sm:items-center sm:justify-between gap-1">
-    <span className="text-sm text-gray-500">{label}</span>
-    <span className="text-sm font-medium text-gray-900 text-right">{value || '—'}</span>
+  <div className="py-2.5 border-b border-slate-800/80 last:border-0 flex sm:flex-row flex-col sm:items-center sm:justify-between gap-1 font-mono text-xs">
+    <span className="text-slate-400">{label}</span>
+    <span className="font-semibold text-slate-200 text-right">{value || '—'}</span>
   </div>
 )
 
@@ -45,9 +46,9 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
 
   if (isLoading) {
     return (
-      <div className="p-8 max-w-5xl mx-auto space-y-6">
-        <div className="h-40 bg-white rounded-xl shadow-sm border border-gray-200 animate-pulse" />
-        <div className="h-96 bg-white rounded-xl shadow-sm border border-gray-200 animate-pulse" />
+      <div className="space-y-6 animate-fade-in font-mono text-xs">
+        <div className="h-40 bg-[#111827] rounded-lg border border-slate-800 animate-pulse" />
+        <div className="h-96 bg-[#111827] rounded-lg border border-slate-800 animate-pulse" />
       </div>
     )
   }
@@ -68,45 +69,47 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
       <Link to="/employees" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
         <ArrowLeft size={14} /> Back to Directory
       </Link>
-
-      {/* Profile Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col md:flex-row items-start md:items-center gap-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-10"></div>
-        
-        <div className="relative z-10 shrink-0">
-          <div className={`h-24 w-24 rounded-full flex items-center justify-center font-bold text-3xl border-4 border-white shadow-sm ${avatarColor(emp.full_name)}`}>
-            {initials(emp.first_name, emp.last_name)}
-          </div>
-        </div>
-
-        <div className="relative z-10 flex-1 w-full">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{emp.full_name}</h1>
-              <p className="text-gray-500 font-medium mt-0.5">
-                {emp.designation_name ?? 'No Designation'} {emp.department_name && `• ${emp.department_name}`}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 items-end">
-              <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${emp.status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                {emp.status}
-              </span>
-              <span className="text-xs font-mono text-gray-400">{emp.employee_id}</span>
+      
+      {/* Profile Header Card */}
+      <Card className="p-6 relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 font-mono">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
+          <div className="shrink-0">
+            <div className={`h-20 w-20 rounded-full flex items-center justify-center font-bold text-2xl border-2 border-slate-700 shadow ${avatarColor(emp.full_name)}`}>
+              {initials(emp.first_name, emp.last_name)}
             </div>
           </div>
-          
-          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
-            <div className="flex items-center gap-2"><Mail size={15} className="text-gray-400" /> {emp.work_email || emp.personal?.personal_email || 'No email'}</div>
-            <div className="flex items-center gap-2"><Phone size={15} className="text-gray-400" /> {emp.work_phone || emp.personal?.phone_number || 'No phone'}</div>
-            <div className="flex items-center gap-2"><MapPin size={15} className="text-gray-400" /> {emp.location_name || 'No location'}</div>
+
+          <div className="flex-1 w-full">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-100 font-sans tracking-tight">{emp.full_name}</h1>
+                <p className="text-slate-400 text-xs font-mono mt-1">
+                  {emp.designation_name ?? 'No Designation'} {emp.department_name && `• ${emp.department_name}`}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1 sm:items-end">
+                <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase rounded border ${
+                  emp.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}>
+                  {emp.status}
+                </span>
+                <span className="text-[11px] font-mono text-slate-400">{emp.employee_id}</span>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-300 font-mono">
+              <div className="flex items-center gap-2"><Mail size={14} className="text-slate-500" /> {emp.work_email || emp.personal?.personal_email || 'No email'}</div>
+              <div className="flex items-center gap-2"><Phone size={14} className="text-slate-500" /> {emp.work_phone || emp.personal?.phone_number || 'No phone'}</div>
+              <div className="flex items-center gap-2"><MapPin size={14} className="text-slate-500" /> {emp.location_name || 'No location'}</div>
+            </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Tabs Card */}
+      <Card className="p-0 overflow-hidden">
         <Tabs.Root defaultValue="overview" className="flex flex-col">
-          <Tabs.List className="flex border-b border-gray-200 px-2 overflow-x-auto hide-scrollbar">
+          <Tabs.List className="flex border-b border-slate-800 px-3 bg-slate-900/60 font-mono text-xs overflow-x-auto hide-scrollbar">
             {[
               { id: 'overview', icon: Shield, label: 'Overview' },
               { id: 'personal', icon: User, label: 'Personal' },
@@ -119,9 +122,9 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
               <Tabs.Trigger
                 key={t.id}
                 value={t.id}
-                className="px-4 py-3.5 text-sm font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap outline-none"
+                className="px-4 py-3 font-medium text-slate-400 hover:text-slate-200 border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-400 transition-colors flex items-center gap-2 shrink-0"
               >
-                <t.icon size={15} /> {t.label}
+                <t.icon size={14} /> {t.label}
               </Tabs.Trigger>
             ))}
           </Tabs.List>
@@ -251,7 +254,7 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
             </Tabs.Content>
           </div>
         </Tabs.Root>
-      </div>
+      </Card>
     </div>
   )
 }

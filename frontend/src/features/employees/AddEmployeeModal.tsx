@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2, X, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { Card } from '../../components/ui/Card'
 
 interface AddEmployeeModalProps {
   onClose: () => void
@@ -24,7 +25,6 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
     phone_number: '',
   })
 
-  // Fetch lookups (departments, designations, locations)
   const { data: deptsData } = useQuery({ queryKey: ['departments'], queryFn: () => fetch('/api/v1/organization/departments').then(r => r.json()) })
   const { data: desigsData } = useQuery({ queryKey: ['designations'], queryFn: () => fetch('/api/v1/employees/designations').then(r => r.json()) })
   const { data: locsData } = useQuery({ queryKey: ['locations'], queryFn: () => fetch('/api/v1/organization/locations').then(r => r.json()) })
@@ -35,7 +35,6 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
 
   const mutation = useMutation({
     mutationFn: async (payload: typeof formData) => {
-      // Clean up empty optional string fields to avoid passing empty strings when nil is better, but API handles it mostly.
       const cleaned = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== ''))
       const res = await fetch('/api/v1/employees', {
         method: 'POST',
@@ -62,59 +61,59 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden mt-10 mb-10 relative">
-        <div className="flex items-center justify-between p-5 border-b border-gray-200 bg-gray-50/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-mono text-xs">
+      <Card className="bg-[#111827] border-slate-800 w-full max-w-2xl p-0 overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900/60">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Add New Employee</h2>
-            <p className="text-xs text-gray-500 mt-1">Create an employee profile. You can add more details later.</p>
+            <h2 className="text-sm font-semibold text-slate-100">Add New Employee Profile</h2>
+            <p className="text-[11px] text-slate-400 mt-0.5">REGISTER A NEW EMPLOYEE RECORD IN THE CENTRAL REPOSITORY</p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
-            <X size={18} />
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-300">
+            <X size={16} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+        <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto max-h-[calc(100vh-200px)]">
           {mutation.isError && (
-            <div className="mb-6 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              <AlertCircle size={15} className="shrink-0" />
+            <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded text-rose-400 text-xs">
+              <AlertCircle size={14} className="shrink-0" />
               {mutation.error instanceof Error ? mutation.error.message : 'An error occurred'}
             </div>
           )}
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <section>
-              <h3 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2 mb-4 uppercase tracking-wider">Basic Info</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-[11px] font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3 uppercase tracking-wider">Basic Demographics</h3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>
-                  <input required name="first_name" value={formData.first_name} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20" />
+                  <label className="block text-slate-400 mb-1">First Name *</label>
+                  <input required name="first_name" value={formData.first_name} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Last Name <span className="text-red-500">*</span></label>
-                  <input required name="last_name" value={formData.last_name} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20" />
+                  <label className="block text-slate-400 mb-1">Last Name *</label>
+                  <input required name="last_name" value={formData.last_name} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Work Email</label>
-                  <input type="email" name="work_email" value={formData.work_email} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20" />
+                  <label className="block text-slate-400 mb-1">Corporate Email</label>
+                  <input type="email" name="work_email" value={formData.work_email} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" placeholder="e.g. name@company.com" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Personal Phone</label>
-                  <input name="phone_number" value={formData.phone_number} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20" />
+                  <label className="block text-slate-400 mb-1">Phone Contact</label>
+                  <input name="phone_number" value={formData.phone_number} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
                 </div>
               </div>
             </section>
 
             <section>
-              <h3 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2 mb-4 uppercase tracking-wider">Work Details</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-[11px] font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3 uppercase tracking-wider">Employment Assignment</h3>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Joining Date <span className="text-red-500">*</span></label>
-                  <input required type="date" name="joining_date" value={formData.joining_date} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500/20" />
+                  <label className="block text-slate-400 mb-1">Joining Date *</label>
+                  <input required type="date" name="joining_date" value={formData.joining_date} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Employment Type <span className="text-red-500">*</span></label>
-                  <select required name="employment_type" value={formData.employment_type} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500/20">
+                  <label className="block text-slate-400 mb-1">Employment Type *</label>
+                  <select required name="employment_type" value={formData.employment_type} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
                     <option value="PERMANENT">Permanent</option>
                     <option value="CONTRACT">Contract</option>
                     <option value="INTERN">Intern</option>
@@ -122,22 +121,22 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Department</label>
-                  <select name="department_id" value={formData.department_id} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500/20">
+                  <label className="block text-slate-400 mb-1">Department</label>
+                  <select name="department_id" value={formData.department_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
                     <option value="">Select Department</option>
                     {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Designation</label>
-                  <select name="designation_id" value={formData.designation_id} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500/20">
+                  <label className="block text-slate-400 mb-1">Designation</label>
+                  <select name="designation_id" value={formData.designation_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
                     <option value="">Select Designation</option>
                     {designations.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Location</label>
-                  <select name="location_id" value={formData.location_id} onChange={handleChange} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-blue-500/20">
+                  <label className="block text-slate-400 mb-1">Workplace Location</label>
+                  <select name="location_id" value={formData.location_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
                     <option value="">Select Location</option>
                     {locations.map((l: any) => <option key={l.id} value={l.id}>{l.name}</option>)}
                   </select>
@@ -146,17 +145,17 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
             </section>
           </div>
 
-          <div className="mt-8 pt-5 border-t border-gray-200 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-colors">
+          <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 border border-slate-800 text-slate-300 rounded font-semibold">
               Cancel
             </button>
-            <button type="submit" disabled={mutation.isPending} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors">
+            <button type="submit" disabled={mutation.isPending} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold disabled:opacity-50 flex items-center gap-2">
               {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
               Create Employee
             </button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   )
 }

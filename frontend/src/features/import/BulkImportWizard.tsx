@@ -1,24 +1,26 @@
 import { useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
-import { Upload, FileDown, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
+import { Upload, FileDown, CheckCircle2, AlertCircle, Loader2, ArrowRight } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
 
 export const BulkImportWizard = () => {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [step, setStep] = useState(1)
   const [batchId, setBatchId] = useState<string | null>(null)
-
+  
   const uploadMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/v1/import/upload', {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       })
-      if (!res.ok) throw new Error('Upload failed')
+      if (!res.ok) throw new Error('Failed to upload')
       return res.json()
     },
     onSuccess: (data) => {
-      setBatchId(data.id)
+      setBatchId(data.data.batch_id)
       setStep(2)
     }
   })
@@ -26,14 +28,18 @@ export const BulkImportWizard = () => {
   const { data: batchData, isLoading: isLoadingBatch } = useQuery({
     queryKey: ['import-batch', batchId],
     queryFn: async () => {
+      if (!batchId) return null
       const res = await fetch(`/api/v1/import/batches/${batchId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       })
-      if (!res.ok) throw new Error('Failed to fetch batch')
+      if (!res.ok) throw new Error('Failed to fetch batch details')
       return res.json()
     },
-    enabled: !!batchId && step === 2,
-    refetchInterval: (query: any) => (query.state?.data?.data?.status === 'VALIDATING' ? 1000 : false)
+    enabled: !!batchId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.data?.status
+      return status === 'VALIDATING' || status === 'PROCESSING' ? 1000 : false
+    }
   })
 
   const processMutation = useMutation({
@@ -42,191 +48,171 @@ export const BulkImportWizard = () => {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       })
-      if (!res.ok) throw new Error('Processing failed')
+      if (!res.ok) throw new Error('Failed to process batch')
       return res.json()
     },
     onSuccess: () => {
-      setStep(4)
+      queryClient.invalidateQueries({ queryKey: ['import-batch', batchId] })
+      setStep(3)
     }
   })
 
-  const totalSteps = 4
-  const nextStep = () => {
-    if (step === 3) {
-      processMutation.mutate()
-    } else {
-      setStep(s => Math.min(s + 1, totalSteps))
-    }
-  }
-  const prevStep = () => setStep(s => Math.max(s - 1, 1))
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in font-sans">
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">Bulk Employee Import</h1>
-        <p className="text-gray-500 mt-1">Import multiple employees, assign roles, and trigger onboarding.</p>
+        <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Bulk Import Wizard</h1>
+        <p className="text-xs font-mono text-slate-400 mt-1">BATCH INGESTION & DATA VALIDATION ENGINE FOR EMPLOYEES & MASTERS</p>
       </div>
 
-      <div className="flex items-center justify-between mb-8">
-        {[1, 2, 3, 4].map((s) => (
-          <div key={s} className="flex flex-col items-center relative z-10">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-              step >= s ? 'bg-black text-white' : 'bg-gray-100 text-gray-400'
+      {/* Stepper */}
+      <div className="flex items-center justify-between relative max-w-xl mx-auto py-2 font-mono text-xs">
+        {[
+          { number: 1, title: 'Upload CSV' },
+          { number: 2, title: 'Validation' },
+          { number: 3, title: 'Import Summary' },
+        ].map((s) => (
+          <div key={s.number} className="flex items-center gap-2 z-10 bg-[#0B0F19] px-3">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold transition-colors ${
+              step >= s.number ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500 border border-slate-700'
             }`}>
-              {s}
+              {s.number}
             </div>
-            <span className={`text-xs mt-2 font-medium ${step >= s ? 'text-black' : 'text-gray-400'}`}>
-              {s === 1 ? 'Upload' : s === 2 ? 'Validate' : s === 3 ? 'Options' : 'Import'}
+            <span className={`font-medium ${step >= s.number ? 'text-slate-200' : 'text-slate-500'}`}>
+              {s.title}
             </span>
           </div>
         ))}
-        {/* Progress Line */}
-        <div className="absolute left-0 right-0 h-1 bg-gray-100 -z-0 mx-16 transform translate-y-[-12px]">
-          <div className="h-full bg-black transition-all duration-300" style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }} />
-        </div>
       </div>
 
-      <Card className="p-8 border border-gray-100 shadow-sm bg-white/50 backdrop-blur-xl">
+      <Card className="p-6">
         {step === 1 && (
-          <div className="space-y-6 animate-slide-up">
-            <div className="text-center">
-              <h3 className="text-xl font-bold mb-2">Upload Data File</h3>
-              <p className="text-gray-500 text-sm">Download our template to ensure your data is formatted correctly.</p>
+          <div className="space-y-6 animate-fade-in text-center max-w-lg mx-auto">
+            <div>
+              <h3 className="text-base font-semibold text-slate-100 mb-1">Upload Data Batch File</h3>
+              <p className="text-xs font-mono text-slate-400">Select standard CSV template to format records correctly.</p>
             </div>
             
-            <div className="flex justify-center mb-6">
-              <button className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 font-medium rounded-lg hover:bg-blue-100 transition-colors">
-                <FileDown size={18} /> Download CSV Template
+            <div className="flex justify-center">
+              <button className="flex items-center gap-2 px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 text-slate-200 border border-slate-800 rounded text-xs font-mono transition-colors">
+                <FileDown size={14} /> Download Sample CSV Template
               </button>
             </div>
 
             <div 
               onClick={() => uploadMutation.mutate()}
-              className={`border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center hover:border-black/20 transition-colors bg-gray-50/50 cursor-pointer ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}
+              className={`border-2 border-dashed border-slate-800 rounded-xl p-10 text-center hover:border-blue-500/50 transition-colors bg-[#0F1523] cursor-pointer ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}
             >
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-gray-100 mb-4">
-                {uploadMutation.isPending ? <Loader2 className="w-8 h-8 text-gray-400 animate-spin" /> : <Upload className="w-8 h-8 text-gray-400" />}
+              <div className="w-12 h-12 bg-slate-800 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-700">
+                {uploadMutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
               </div>
-              <p className="font-medium text-gray-700 mb-1">
-                {uploadMutation.isPending ? 'Uploading...' : 'Click to upload or drag and drop'}
+              <p className="font-semibold text-slate-200 text-xs mb-1">
+                {uploadMutation.isPending ? 'Uploading batch file...' : 'Click to simulate uploading CSV dataset'}
               </p>
-              <p className="text-sm text-gray-500">CSV or Excel (max. 10MB)</p>
+              <p className="text-[11px] font-mono text-slate-400">Supported formats: CSV, TSV (max 10MB)</p>
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-6 animate-slide-up">
+          <div className="space-y-6 animate-fade-in font-mono text-xs">
             {isLoadingBatch || batchData?.data?.status === 'VALIDATING' ? (
-              <div className="text-center py-12">
-                <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto mb-4" />
-                <h4 className="font-semibold text-lg">Validating File...</h4>
-                <p className="text-gray-500 text-sm mt-1">Checking rows for errors and duplicates.</p>
+              <div className="text-center py-12 space-y-3">
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
+                <p className="font-semibold text-slate-200">Running validation checks...</p>
+                <p className="text-slate-400 text-[11px]">Verifying email unique constraints, department keys, and date formats.</p>
               </div>
             ) : (
               <>
-                <div className={`flex items-center gap-4 p-4 rounded-xl border ${batchData?.data?.error_rows > 0 ? 'bg-yellow-50 text-yellow-800 border-yellow-100' : 'bg-green-50 text-green-800 border-green-100'}`}>
-                  {batchData?.data?.error_rows > 0 ? <AlertCircle className="w-6 h-6 flex-shrink-0" /> : <CheckCircle2 className="w-6 h-6 flex-shrink-0" />}
-                  <div>
-                    <h4 className="font-semibold">Validation Completed</h4>
-                    <p className="text-sm mt-1">
-                      Found {batchData?.data?.valid_rows} valid rows and {batchData?.data?.error_rows} rows with errors.
-                    </p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-[#0B0F19] border border-slate-800 p-4 rounded text-center">
+                    <p className="text-slate-400 text-[11px] uppercase">Total Records</p>
+                    <p className="text-2xl font-bold text-slate-100 mt-1">{batchData?.data?.total_rows}</p>
+                  </div>
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded text-center">
+                    <p className="text-emerald-400 text-[11px] uppercase">Valid Records</p>
+                    <p className="text-2xl font-bold text-emerald-400 mt-1">{batchData?.data?.valid_rows}</p>
+                  </div>
+                  <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded text-center">
+                    <p className="text-rose-400 text-[11px] uppercase">Validation Errors</p>
+                    <p className="text-2xl font-bold text-rose-400 mt-1">{batchData?.data?.error_rows}</p>
                   </div>
                 </div>
 
-                {batchData?.data?.error_rows > 0 && (
-                  <table className="w-full text-left border-collapse mt-4">
-                    <thead>
-                      <tr className="border-b border-gray-100 bg-gray-50/50">
-                        <th className="py-3 px-4 font-medium text-gray-500 text-sm">Row</th>
-                        <th className="py-3 px-4 font-medium text-gray-500 text-sm">Error Details</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {batchData?.rows?.filter((r: any) => r.status === 'ERROR').map((row: any) => (
-                        <tr key={row.id} className="border-b border-gray-50">
-                          <td className="py-3 px-4 text-sm font-medium">Row {row.row_number}</td>
-                          <td className="py-3 px-4 text-sm text-red-600">{row.error_message}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                <div className="border border-slate-800 rounded overflow-hidden">
+                  <div className="bg-slate-900/60 px-4 py-2 border-b border-slate-800 font-semibold text-slate-200">
+                    Row Audit Inspection
+                  </div>
+                  <div className="max-h-60 overflow-y-auto divide-y divide-slate-800/60">
+                    {batchData?.data?.errors?.map((err: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-rose-500/5 flex items-center justify-between text-[11px]">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle size={14} className="text-rose-400" />
+                          <span className="font-bold text-rose-400">Row {err.row_number}:</span>
+                          <span className="text-slate-300">{err.error_message}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {(!batchData?.data?.errors || batchData.data.errors.length === 0) && (
+                      <div className="p-6 text-center text-emerald-400 flex items-center justify-center gap-2">
+                        <CheckCircle2 size={16} /> All rows passed validation tests.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </>
             )}
           </div>
         )}
 
         {step === 3 && (
-          <div className="space-y-6 animate-slide-up">
-            <h3 className="text-xl font-bold mb-4">Post-Import Options</h3>
-            <div className="space-y-4">
-              <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
-                <input type="checkbox" className="mt-1 w-4 h-4 rounded border-gray-300 text-black focus:ring-black" defaultChecked />
-                <div>
-                  <span className="block font-medium text-gray-900">Create User Accounts</span>
-                  <span className="block text-sm text-gray-500">Automatically create a user account for each employee and send welcome emails.</span>
-                </div>
-              </label>
+          <div className="space-y-6 animate-fade-in font-mono text-xs text-center py-6">
+            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 size={24} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-100 mb-1">Batch Ingestion Completed</h3>
+              <p className="text-slate-400">All valid employee records have been inserted into the master repository.</p>
+            </div>
 
-              <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
-                <input type="checkbox" className="mt-1 w-4 h-4 rounded border-gray-300 text-black focus:ring-black" defaultChecked />
-                <div className="flex-1">
-                  <span className="block font-medium text-gray-900">Assign Onboarding Template</span>
-                  <span className="block text-sm text-gray-500">Automatically trigger onboarding workflows based on department.</span>
-                  <select className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                    <option>Standard Organization Onboarding</option>
-                  </select>
-                </div>
-              </label>
+            <div className="flex justify-center gap-3">
+              <button 
+                onClick={() => navigate({ to: '/import/history' })}
+                className="px-4 py-2 bg-[#0B0F19] hover:bg-slate-800 text-slate-200 border border-slate-800 rounded font-semibold transition-colors"
+              >
+                View Batch History
+              </button>
+              <button 
+                onClick={() => navigate({ to: '/employees' })}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold transition-colors"
+              >
+                Go to Directory
+              </button>
             </div>
           </div>
         )}
 
-        {step === 4 && (
-          <div className="text-center py-12 animate-slide-up">
-            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-10 h-10 text-green-500" />
-            </div>
-            <h3 className="text-2xl font-bold mb-2">Import Successful!</h3>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              Successfully imported {batchData?.data?.valid_rows} employees, created user accounts, and triggered onboarding workflows.
-            </p>
-            <Link to="/import/history" className="px-6 py-2 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors inline-block">
-              View Import History
-            </Link>
-          </div>
-        )}
-      </Card>
-
-      {/* Navigation Buttons */}
-      {step < totalSteps && (
-        <div className="flex justify-between items-center mt-8">
-          <button 
-            onClick={prevStep}
+        {/* Wizard Footer Controls */}
+        <div className="flex items-center justify-between pt-5 mt-6 border-t border-slate-800 font-mono text-xs">
+          <button
+            onClick={() => setStep(prev => Math.max(1, prev - 1))}
             disabled={step === 1 || uploadMutation.isPending || processMutation.isPending}
-            className={`flex items-center gap-2 px-6 py-2.5 font-medium rounded-lg transition-colors ${
-              step === 1 || uploadMutation.isPending || processMutation.isPending ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm'
-            }`}
+            className="px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 text-slate-400 border border-slate-800 rounded disabled:opacity-30 transition-colors"
           >
-            <ArrowLeft size={18} /> Back
+            Previous
           </button>
           
-          <button 
-            onClick={nextStep}
-            disabled={
-              step === 1 || 
-              (step === 2 && (isLoadingBatch || batchData?.data?.status === 'VALIDATING')) ||
-              processMutation.isPending
-            }
-            className="flex items-center gap-2 px-6 py-2.5 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-50"
-          >
-            {processMutation.isPending ? 'Processing...' : step === 3 ? 'Start Import' : 'Next Step'} 
-            {!processMutation.isPending && <ArrowRight size={18} />}
-          </button>
+          {step === 2 && (
+            <button
+              onClick={() => processMutation.mutate()}
+              disabled={processMutation.isPending || batchData?.data?.valid_rows === 0}
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold disabled:opacity-50 transition-colors"
+            >
+              {processMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Confirm & Process Batch'} <ArrowRight size={14} />
+            </button>
+          )}
         </div>
-      )}
+      </Card>
     </div>
   )
 }
