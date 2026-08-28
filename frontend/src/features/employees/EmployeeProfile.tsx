@@ -239,15 +239,63 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
             </Tabs.Content>
             
             <Tabs.Content value="timeline" className="outline-none">
-              <div className="text-center py-12">
-                <History className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                <h3 className="text-lg font-medium text-gray-900">Employee Lifecycle Timeline</h3>
-                <p className="text-sm text-gray-500 mt-1">The chronological history view will be implemented in Sprint 3.</p>
+              <div className="max-w-2xl">
+                <h3 className="text-sm font-semibold text-gray-900 mb-6 border-b border-gray-100 pb-2">Employee Lifecycle</h3>
+                <EmployeeTimeline employeeId={employeeId} />
               </div>
             </Tabs.Content>
           </div>
         </Tabs.Root>
       </div>
+    </div>
+  )
+}
+
+const EmployeeTimeline = ({ employeeId }: { employeeId: string }) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['timeline', employeeId],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/lifecycle/employees/${employeeId}/timeline`)
+      if (!res.ok) throw new Error('Failed to fetch timeline')
+      return res.json()
+    }
+  })
+
+  if (isLoading) return <div className="text-sm text-gray-500 py-4">Loading timeline...</div>
+  if (isError) return <div className="text-sm text-red-500 py-4">Failed to load timeline.</div>
+
+  const events = data?.data || []
+
+  if (events.length === 0) {
+    return <div className="text-sm text-gray-500 py-4">No lifecycle events recorded.</div>
+  }
+
+  return (
+    <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+      {events.map((evt: any) => (
+        <div key={evt.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10">
+            <History size={16} />
+          </div>
+          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-lg border border-gray-100 bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <div className="font-bold text-gray-900 text-sm">{evt.event_type.replace('_', ' ')}</div>
+              <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{evt.effective_date}</div>
+            </div>
+            {evt.reason && <p className="text-xs text-gray-500 mt-1">{evt.reason}</p>}
+            {evt.new_value && Object.keys(evt.new_value).length > 0 && (
+              <div className="mt-2 p-2 bg-gray-50 rounded text-xs border border-gray-100">
+                {Object.entries(evt.new_value).map(([k, v]) => (
+                  <div key={k} className="flex gap-2">
+                    <span className="text-gray-400 capitalize">{k.replace('_', ' ')}:</span>
+                    <span className="font-medium text-gray-700">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

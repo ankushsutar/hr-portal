@@ -14,6 +14,7 @@ import { OrganizationList } from './features/organization/OrganizationList'
 import { Designations } from './features/organization/Designations'
 import { EmployeeDirectory } from './features/employees/EmployeeDirectory'
 import { EmployeeProfile } from './features/employees/EmployeeProfile'
+import { ProbationDashboard } from './features/lifecycle/ProbationDashboard'
 import { PendingApprovals } from './features/workflow/PendingApprovals'
 import { LeaveDashboard } from './features/leave/LeaveDashboard'
 import { AttendanceDashboard } from './features/attendance/AttendanceDashboard'
@@ -146,6 +147,12 @@ const empProfileRoute = createRoute({
   },
 })
 
+const probationRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/probation',
+  component: ProbationDashboard,
+})
+
 const usersRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/users',
@@ -180,6 +187,7 @@ const routeTree = rootRoute.addChildren([
     designationsRoute,
     empRoute, 
     empProfileRoute,
+    probationRoute,
     usersRoute,
     onboardingRoute,
     importRoute
