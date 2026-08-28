@@ -29,6 +29,7 @@ import { OnboardingTemplates } from './features/admin/OnboardingTemplates'
 import { OnboardingDashboard } from './features/employees/onboarding/OnboardingDashboard'
 import { OnboardingInstance } from './features/employees/onboarding/OnboardingInstance'
 import { BulkImportWizard } from './features/import/BulkImportWizard'
+import { ImportHistory } from './features/import/ImportHistory'
 
 // --- ROUTER SETUP ---
 
@@ -192,6 +193,12 @@ const importRoute = createRoute({
   component: BulkImportWizard,
 })
 
+const importHistoryRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/import/history',
+  component: ImportHistory,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
@@ -214,7 +221,8 @@ const routeTree = rootRoute.addChildren([
     onboardingRoute,
     onboardingDashboardRoute,
     onboardingInstanceRoute,
-    importRoute
+    importRoute,
+    importHistoryRoute
   ])
 ])
 

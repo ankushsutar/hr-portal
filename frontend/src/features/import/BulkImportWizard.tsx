@@ -1,12 +1,63 @@
 import { useState } from 'react'
-import { Card } from '../../components/ui/Card' // Re-evaluate import
-import { Upload, FileDown, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
+import { Card } from '../../components/ui/Card'
+import { Upload, FileDown, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
 
 export const BulkImportWizard = () => {
   const [step, setStep] = useState(1)
-  const totalSteps = 4
+  const [batchId, setBatchId] = useState<string | null>(null)
 
-  const nextStep = () => setStep(s => Math.min(s + 1, totalSteps))
+  const uploadMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/v1/import/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      return res.json()
+    },
+    onSuccess: (data) => {
+      setBatchId(data.id)
+      setStep(2)
+    }
+  })
+
+  const { data: batchData, isLoading: isLoadingBatch } = useQuery({
+    queryKey: ['import-batch', batchId],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/import/batches/${batchId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch batch')
+      return res.json()
+    },
+    enabled: !!batchId && step === 2,
+    refetchInterval: (query: any) => (query.state?.data?.data?.status === 'VALIDATING' ? 1000 : false)
+  })
+
+  const processMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/v1/import/batches/${batchId}/process`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      if (!res.ok) throw new Error('Processing failed')
+      return res.json()
+    },
+    onSuccess: () => {
+      setStep(4)
+    }
+  })
+
+  const totalSteps = 4
+  const nextStep = () => {
+    if (step === 3) {
+      processMutation.mutate()
+    } else {
+      setStep(s => Math.min(s + 1, totalSteps))
+    }
+  }
   const prevStep = () => setStep(s => Math.max(s - 1, 1))
 
   return (
@@ -49,11 +100,16 @@ export const BulkImportWizard = () => {
               </button>
             </div>
 
-            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center hover:border-black/20 transition-colors bg-gray-50/50 cursor-pointer">
+            <div 
+              onClick={() => uploadMutation.mutate()}
+              className={`border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center hover:border-black/20 transition-colors bg-gray-50/50 cursor-pointer ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}
+            >
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-gray-100 mb-4">
-                <Upload className="w-8 h-8 text-gray-400" />
+                {uploadMutation.isPending ? <Loader2 className="w-8 h-8 text-gray-400 animate-spin" /> : <Upload className="w-8 h-8 text-gray-400" />}
               </div>
-              <p className="font-medium text-gray-700 mb-1">Click to upload or drag and drop</p>
+              <p className="font-medium text-gray-700 mb-1">
+                {uploadMutation.isPending ? 'Uploading...' : 'Click to upload or drag and drop'}
+              </p>
               <p className="text-sm text-gray-500">CSV or Excel (max. 10MB)</p>
             </div>
           </div>
@@ -61,33 +117,44 @@ export const BulkImportWizard = () => {
 
         {step === 2 && (
           <div className="space-y-6 animate-slide-up">
-            <div className="flex items-center gap-4 p-4 bg-yellow-50 text-yellow-800 rounded-xl border border-yellow-100">
-              <AlertCircle className="w-6 h-6 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold">Validation Completed with Warnings</h4>
-                <p className="text-sm mt-1">We found 142 valid rows and 3 rows with errors. Please fix the errors below.</p>
+            {isLoadingBatch || batchData?.data?.status === 'VALIDATING' ? (
+              <div className="text-center py-12">
+                <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto mb-4" />
+                <h4 className="font-semibold text-lg">Validating File...</h4>
+                <p className="text-gray-500 text-sm mt-1">Checking rows for errors and duplicates.</p>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className={`flex items-center gap-4 p-4 rounded-xl border ${batchData?.data?.error_rows > 0 ? 'bg-yellow-50 text-yellow-800 border-yellow-100' : 'bg-green-50 text-green-800 border-green-100'}`}>
+                  {batchData?.data?.error_rows > 0 ? <AlertCircle className="w-6 h-6 flex-shrink-0" /> : <CheckCircle2 className="w-6 h-6 flex-shrink-0" />}
+                  <div>
+                    <h4 className="font-semibold">Validation Completed</h4>
+                    <p className="text-sm mt-1">
+                      Found {batchData?.data?.valid_rows} valid rows and {batchData?.data?.error_rows} rows with errors.
+                    </p>
+                  </div>
+                </div>
 
-            {/* Mock Error Table */}
-            <table className="w-full text-left border-collapse mt-4">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="py-3 px-4 font-medium text-gray-500 text-sm">Row</th>
-                  <th className="py-3 px-4 font-medium text-gray-500 text-sm">Error Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-50">
-                  <td className="py-3 px-4 text-sm font-medium">Row 42</td>
-                  <td className="py-3 px-4 text-sm text-red-600">Missing required field: Email Address</td>
-                </tr>
-                <tr className="border-b border-gray-50">
-                  <td className="py-3 px-4 text-sm font-medium">Row 89</td>
-                  <td className="py-3 px-4 text-sm text-red-600">Invalid format: Joining Date</td>
-                </tr>
-              </tbody>
-            </table>
+                {batchData?.data?.error_rows > 0 && (
+                  <table className="w-full text-left border-collapse mt-4">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50/50">
+                        <th className="py-3 px-4 font-medium text-gray-500 text-sm">Row</th>
+                        <th className="py-3 px-4 font-medium text-gray-500 text-sm">Error Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {batchData?.rows?.filter((r: any) => r.status === 'ERROR').map((row: any) => (
+                        <tr key={row.id} className="border-b border-gray-50">
+                          <td className="py-3 px-4 text-sm font-medium">Row {row.row_number}</td>
+                          <td className="py-3 px-4 text-sm text-red-600">{row.error_message}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
+            )}
           </div>
         )}
 
@@ -124,11 +191,11 @@ export const BulkImportWizard = () => {
             </div>
             <h3 className="text-2xl font-bold mb-2">Import Successful!</h3>
             <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              Successfully imported 142 employees, created user accounts, and triggered onboarding workflows.
+              Successfully imported {batchData?.data?.valid_rows} employees, created user accounts, and triggered onboarding workflows.
             </p>
-            <button className="px-6 py-2 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
-              Go to Employee Directory
-            </button>
+            <Link to="/import/history" className="px-6 py-2 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors inline-block">
+              View Import History
+            </Link>
           </div>
         )}
       </Card>
@@ -138,9 +205,9 @@ export const BulkImportWizard = () => {
         <div className="flex justify-between items-center mt-8">
           <button 
             onClick={prevStep}
-            disabled={step === 1}
+            disabled={step === 1 || uploadMutation.isPending || processMutation.isPending}
             className={`flex items-center gap-2 px-6 py-2.5 font-medium rounded-lg transition-colors ${
-              step === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm'
+              step === 1 || uploadMutation.isPending || processMutation.isPending ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm'
             }`}
           >
             <ArrowLeft size={18} /> Back
@@ -148,9 +215,15 @@ export const BulkImportWizard = () => {
           
           <button 
             onClick={nextStep}
-            className="flex items-center gap-2 px-6 py-2.5 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm"
+            disabled={
+              step === 1 || 
+              (step === 2 && (isLoadingBatch || batchData?.data?.status === 'VALIDATING')) ||
+              processMutation.isPending
+            }
+            className="flex items-center gap-2 px-6 py-2.5 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-50"
           >
-            {step === 3 ? 'Start Import' : 'Next Step'} <ArrowRight size={18} />
+            {processMutation.isPending ? 'Processing...' : step === 3 ? 'Start Import' : 'Next Step'} 
+            {!processMutation.isPending && <ArrowRight size={18} />}
           </button>
         </div>
       )}

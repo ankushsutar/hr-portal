@@ -14,6 +14,7 @@ import (
 	"github.com/company/hrms-backend/internal/auth"
 	"github.com/company/hrms-backend/internal/document"
 	"github.com/company/hrms-backend/internal/employee"
+	"github.com/company/hrms-backend/internal/importer"
 	"github.com/company/hrms-backend/internal/leave"
 	"github.com/company/hrms-backend/internal/lifecycle"
 	"github.com/company/hrms-backend/internal/onboarding"
@@ -68,6 +69,7 @@ func main() {
 	onboardingService := onboarding.NewService(db)
 	lifecycleService := lifecycle.NewService(db)
 	documentService := document.NewService(db)
+	importService := importer.NewService(db)
 	reportsService := reports.NewService(db)
 	userService := user.NewService(db)
 
@@ -160,6 +162,11 @@ func main() {
 			
 			r.Route("/documents", func(r chi.Router) {
 				documentService.RegisterRoutes(r)
+			})
+			
+			r.Route("/import", func(r chi.Router) {
+				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
+				importService.RegisterRoutes(r)
 			})
 			
 			r.Route("/onboarding", func(r chi.Router) {
