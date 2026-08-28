@@ -25,6 +25,8 @@ import { MainDashboard } from './features/dashboard/MainDashboard'
 
 import { Users } from './features/admin/Users'
 import { OnboardingTemplates } from './features/admin/OnboardingTemplates'
+import { OnboardingDashboard } from './features/employees/onboarding/OnboardingDashboard'
+import { OnboardingInstance } from './features/employees/onboarding/OnboardingInstance'
 import { BulkImportWizard } from './features/import/BulkImportWizard'
 
 // --- ROUTER SETUP ---
@@ -161,8 +163,20 @@ const usersRoute = createRoute({
 
 const onboardingRoute = createRoute({
   getParentRoute: () => appRoute,
-  path: '/onboarding',
+  path: '/onboarding-templates',
   component: OnboardingTemplates,
+})
+
+const onboardingDashboardRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/onboarding',
+  component: OnboardingDashboard,
+})
+
+const onboardingInstanceRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/onboarding/$instanceId',
+  component: OnboardingInstance,
 })
 
 const importRoute = createRoute({
@@ -190,6 +204,8 @@ const routeTree = rootRoute.addChildren([
     probationRoute,
     usersRoute,
     onboardingRoute,
+    onboardingDashboardRoute,
+    onboardingInstanceRoute,
     importRoute
   ])
 ])
