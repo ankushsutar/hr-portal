@@ -9,8 +9,15 @@ import (
 )
 
 type LeaveType struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID                 string  `json:"id"`
+	Name               string  `json:"name"`
+	Code               string  `json:"code"`
+	AccrualFrequency   string  `json:"accrual_frequency"`
+	AccrualDays        float64 `json:"accrual_days"`
+	MaxCarryForward    float64 `json:"max_carry_forward"`
+	SandwichRule       bool    `json:"sandwich_rule"`
+	AllowHalfDay       bool    `json:"allow_half_day"`
+	Encashable         bool    `json:"encashable"`
 }
 
 type LeaveBalance struct {
@@ -51,9 +58,21 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 
 func (s *Service) HandleGetTypes(w http.ResponseWriter, r *http.Request) {
 	types := []LeaveType{
-		{ID: "lt-1", Name: "Annual Leave"},
-		{ID: "lt-2", Name: "Sick Leave"},
-		{ID: "lt-3", Name: "Casual Leave"},
+		{
+			ID: "lt-1", Name: "Annual Leave", Code: "AL", 
+			AccrualFrequency: "MONTHLY", AccrualDays: 1.25, MaxCarryForward: 15,
+			SandwichRule: false, AllowHalfDay: true, Encashable: true,
+		},
+		{
+			ID: "lt-2", Name: "Sick Leave", Code: "SL", 
+			AccrualFrequency: "ANNUAL", AccrualDays: 12, MaxCarryForward: 0,
+			SandwichRule: true, AllowHalfDay: true, Encashable: false,
+		},
+		{
+			ID: "lt-3", Name: "Casual Leave", Code: "CL", 
+			AccrualFrequency: "ANNUAL", AccrualDays: 8, MaxCarryForward: 0,
+			SandwichRule: false, AllowHalfDay: true, Encashable: false,
+		},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
