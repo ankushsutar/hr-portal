@@ -24,6 +24,7 @@ import { EmployeeServices } from './features/lifecycle/EmployeeServices'
 import { MainDashboard } from './features/dashboard/MainDashboard'
 
 import { Users } from './features/admin/Users'
+import { DocumentTypes } from './features/admin/DocumentTypes'
 import { OnboardingTemplates } from './features/admin/OnboardingTemplates'
 import { OnboardingDashboard } from './features/employees/onboarding/OnboardingDashboard'
 import { OnboardingInstance } from './features/employees/onboarding/OnboardingInstance'
@@ -161,6 +162,12 @@ const usersRoute = createRoute({
   component: Users,
 })
 
+const documentTypesRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/document-types',
+  component: DocumentTypes,
+})
+
 const onboardingRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/onboarding-templates',
@@ -203,6 +210,7 @@ const routeTree = rootRoute.addChildren([
     empProfileRoute,
     probationRoute,
     usersRoute,
+    documentTypesRoute,
     onboardingRoute,
     onboardingDashboardRoute,
     onboardingInstanceRoute,

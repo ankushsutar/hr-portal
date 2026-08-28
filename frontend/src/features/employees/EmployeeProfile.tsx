@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import * as Tabs from '@radix-ui/react-tabs'
 import {
   User, Briefcase, FileText, History, Mail, Phone, MapPin,
-  Shield, Calendar, CreditCard, ArrowLeft
+  Shield, Calendar, CreditCard, ArrowLeft, Upload
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -231,10 +231,8 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
             </Tabs.Content>
 
             <Tabs.Content value="documents" className="outline-none">
-              <div className="text-center py-12">
-                <FileText className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                <h3 className="text-lg font-medium text-gray-900">Document Management</h3>
-                <p className="text-sm text-gray-500 mt-1">The Document Engine will be implemented in Sprint 6.</p>
+              <div className="max-w-4xl">
+                <EmployeeDocuments employeeId={employeeId} />
               </div>
             </Tabs.Content>
             
@@ -296,6 +294,88 @@ const EmployeeTimeline = ({ employeeId }: { employeeId: string }) => {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+const EmployeeDocuments = ({ employeeId }: { employeeId: string }) => {
+  const qc = useQueryClient()
+  const { data, isLoading } = useQuery({
+    queryKey: ['employee-docs', employeeId],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/documents/employees/${employeeId}`)
+      if (!res.ok) throw new Error('Failed to fetch documents')
+      return res.json()
+    }
+  })
+
+  const verifyDoc = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/v1/documents/${id}/verify`, { method: 'PATCH' })
+      if (!res.ok) throw new Error('Failed to verify document')
+      return res.json()
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['employee-docs', employeeId] })
+  })
+
+  if (isLoading) return <div className="py-8 text-gray-500">Loading documents...</div>
+
+  const docs = data?.data || []
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-2">
+        <h3 className="text-sm font-semibold text-gray-900">Document Library</h3>
+        <button className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1">
+          <Upload size={14} /> Upload Document
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {docs.map((doc: any) => (
+          <div key={doc.id} className="p-4 border border-gray-200 rounded-xl bg-white shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><FileText size={16}/></div>
+                  <div>
+                    <div className="font-medium text-gray-900">{doc.document_type_name}</div>
+                    <div className="text-xs text-gray-400">{doc.file_name}</div>
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                  doc.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                  doc.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                }`}>
+                  {doc.status}
+                </span>
+              </div>
+              {doc.rejection_reason && (
+                <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded border border-red-100">
+                  <span className="font-semibold">Reason:</span> {doc.rejection_reason}
+                </div>
+              )}
+            </div>
+            <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
+              <div className="text-xs text-gray-400">Uploaded {doc.uploaded_at}</div>
+              {doc.status === 'SUBMITTED' && (
+                <button 
+                  disabled={verifyDoc.isPending}
+                  onClick={() => verifyDoc.mutate(doc.id)}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                >
+                  Verify Now
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {docs.length === 0 && (
+          <div className="col-span-full py-12 text-center text-gray-500 border-2 border-dashed border-gray-100 rounded-xl">
+            No documents uploaded yet.
+          </div>
+        )}
+      </div>
     </div>
   )
 }

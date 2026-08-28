@@ -1,17 +1,1 @@
-2026/08/28 17:05:53 Starting server on port 8080...
-2026/08/28 17:05:54 [pop-os/kjLeEgK7Oj-000001] "GET http://localhost:8080/api/v1/employees/emp-2 HTTP/1.1" from [::1]:56436 - 200 535B in 3.148135ms
-2026/08/28 17:06:05 [pop-os/kjLeEgK7Oj-000002] "GET http://localhost:8080/api/v1/lifecycle/employees/emp-2/timeline HTTP/1.1" from [::1]:36474 - 200 610B in 2.192301ms
-2026/08/28 17:06:19 [pop-os/kjLeEgK7Oj-000003] "OPTIONS http://localhost:8080/api/v1/attendance/logs HTTP/1.1" from [::1]:57160 - 200 0B in 38.449µs
-2026/08/28 17:06:19 [pop-os/kjLeEgK7Oj-000004] "GET http://localhost:8080/api/v1/attendance/logs HTTP/1.1" from [::1]:57160 - 200 434B in 196.261µs
-2026/08/28 17:06:21 [pop-os/kjLeEgK7Oj-000005] "OPTIONS http://localhost:8080/api/v1/workflows/tasks/pending HTTP/1.1" from [::1]:57160 - 200 0B in 24.937µs
-2026/08/28 17:06:21 [pop-os/kjLeEgK7Oj-000006] "GET http://localhost:8080/api/v1/workflows/tasks/pending HTTP/1.1" from [::1]:57160 - 200 368B in 147.606µs
-2026/08/28 17:06:21 [pop-os/kjLeEgK7Oj-000007] "OPTIONS http://localhost:8080/api/v1/reports/dashboard HTTP/1.1" from [::1]:57160 - 200 0B in 19.449µs
-2026/08/28 17:06:21 [pop-os/kjLeEgK7Oj-000008] "GET http://localhost:8080/api/v1/reports/dashboard HTTP/1.1" from [::1]:57160 - 200 612B in 94.57µs
-2026/08/28 17:06:27 [pop-os/kjLeEgK7Oj-000009] "OPTIONS http://localhost:8080/api/v1/leave/balances HTTP/1.1" from [::1]:57160 - 200 0B in 16.763µs
-2026/08/28 17:06:27 [pop-os/kjLeEgK7Oj-000010] "OPTIONS http://localhost:8080/api/v1/leave/applications HTTP/1.1" from [::1]:57160 - 200 0B in 9.561µs
-2026/08/28 17:06:27 [pop-os/kjLeEgK7Oj-000011] "GET http://localhost:8080/api/v1/leave/balances HTTP/1.1" from [::1]:57160 - 200 271B in 69.936µs
-2026/08/28 17:06:27 [pop-os/kjLeEgK7Oj-000012] "GET http://localhost:8080/api/v1/leave/applications HTTP/1.1" from [::1]:44554 - 200 206B in 83.754µs
-2026/08/28 17:06:30 [pop-os/kjLeEgK7Oj-000013] "GET http://localhost:8080/api/v1/onboarding/templates HTTP/1.1" from [::1]:44566 - 200 595B in 2.347823ms
-2026/08/28 17:06:45 [pop-os/kjLeEgK7Oj-000014] "POST http://localhost:8080/api/v1/onboarding/templates HTTP/1.1" from [::1]:56402 - 200 44B in 4.571455ms
-2026/08/28 17:06:45 [pop-os/kjLeEgK7Oj-000015] "GET http://localhost:8080/api/v1/onboarding/templates HTTP/1.1" from [::1]:56412 - 200 595B in 2.801522ms
-2026/08/28 17:06:49 [pop-os/kjLeEgK7Oj-000016] "GET http://localhost:8080/api/v1/onboarding/templates HTTP/1.1" from [::1]:56424 - 200 595B in 2.361548ms
+2026/08/28 17:12:04 Starting server on port 8080...
