@@ -1,4 +1,28 @@
-2026/08/28 16:38:38 Starting server on port 8080...
-2026/08/28 16:38:40 [pop-os/hUQ39tSUYm-000001] "GET http://localhost:8080/health HTTP/1.1" from [::1]:34708 - 200 15B in 32.421µs
-2026/08/28 16:41:52 [pop-os/hUQ39tSUYm-000002] "POST http://localhost:8080/api/v1/auth/login HTTP/1.1" from [::1]:33364 - 200 396B in 145.044µs
-2026/08/28 16:41:52 [pop-os/hUQ39tSUYm-000003] "POST http://localhost:8080/api/v1/auth/login HTTP/1.1" from [::1]:33376 - 200 391B in 152.372µs
+2026/08/28 16:50:12 Starting server on port 8080...
+2026/08/28 16:50:14 [pop-os/41fFLjaFCO-000001] "GET http://localhost:8080/health HTTP/1.1" from [::1]:50272 - 200 15B in 32.862µs
+2026/08/28 16:50:23 [pop-os/41fFLjaFCO-000002] "POST http://localhost:8080/api/v1/auth/login HTTP/1.1" from [::1]:49818 - 200 396B in 391.411µs
+2026/08/28 16:50:23 [pop-os/41fFLjaFCO-000003] "GET http://localhost:8080/api/v1/employees HTTP/1.1" from [::1]:49830 - 200 733B in 2.984203ms
+2026/08/28 16:53:56 [pop-os/41fFLjaFCO-000004] "POST http://localhost:8080/api/v1/auth/login HTTP/1.1" from [::1]:46366 - 200 396B in 118.201µs
+2026/08/28 16:56:07 [pop-os/41fFLjaFCO-000005] "POST http://localhost:8080/api/v1/auth/login HTTP/1.1" from [::1]:39546 - 200 375B in 128.432µs
+2026/08/28 16:56:07 [pop-os/41fFLjaFCO-000006] "OPTIONS http://localhost:8080/api/v1/reports/dashboard HTTP/1.1" from [::1]:39550 - 200 0B in 22.671µs
+2026/08/28 16:56:07 [pop-os/41fFLjaFCO-000007] "GET http://localhost:8080/api/v1/reports/dashboard HTTP/1.1" from [::1]:39550 - 200 612B in 179.185µs
+2026/08/28 16:56:46 [pop-os/41fFLjaFCO-000008] "OPTIONS http://localhost:8080/api/v1/workflows/tasks/pending HTTP/1.1" from [::1]:39550 - 200 0B in 30.473µs
+2026/08/28 16:56:46 [pop-os/41fFLjaFCO-000009] "GET http://localhost:8080/api/v1/workflows/tasks/pending HTTP/1.1" from [::1]:39550 - 200 368B in 94.371µs
+2026/08/28 16:56:47 [pop-os/41fFLjaFCO-000010] "GET http://localhost:8080/api/v1/employees HTTP/1.1" from [::1]:54274 - 200 733B in 2.214497ms
+2026/08/28 16:56:47 [pop-os/41fFLjaFCO-000011] "GET http://localhost:8080/api/v1/employees/stats HTTP/1.1" from [::1]:54276 - 200 102B in 2.189914ms
+2026/08/28 16:56:49 [pop-os/41fFLjaFCO-000012] "GET http://localhost:8080/api/v1/organization/departments HTTP/1.1" from [::1]:54284 - 404 19B in 63.157µs
+2026/08/28 16:56:49 [pop-os/41fFLjaFCO-000014] "GET http://localhost:8080/api/v1/organization/locations HTTP/1.1" from [::1]:54300 - 200 156B in 281.023µs
+2026/08/28 16:56:49 [pop-os/41fFLjaFCO-000013] "GET http://localhost:8080/api/v1/employees/designations HTTP/1.1" from [::1]:54298 - 500 41B in 3.371799ms
+2026/08/28 16:56:50 [pop-os/41fFLjaFCO-000015] "GET http://localhost:8080/api/v1/organization/departments HTTP/1.1" from [::1]:54306 - 404 19B in 122.787µs
+2026/08/28 16:57:00 [pop-os/41fFLjaFCO-000016] "GET http://localhost:8080/api/v1/employees/emp-1 HTTP/1.1" from [::1]:53612 - 200 535B in 2.670683ms
+2026/08/28 16:57:06 [pop-os/41fFLjaFCO-000017] "OPTIONS http://localhost:8080/api/v1/attendance/logs HTTP/1.1" from [::1]:39550 - 200 0B in 13.129µs
+2026/08/28 16:57:06 [pop-os/41fFLjaFCO-000018] "GET http://localhost:8080/api/v1/attendance/logs HTTP/1.1" from [::1]:39550 - 200 434B in 88.257µs
+2026/08/28 16:57:12 [pop-os/41fFLjaFCO-000019] "OPTIONS http://localhost:8080/api/v1/leave/balances HTTP/1.1" from [::1]:39550 - 200 0B in 107.433µs
+2026/08/28 16:57:12 [pop-os/41fFLjaFCO-000020] "GET http://localhost:8080/api/v1/leave/balances HTTP/1.1" from [::1]:39550 - 200 271B in 100.008µs
+2026/08/28 16:57:12 [pop-os/41fFLjaFCO-000021] "OPTIONS http://localhost:8080/api/v1/leave/applications HTTP/1.1" from [::1]:36168 - 200 0B in 9.368µs
+2026/08/28 16:57:12 [pop-os/41fFLjaFCO-000022] "GET http://localhost:8080/api/v1/leave/applications HTTP/1.1" from [::1]:39550 - 200 206B in 43.555µs
+2026/08/28 16:57:16 [pop-os/41fFLjaFCO-000023] "OPTIONS http://localhost:8080/api/v1/payroll/payslips HTTP/1.1" from [::1]:39550 - 200 0B in 13.435µs
+2026/08/28 16:57:16 [pop-os/41fFLjaFCO-000024] "GET http://localhost:8080/api/v1/payroll/payslips HTTP/1.1" from [::1]:39550 - 200 338B in 98.966µs
+2026/08/28 16:57:18 [pop-os/41fFLjaFCO-000025] "GET http://localhost:8080/api/v1/workflows/tasks/pending HTTP/1.1" from [::1]:39550 - 200 368B in 80.366µs
+2026/08/28 16:57:20 [pop-os/41fFLjaFCO-000026] "GET http://localhost:8080/api/v1/reports/dashboard HTTP/1.1" from [::1]:39550 - 200 612B in 75.349µs
+2026/08/28 16:57:22 [pop-os/41fFLjaFCO-000027] "GET http://localhost:8080/api/v1/workflows/tasks/pending HTTP/1.1" from [::1]:39550 - 200 368B in 76.966µs

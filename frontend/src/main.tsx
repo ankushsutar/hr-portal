@@ -11,6 +11,7 @@ import { ResetPassword } from './features/auth/ResetPassword'
 
 import { Layout } from './components/ui/Layout'
 import { OrganizationList } from './features/organization/OrganizationList'
+import { Designations } from './features/organization/Designations'
 import { EmployeeDirectory } from './features/employees/EmployeeDirectory'
 import { EmployeeProfile } from './features/employees/EmployeeProfile'
 import { PendingApprovals } from './features/workflow/PendingApprovals'
@@ -124,6 +125,12 @@ const orgRoute = createRoute({
   component: OrganizationList,
 })
 
+const designationsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/designations',
+  component: Designations,
+})
+
 const empRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/employees',
@@ -170,6 +177,7 @@ const routeTree = rootRoute.addChildren([
     recruitmentRoute, 
     servicesRoute, 
     orgRoute, 
+    designationsRoute,
     empRoute, 
     empProfileRoute,
     usersRoute,
