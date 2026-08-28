@@ -1,36 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #000;
-  --color-background: #fff;
-  --font-sans: 'Inter', sans-serif;
-  --font-heading: 'Outfit', sans-serif;
+  --color-primary: #3B82F6;
+  --color-background: #0B0F19;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   
-  --animate-fade-in: fade-in 0.5s ease-out;
-  --animate-slide-up: slide-up 0.5s ease-out;
-  --animate-slide-in-right: slide-in-right 0.4s ease-out;
+  --animate-fade-in: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-up: slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
   @keyframes fade-in {
     0% { opacity: 0; }
     100% { opacity: 1; }
   }
   @keyframes slide-up {
-    0% { opacity: 0; transform: translateY(20px); }
+    0% { opacity: 0; transform: translateY(8px); }
     100% { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes slide-in-right {
-    0% { opacity: 0; transform: translateX(20px); }
-    100% { opacity: 1; transform: translateX(0); }
   }
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  @apply bg-gray-50 text-gray-900;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #0B0F19;
+  color: #F3F4F6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6, .font-heading {
-  font-family: 'Outfit', sans-serif;
+/* Custom dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+::-webkit-scrollbar-thumb {
+  background: #1F2937;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
 }

@@ -265,7 +265,7 @@ const queryClient = new QueryClient({
 const originalFetch = window.fetch
 window.fetch = async (...args) => {
   const [, config] = args
-  const token = localStorage.getItem('hrms_token')
+  const token = localStorage.getItem('hrms_token') || localStorage.getItem('token')
   if (token) {
     if (config) {
       config.headers = {

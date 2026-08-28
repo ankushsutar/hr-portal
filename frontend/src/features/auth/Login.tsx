@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
-import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { Loader2, Eye, EyeOff, AlertCircle, ShieldCheck } from 'lucide-react'
 
 export const Login = () => {
   const { login } = useAuth()
@@ -31,73 +31,72 @@ export const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex">
-      {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-[45%] bg-gray-900 flex-col justify-between p-12">
+    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex">
+      {/* Left panel — developer branding */}
+      <div className="hidden lg:flex lg:w-[45%] bg-[#0F1523] flex-col justify-between p-12 border-r border-slate-800/80">
         <div>
           <div className="flex items-center gap-2.5 mb-16">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
-                <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6z" />
-              </svg>
+            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-mono font-bold text-white text-xs">
+              H
             </div>
-            <span className="text-white font-semibold text-lg tracking-tight">HRMS</span>
+            <span className="text-slate-100 font-bold text-base tracking-tight font-mono">HRMS CORE</span>
           </div>
 
-          <div className="space-y-6">
-            <h1 className="text-4xl font-bold text-white leading-tight">
-              Your HR operations,<br />
-              <span className="text-blue-400">unified.</span>
+          <div className="space-y-4">
+            <span className="text-xs font-mono uppercase text-blue-400 font-semibold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">
+              Enterprise Console v2.0
+            </span>
+            <h1 className="text-3xl font-bold text-slate-100 leading-tight">
+              Enterprise HR Operations,<br />
+              <span className="text-blue-400 font-mono">streamlined & automated.</span>
             </h1>
-            <p className="text-gray-400 text-lg leading-relaxed">
-              Manage your entire employee lifecycle — from onboarding to payroll — in one platform built for Indian operations.
+            <p className="text-slate-400 text-sm leading-relaxed">
+              High-density HR workspace engineered for Indian compliance, biometric attendance engines, multi-tier workflows, and automated payroll processing.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'Employee Lifecycle', desc: 'Onboarding to exit' },
-            { label: 'Indian Payroll', desc: 'TDS, PF, ESIC ready' },
-            { label: 'ESSL Integration', desc: 'Biometric attendance' },
-            { label: 'Leave & Attendance', desc: 'OD, WFH, Comp-off' },
+            { label: 'Employee Directory', desc: 'Lifecycle & Profiles' },
+            { label: 'Indian Statutory Payroll', desc: 'TDS, PF, ESIC Ready' },
+            { label: 'Biometric Integration', desc: 'eSSL Attendance Logs' },
+            { label: 'Leave Engine', desc: 'OD, WFH & Sandwich Rules' },
           ].map(item => (
-            <div key={item.label} className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <p className="text-white text-sm font-medium">{item.label}</p>
-              <p className="text-gray-500 text-xs mt-0.5">{item.desc}</p>
+            <div key={item.label} className="bg-[#111827] border border-slate-800/80 rounded p-3">
+              <p className="text-slate-200 text-xs font-semibold">{item.label}</p>
+              <p className="text-slate-500 text-[11px] font-mono mt-0.5">{item.desc}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right panel — login form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-[400px]">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
-                <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6z" />
-              </svg>
+      {/* Right panel — console login form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#0B0F19]">
+        <div className="w-full max-w-[380px]">
+          {/* Mobile branding */}
+          <div className="flex items-center gap-2.5 mb-6 lg:hidden">
+            <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center font-mono font-bold text-white text-xs">
+              H
             </div>
-            <span className="text-gray-900 font-semibold text-lg">HRMS</span>
+            <span className="text-slate-100 font-mono font-bold text-sm">HRMS CORE</span>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">Sign in</h2>
-            <p className="text-gray-500 text-sm mt-1">Enter your credentials to access the dashboard.</p>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-100">Sign In to Console</h2>
+            <p className="text-slate-400 text-xs font-mono mt-1">Authenticate your enterprise credentials.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email address
+              <label className="block text-xs font-mono text-slate-400 mb-1">
+                Corporate Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white transition-shadow"
+                className="w-full px-3 py-2 text-xs bg-[#111827] border border-slate-800 rounded text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
                 placeholder="you@company.com"
                 autoComplete="email"
                 required
@@ -105,13 +104,13 @@ export const Login = () => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-gray-700">Password</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-mono text-slate-400">Password</label>
                 <a
                   href="/forgot-password"
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-xs font-mono text-blue-400 hover:text-blue-300"
                 >
-                  Forgot password?
+                  Reset?
                 </a>
               </div>
               <div className="relative">
@@ -119,7 +118,7 @@ export const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white pr-10 transition-shadow"
+                  className="w-full px-3 py-2 text-xs bg-[#111827] border border-slate-800 rounded text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono pr-9"
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
@@ -127,16 +126,16 @@ export const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
                 >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
             </div>
 
             {loginMutation.isError && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
-                <AlertCircle size={15} className="shrink-0" />
+              <div className="flex items-center gap-2 p-2.5 bg-rose-500/10 border border-rose-500/20 rounded text-rose-400 text-xs font-mono">
+                <AlertCircle size={14} className="shrink-0" />
                 {loginMutation.error instanceof Error ? loginMutation.error.message : 'Invalid credentials'}
               </div>
             )}
@@ -144,20 +143,23 @@ export const Login = () => {
             <button
               type="submit"
               disabled={loginMutation.isPending || !email || !password}
-              className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors shadow-sm"
+              className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-semibold rounded disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
             >
               {loginMutation.isPending ? (
-                <><Loader2 size={15} className="animate-spin" /> Signing in...</>
+                <><Loader2 size={14} className="animate-spin" /> Authenticating...</>
               ) : (
-                'Sign in'
+                'Sign In to Workspace'
               )}
             </button>
           </form>
 
-          {/* Demo credentials */}
-          <div className="mt-8 p-4 bg-white border border-gray-200 rounded-lg">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Demo Credentials</p>
-            <div className="space-y-2">
+          {/* Quick Preset Accounts */}
+          <div className="mt-6 p-4 bg-[#111827] border border-slate-800/80 rounded">
+            <div className="flex items-center gap-1.5 text-slate-400 mb-2">
+              <ShieldCheck size={13} className="text-blue-400" />
+              <p className="text-[10px] font-mono uppercase tracking-wider font-semibold">Demo Role Presets</p>
+            </div>
+            <div className="space-y-1 text-xs font-mono">
               {[
                 { role: 'Super Admin', email: 'admin@company.com', pass: 'admin123' },
                 { role: 'HR Admin', email: 'hr@company.com', pass: 'hr123' },
@@ -168,10 +170,10 @@ export const Login = () => {
                   key={d.role}
                   type="button"
                   onClick={() => { setEmail(d.email); setPassword(d.pass) }}
-                  className="w-full flex items-center justify-between text-left px-3 py-2 hover:bg-gray-50 rounded-md transition-colors group"
+                  className="w-full flex items-center justify-between px-2 py-1 hover:bg-slate-800/60 rounded text-slate-300 transition-colors"
                 >
-                  <span className="text-xs font-medium text-gray-700">{d.role}</span>
-                  <span className="text-xs text-gray-400 font-mono group-hover:text-blue-600 transition-colors">{d.email}</span>
+                  <span>{d.role}</span>
+                  <span className="text-blue-400 text-[11px]">{d.email}</span>
                 </button>
               ))}
             </div>
