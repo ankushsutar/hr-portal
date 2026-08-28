@@ -31,6 +31,7 @@ import { OnboardingInstance } from './features/employees/onboarding/OnboardingIn
 import { BulkImportWizard } from './features/import/BulkImportWizard'
 import { ImportHistory } from './features/import/ImportHistory'
 import { ExitDashboard } from './features/lifecycle/ExitDashboard'
+import { MyAttendance } from './features/attendance/MyAttendance'
 
 // --- ROUTER SETUP ---
 
@@ -206,6 +207,13 @@ const exitRoute = createRoute({
   component: ExitDashboard,
 })
 
+
+const myAttendanceRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/my/attendance',
+  component: MyAttendance,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
@@ -230,7 +238,8 @@ const routeTree = rootRoute.addChildren([
     onboardingInstanceRoute,
     importRoute,
     importHistoryRoute,
-    exitRoute
+    exitRoute,
+    myAttendanceRoute
   ])
 ])
 

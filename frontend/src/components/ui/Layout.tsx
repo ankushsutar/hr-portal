@@ -1,12 +1,13 @@
-import { Link, Outlet } from '@tanstack/react-router'
-import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell } from 'lucide-react'
+import { Link, Outlet, useRouterState } from '@tanstack/react-router'
+import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Inbox', href: '/inbox', icon: Clock, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'My Attendance', href: '/my/attendance', icon: UserCheck, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Employees', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
-  { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Leave', href: '/leave', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Performance', href: '/performance', icon: Target, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
@@ -20,6 +21,12 @@ const navigation = [
 
 export const Layout = () => {
   const { user, logout, hasRole } = useAuth() as any
+  const routerState = useRouterState()
+  
+  // Try to find the title from navigation, default to Overview
+  const currentNav = navigation.find(n => n.href === routerState.location.pathname) || 
+                     navigation.find(n => routerState.location.pathname.startsWith(n.href) && n.href !== '/')
+  const pageTitle = currentNav ? currentNav.name : 'Overview'
 
   return (
     <div className="flex h-screen bg-[#F8FAFC] text-gray-900 font-sans overflow-hidden">
@@ -79,7 +86,7 @@ export const Layout = () => {
         {/* Glass Header */}
         <header className="h-20 bg-white/70 backdrop-blur-xl border-b border-gray-200/50 flex items-center justify-between px-10 sticky top-0 z-10 supports-[backdrop-filter]:bg-white/40">
           <div className="flex items-center">
-            <h1 className="text-2xl font-heading font-bold text-gray-800 tracking-tight">Overview</h1>
+            <h1 className="text-2xl font-heading font-bold text-gray-800 tracking-tight">{pageTitle}</h1>
           </div>
           <div className="flex items-center space-x-5">
             <button className="relative p-2.5 text-gray-400 hover:text-indigo-600 rounded-full hover:bg-indigo-50 transition-colors">

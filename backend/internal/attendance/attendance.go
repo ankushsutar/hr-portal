@@ -37,6 +37,10 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 	r.Post("/check-in", s.HandleCheckIn)
 	r.Post("/check-out", s.HandleCheckOut)
 	r.Post("/regularize", s.HandleRegularize)
+	
+	// Sprint 8
+	r.Post("/punch", s.HandlePunch)
+	r.Get("/daily", s.HandleDailyStatus)
 }
 
 func (s *Service) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
@@ -111,3 +115,69 @@ func (s *Service) HandleRegularize(w http.ResponseWriter, r *http.Request) {
 		"message": "Regularization request submitted and workflow triggered.",
 	})
 }
+
+// --- SPRINT 8 ---
+
+type PunchRequest struct {
+	EmployeeID string `json:"employee_id"`
+	Provider   string `json:"provider"`
+	PunchType  string `json:"punch_type"` // IN, OUT
+}
+
+func (s *Service) HandlePunch(w http.ResponseWriter, r *http.Request) {
+	var req PunchRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// --- DEMO BYPASS ---
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Punch recorded successfully",
+		"data": map[string]interface{}{
+			"employee_id": req.EmployeeID,
+			"punch_type":  req.PunchType,
+			"processed":   true,
+		},
+		"demo": true,
+	})
+	// --- END DEMO BYPASS ---
+}
+
+func (s *Service) HandleDailyStatus(w http.ResponseWriter, r *http.Request) {
+	// --- DEMO BYPASS ---
+	date := r.URL.Query().Get("date")
+	if date == "" {
+		date = "2026-08-28"
+	}
+
+	data := []map[string]interface{}{
+		{
+			"id": "ds-1", "employee_id": "EMP-001", "employee_name": "Alice Walker", 
+			"department": "Engineering", "date": date, "first_in": "09:05 AM", 
+			"last_out": "06:10 PM", "status": "PRESENT", "late_by_minutes": 5,
+		},
+		{
+			"id": "ds-2", "employee_id": "EMP-002", "employee_name": "Bob Smith", 
+			"department": "Design", "date": date, "first_in": "09:30 AM", 
+			"last_out": "--:--", "status": "LATE", "late_by_minutes": 30,
+		},
+		{
+			"id": "ds-3", "employee_id": "EMP-003", "employee_name": "Charlie Day", 
+			"department": "Marketing", "date": date, "first_in": "--:--", 
+			"last_out": "--:--", "status": "ABSENT", "late_by_minutes": 0,
+		},
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data":    data,
+		"demo":    true,
+	})
+	// --- END DEMO BYPASS ---
+}
+
