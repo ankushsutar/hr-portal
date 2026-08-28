@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router'
+import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet, useNavigate } from '@tanstack/react-router'
 import './index.css'
+
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { Login } from './features/auth/Login'
 
 import { Layout } from './components/ui/Layout'
 import { OrganizationList } from './features/organization/OrganizationList'
@@ -16,67 +19,102 @@ import { RecruitmentDashboard } from './features/recruitment/RecruitmentDashboar
 import { EmployeeServices } from './features/lifecycle/EmployeeServices'
 import { MainDashboard } from './features/dashboard/MainDashboard'
 
+import { Users } from './features/admin/Users'
+import { OnboardingTemplates } from './features/admin/OnboardingTemplates'
+import { BulkImportWizard } from './features/import/BulkImportWizard'
+
 // --- ROUTER SETUP ---
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth() as any
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate({ to: '/login' })
+    }
+  }, [user, isLoading, navigate])
+
+  if (isLoading || !user) return null
+  return <>{children}</>
+}
+
 const rootRoute = createRootRoute({
-  component: Layout,
+  component: () => <Outlet />,
+})
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: Login,
+})
+
+const appRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'app',
+  component: () => (
+    <ProtectedRoute>
+      <Layout />
+    </ProtectedRoute>
+  ),
 })
 
 const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/',
   component: MainDashboard,
 })
 
 const inboxRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/inbox',
   component: PendingApprovals,
 })
 
 const leaveRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/leave',
   component: LeaveDashboard,
 })
 
 const attendanceRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/attendance',
   component: AttendanceDashboard,
 })
 
 const payrollRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/payroll',
   component: PayrollDashboard,
 })
 
 const recruitmentRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/recruitment',
   component: RecruitmentDashboard,
 })
 
 const servicesRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/services',
   component: EmployeeServices,
 })
 
 const orgRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/organization',
   component: OrganizationList,
 })
 
 const empRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/employees',
   component: EmployeeDirectory,
 })
 
 const empProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appRoute,
   path: '/employees/$employeeId',
   component: () => {
     const { employeeId } = empProfileRoute.useParams()
@@ -84,7 +122,42 @@ const empProfileRoute = createRoute({
   },
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, inboxRoute, attendanceRoute, leaveRoute, payrollRoute, recruitmentRoute, servicesRoute, orgRoute, empRoute, empProfileRoute])
+const usersRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/users',
+  component: Users,
+})
+
+const onboardingRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/onboarding',
+  component: OnboardingTemplates,
+})
+
+const importRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/import',
+  component: BulkImportWizard,
+})
+
+const routeTree = rootRoute.addChildren([
+  loginRoute, 
+  appRoute.addChildren([
+    indexRoute, 
+    inboxRoute, 
+    attendanceRoute, 
+    leaveRoute, 
+    payrollRoute, 
+    recruitmentRoute, 
+    servicesRoute, 
+    orgRoute, 
+    empRoute, 
+    empProfileRoute,
+    usersRoute,
+    onboardingRoute,
+    importRoute
+  ])
+])
 
 const router = createRouter({ routeTree })
 
@@ -98,21 +171,35 @@ declare module '@tanstack/react-router' {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
       retry: 1,
     },
   },
 })
 
-// --- RENDER ---
-const rootElement = document.getElementById('root')!
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </React.StrictMode>
-  )
+// Add auth token to all fetch requests
+const originalFetch = window.fetch
+window.fetch = async (...args) => {
+  const [, config] = args
+  const token = localStorage.getItem('hrms_token')
+  if (token) {
+    if (config) {
+      config.headers = {
+        ...config.headers,
+        'Authorization': `Bearer ${token}`
+      }
+    } else {
+      args[1] = { headers: { 'Authorization': `Bearer ${token}` } }
+    }
+  }
+  return originalFetch(...args)
 }
+
+// --- RENDER ---
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} InnerWrap={({ children }) => <AuthProvider>{children}</AuthProvider>} />
+    </QueryClientProvider>
+  </React.StrictMode>
+)

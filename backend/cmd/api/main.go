@@ -11,13 +11,16 @@ import (
 	"time"
 
 	"github.com/company/hrms-backend/internal/attendance"
+	"github.com/company/hrms-backend/internal/auth"
 	"github.com/company/hrms-backend/internal/employee"
 	"github.com/company/hrms-backend/internal/leave"
 	"github.com/company/hrms-backend/internal/lifecycle"
+	"github.com/company/hrms-backend/internal/onboarding"
 	"github.com/company/hrms-backend/internal/organization"
 	"github.com/company/hrms-backend/internal/payroll"
 	"github.com/company/hrms-backend/internal/recruitment"
 	"github.com/company/hrms-backend/internal/reports"
+	"github.com/company/hrms-backend/internal/user"
 	"github.com/company/hrms-backend/internal/workflow"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -36,9 +39,24 @@ func main() {
 		port = "8080"
 	}
 
-	// Mock DB dependency for sprint 2/3/4/5/6/8/9/10
-	var db *pgxpool.Pool
+	// JWT Secret
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = "super-secret-hrms-key"
+	}
 
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		dbURL = "postgres://hrms_user:hrms_password@localhost:5432/hrms_db?sslmode=disable"
+	}
+	
+	db, err := pgxpool.New(context.Background(), dbURL)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer db.Close()
+
+	authService := auth.NewService(jwtSecret, db)
 	orgService := organization.NewService(db)
 	empService := employee.NewService(db)
 	wfService := workflow.NewService(db)
@@ -46,8 +64,10 @@ func main() {
 	attService := attendance.NewService(db)
 	payrollService := payroll.NewService(db)
 	recruitService := recruitment.NewService(db)
+	onboardingService := onboarding.NewService(db)
 	lifecycleService := lifecycle.NewService(db)
 	reportsService := reports.NewService(db)
+	userService := user.NewService(db)
 
 	r := chi.NewRouter()
 
@@ -76,40 +96,63 @@ func main() {
 			w.Write([]byte("pong"))
 		})
 
-		r.Route("/organization", func(r chi.Router) {
-			orgService.RegisterRoutes(r)
+		r.Route("/auth", func(r chi.Router) {
+			authService.RegisterRoutes(r)
 		})
 
-		r.Route("/employees", func(r chi.Router) {
-			empService.RegisterRoutes(r)
-		})
+		// Protected Routes Group
+		r.Group(func(r chi.Router) {
+			r.Use(authService.RequireAuth)
 
-		r.Route("/workflows", func(r chi.Router) {
-			wfService.RegisterRoutes(r)
-		})
+			r.Route("/organization", func(r chi.Router) {
+				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
+				orgService.RegisterRoutes(r)
+			})
 
-		r.Route("/leave", func(r chi.Router) {
-			leaveService.RegisterRoutes(r)
-		})
+			r.Route("/employees", func(r chi.Router) {
+				empService.RegisterRoutes(r)
+			})
 
-		r.Route("/attendance", func(r chi.Router) {
-			attService.RegisterRoutes(r)
-		})
+			r.Route("/workflows", func(r chi.Router) {
+				wfService.RegisterRoutes(r)
+			})
 
-		r.Route("/payroll", func(r chi.Router) {
-			payrollService.RegisterRoutes(r)
-		})
+			r.Route("/leave", func(r chi.Router) {
+				leaveService.RegisterRoutes(r)
+			})
 
-		r.Route("/recruitment", func(r chi.Router) {
-			recruitService.RegisterRoutes(r)
-		})
+			r.Route("/attendance", func(r chi.Router) {
+				attService.RegisterRoutes(r)
+			})
 
-		r.Route("/lifecycle", func(r chi.Router) {
-			lifecycleService.RegisterRoutes(r)
-		})
+			r.Route("/payroll", func(r chi.Router) {
+				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
+				payrollService.RegisterRoutes(r)
+			})
 
-		r.Route("/reports", func(r chi.Router) {
-			reportsService.RegisterRoutes(r)
+			r.Route("/recruitment", func(r chi.Router) {
+				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
+				recruitService.RegisterRoutes(r)
+			})
+
+			r.Route("/lifecycle", func(r chi.Router) {
+				lifecycleService.RegisterRoutes(r)
+			})
+
+			r.Route("/reports", func(r chi.Router) {
+				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
+				reportsService.RegisterRoutes(r)
+			})
+
+			r.Route("/users", func(r chi.Router) {
+				r.Use(authService.RequireRole("SUPER_ADMIN"))
+				userService.RegisterRoutes(r)
+			})
+			
+			r.Route("/onboarding", func(r chi.Router) {
+				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
+				onboardingService.RegisterRoutes(r)
+			})
 		})
 	})
 
