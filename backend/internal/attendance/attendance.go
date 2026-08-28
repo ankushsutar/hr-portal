@@ -41,6 +41,13 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 	// Sprint 8
 	r.Post("/punch", s.HandlePunch)
 	r.Get("/daily", s.HandleDailyStatus)
+
+	// Sprint 9
+	r.Post("/requests", s.HandleSubmitRequest)
+	r.Get("/requests/me", s.HandleMyRequests)
+	r.Get("/requests/pending", s.HandlePendingApprovals)
+	r.Post("/requests/{id}/approve", s.HandleApproveRequest)
+	r.Post("/requests/{id}/reject", s.HandleRejectRequest)
 }
 
 func (s *Service) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
