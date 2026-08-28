@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import * as Tabs from '@radix-ui/react-tabs'
 import {
   User, Briefcase, FileText, History, Mail, Phone, MapPin,
-  Shield, Calendar, CreditCard, ArrowLeft, Upload
+  Shield, Calendar, CreditCard, ArrowLeft, Upload, UserMinus
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -114,6 +114,7 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
               { id: 'statutory', icon: CreditCard, label: 'Statutory' },
               { id: 'documents', icon: FileText, label: 'Documents' },
               { id: 'timeline', icon: History, label: 'Timeline' },
+              { id: 'offboarding', icon: UserMinus, label: 'Offboarding' },
             ].map(t => (
               <Tabs.Trigger
                 key={t.id}
@@ -240,6 +241,12 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
               <div className="max-w-2xl">
                 <h3 className="text-sm font-semibold text-gray-900 mb-6 border-b border-gray-100 pb-2">Employee Lifecycle</h3>
                 <EmployeeTimeline employeeId={employeeId} />
+              </div>
+            </Tabs.Content>
+            
+            <Tabs.Content value="offboarding" className="outline-none">
+              <div className="max-w-4xl">
+                <EmployeeOffboarding employeeId={employeeId} />
               </div>
             </Tabs.Content>
           </div>
@@ -374,6 +381,67 @@ const EmployeeDocuments = ({ employeeId }: { employeeId: string }) => {
           <div className="col-span-full py-12 text-center text-gray-500 border-2 border-dashed border-gray-100 rounded-xl">
             No documents uploaded yet.
           </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const EmployeeOffboarding = ({ employeeId }: { employeeId: string }) => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['employee-clearance', employeeId],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/lifecycle/exits/${employeeId}/clearance`)
+      if (!res.ok) throw new Error('Failed to fetch clearance tasks')
+      return res.json()
+    }
+  })
+
+  if (isLoading) return <div className="py-8 text-gray-500">Loading offboarding details...</div>
+
+  const tasks = data?.data || []
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-orange-50 text-orange-800 p-4 rounded-xl border border-orange-100 flex items-start gap-3">
+        <UserMinus className="w-5 h-5 mt-0.5 flex-shrink-0" />
+        <div>
+          <h4 className="font-semibold">Employee is serving notice period</h4>
+          <p className="text-sm mt-1 text-orange-700">Last working day is scheduled for September 15, 2026. Please complete the clearance checklist below.</p>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+          <h3 className="font-semibold text-gray-900">Clearance Checklist</h3>
+        </div>
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-gray-50/20 border-b border-gray-100">
+              <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Department</th>
+              <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Task Description</th>
+              <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {tasks.map((t: any) => (
+              <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{t.department}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{t.task_description}</td>
+                <td className="px-6 py-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={t.status === 'COMPLETED'} readOnly className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
+                    <span className={`text-xs font-bold uppercase ${t.status === 'COMPLETED' ? 'text-green-600' : 'text-gray-400'}`}>
+                      {t.status}
+                    </span>
+                  </label>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {tasks.length === 0 && (
+          <div className="p-8 text-center text-gray-500">No clearance tasks assigned.</div>
         )}
       </div>
     </div>

@@ -50,6 +50,12 @@ func NewService(db *pgxpool.Pool) *Service {
 func (s *Service) RegisterRoutes(r chi.Router) {
 	r.Get("/probation-due", s.HandleGetProbationDue)
 	r.Get("/employees/{id}/timeline", s.HandleGetEmployeeTimeline)
+	
+	// Sprint 7: Exits
+	r.Post("/exits", s.HandleSubmitResignation)
+	r.Get("/exits", s.HandleListExits)
+	r.Post("/exits/{id}/approve", s.HandleApproveExit)
+	r.Get("/exits/{id}/clearance", s.HandleGetClearance)
 }
 
 func (s *Service) HandleGetProbationDue(w http.ResponseWriter, r *http.Request) {
