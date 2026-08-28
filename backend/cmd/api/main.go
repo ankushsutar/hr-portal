@@ -100,6 +100,13 @@ func main() {
 			authService.RegisterRoutes(r)
 		})
 
+		// /auth/me and /auth/logout require auth
+		r.Group(func(r chi.Router) {
+			r.Use(authService.RequireAuth)
+			r.Get("/auth/me", authService.HandleMe)
+			r.Post("/auth/logout", authService.HandleLogout)
+		})
+
 		// Protected Routes Group
 		r.Group(func(r chi.Router) {
 			r.Use(authService.RequireAuth)
@@ -145,7 +152,7 @@ func main() {
 			})
 
 			r.Route("/users", func(r chi.Router) {
-				r.Use(authService.RequireRole("SUPER_ADMIN"))
+				r.Use(authService.RequireRole("SUPER_ADMIN", "HR_ADMIN"))
 				userService.RegisterRoutes(r)
 			})
 			

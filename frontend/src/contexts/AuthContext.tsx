@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { useRouter } from '@tanstack/react-router'
 
-interface User {
+export type DataScope = 'SELF' | 'DIRECT_REPORTS' | 'DEPARTMENT' | 'ORGANIZATION' | 'SALARY_ACCESS'
+
+export interface User {
   id: string
   email: string
   roles: string[]
+  scope?: DataScope
 }
 
 interface AuthContextType {
@@ -13,6 +16,16 @@ interface AuthContextType {
   login: (token: string, user: User) => void
   logout: () => void
   hasRole: (roles: string[]) => boolean
+  hasScope: (minScope: DataScope) => boolean
+  isLoading: boolean
+}
+
+const scopePower: Record<DataScope, number> = {
+  SELF: 1,
+  DIRECT_REPORTS: 2,
+  DEPARTMENT: 3,
+  ORGANIZATION: 4,
+  SALARY_ACCESS: 5,
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -24,13 +37,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter()
 
   useEffect(() => {
-    // Check local storage on mount
     const storedToken = localStorage.getItem('hrms_token')
     const storedUser = localStorage.getItem('hrms_user')
-    
     if (storedToken && storedUser) {
-      setToken(storedToken)
-      setUser(JSON.parse(storedUser))
+      try {
+        setToken(storedToken)
+        setUser(JSON.parse(storedUser))
+      } catch {
+        localStorage.removeItem('hrms_token')
+        localStorage.removeItem('hrms_user')
+      }
     }
     setIsLoading(false)
   }, [])
@@ -43,7 +59,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.navigate({ to: '/' })
   }
 
-  const logout = () => {
+  const logout = async () => {
+    // Notify backend
+    if (token) {
+      fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {})
+    }
     setToken(null)
     setUser(null)
     localStorage.removeItem('hrms_token')
@@ -57,10 +80,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return allowedRoles.some(role => user.roles.includes(role))
   }
 
-  if (isLoading) return null
+  const hasScope = (minScope: DataScope) => {
+    if (!user) return false
+    const currentScope = user.scope ?? 'SELF'
+    return scopePower[currentScope] >= scopePower[minScope]
+  }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, hasRole }}>
+    <AuthContext.Provider value={{ user, token, login, logout, hasRole, hasScope, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

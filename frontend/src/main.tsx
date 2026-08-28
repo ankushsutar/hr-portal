@@ -6,6 +6,8 @@ import './index.css'
 
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { Login } from './features/auth/Login'
+import { ForgotPassword } from './features/auth/ForgotPassword'
+import { ResetPassword } from './features/auth/ResetPassword'
 
 import { Layout } from './components/ui/Layout'
 import { OrganizationList } from './features/organization/OrganizationList'
@@ -47,6 +49,21 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   component: Login,
+})
+
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/forgot-password',
+  component: ForgotPassword,
+})
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/reset-password',
+  component: ResetPassword,
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: (search.token as string) ?? '',
+  }),
 })
 
 const appRoute = createRoute({
@@ -141,7 +158,9 @@ const importRoute = createRoute({
 })
 
 const routeTree = rootRoute.addChildren([
-  loginRoute, 
+  loginRoute,
+  forgotPasswordRoute,
+  resetPasswordRoute,
   appRoute.addChildren([
     indexRoute, 
     inboxRoute, 
