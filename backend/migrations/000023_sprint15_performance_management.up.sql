@@ -1,0 +1,54 @@
+-- Sprint 15: Performance & Appraisal Management
+
+CREATE TABLE IF NOT EXISTS performance_cycles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(150) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PLANNED', -- PLANNED, ACTIVE, REVIEW_IN_PROGRESS, COMPLETED
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS performance_goals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    cycle_id UUID REFERENCES performance_cycles(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(50) DEFAULT 'INDIVIDUAL', -- INDIVIDUAL, TEAM, COMPANY
+    target_value NUMERIC(10, 2) DEFAULT 100.00,
+    current_value NUMERIC(10, 2) DEFAULT 0.00,
+    weightage INT DEFAULT 20, -- Percentage weight
+    status VARCHAR(50) DEFAULT 'IN_PROGRESS', -- NOT_STARTED, IN_PROGRESS, COMPLETED, CANCELLED
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS performance_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    cycle_id UUID NOT NULL REFERENCES performance_cycles(id) ON DELETE CASCADE,
+    employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    reviewer_id UUID REFERENCES employees(id) ON DELETE SET NULL,
+    self_rating NUMERIC(3, 2), -- 1.00 to 5.00
+    self_comments TEXT,
+    manager_rating NUMERIC(3, 2), -- 1.00 to 5.00
+    manager_comments TEXT,
+    final_score NUMERIC(3, 2),
+    status VARCHAR(50) DEFAULT 'DRAFT', -- DRAFT, SUBMITTED_SELF, SUBMITTED_MANAGER, LOCKED
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pip_plans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    manager_id UUID REFERENCES employees(id) ON DELETE SET NULL,
+    reason TEXT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, EXTENDED, SUCCESSFUL, UNSUCCESSFUL
+    remarks TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

@@ -35,6 +35,7 @@ import { ExitDashboard } from './features/lifecycle/ExitDashboard'
 import { MyAttendance } from './features/attendance/MyAttendance'
 import { DataQualityCenter } from './features/reports/DataQualityCenter'
 import { ReportsDashboard } from './features/reports/ReportsDashboard'
+import { PerformanceDashboard } from './features/performance/PerformanceDashboard'
 
 // --- ROUTER SETUP ---
 
@@ -235,6 +236,12 @@ const reportsRoute = createRoute({
   component: ReportsDashboard,
 })
 
+const performanceRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/performance',
+  component: PerformanceDashboard,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
@@ -245,6 +252,7 @@ const routeTree = rootRoute.addChildren([
     hrTasksRoute,
     dataQualityRoute,
     reportsRoute,
+    performanceRoute,
     attendanceRoute, 
     leaveRoute, 
     payrollRoute, 

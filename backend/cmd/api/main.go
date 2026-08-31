@@ -20,6 +20,7 @@ import (
 	"github.com/company/hrms-backend/internal/onboarding"
 	"github.com/company/hrms-backend/internal/organization"
 	"github.com/company/hrms-backend/internal/payroll"
+	"github.com/company/hrms-backend/internal/performance"
 	"github.com/company/hrms-backend/internal/recruitment"
 	"github.com/company/hrms-backend/internal/reports"
 	"github.com/company/hrms-backend/internal/user"
@@ -72,6 +73,7 @@ func main() {
 	importService := importer.NewService(db)
 	reportsService := reports.NewService(db)
 	userService := user.NewService(db)
+	perfService := performance.NewService(db)
 
 	r := chi.NewRouter()
 
@@ -172,6 +174,10 @@ func main() {
 			r.Route("/onboarding", func(r chi.Router) {
 				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
 				onboardingService.RegisterRoutes(r)
+			})
+
+			r.Route("/performance", func(r chi.Router) {
+				perfService.RegisterRoutes(r)
 			})
 		})
 	})
