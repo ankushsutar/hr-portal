@@ -98,42 +98,41 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetRuns(w http.ResponseWriter, r *http.Request) {
-	now := time.Now()
-	runs := []PayrollRun{
-		{
-			ID:                    "prun-082026",
-			Month:                 8,
-			Year:                  2026,
-			Status:                "VALIDATED",
-			TotalEmployees:        128,
-			TotalGross:            4500000.00,
-			TotalDeductions:       380000.00,
-			TotalNetPay:           4120000.00,
-			TotalLopDays:          12.5,
-			TotalAdvancesDeducted: 45000.00,
-			VariancePercentage:    2.4,
-			CreatedAt:             now.Add(-48 * time.Hour),
-		},
-		{
-			ID:                    "prun-072026",
-			Month:                 7,
-			Year:                  2026,
-			Status:                "PUBLISHED",
-			TotalEmployees:        125,
-			TotalGross:            4400000.00,
-			TotalDeductions:       370000.00,
-			TotalNetPay:           4030000.00,
-			TotalLopDays:          8.0,
-			TotalAdvancesDeducted: 30000.00,
-			VariancePercentage:    1.8,
-			ApprovedBy:            stringPtr("EMP-001"),
-			ApprovedAt:            timePtr(now.Add(-720 * time.Hour)),
-			LockedAt:              timePtr(now.Add(-718 * time.Hour)),
-			CreatedAt:             now.Add(-730 * time.Hour),
-		},
+	w.Header().Set("Content-Type", "application/json")
+	if s.db == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	rows, err := s.db.Query(r.Context(), `
+		SELECT id::text, month, year, status, total_employees,
+		       total_gross, total_deductions, total_net_pay, total_lop_days,
+		       total_advances_deducted, variance_percentage, created_at
+		FROM payroll_runs ORDER BY year DESC, month DESC
+	`)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var runs []PayrollRun
+	for rows.Next() {
+		var pr PayrollRun
+		if err := rows.Scan(
+			&pr.ID, &pr.Month, &pr.Year, &pr.Status, &pr.TotalEmployees,
+			&pr.TotalGross, &pr.TotalDeductions, &pr.TotalNetPay, &pr.TotalLopDays,
+			&pr.TotalAdvancesDeducted, &pr.VariancePercentage, &pr.CreatedAt,
+		); err == nil {
+			runs = append(runs, pr)
+		}
+	}
+	if runs == nil {
+		runs = []PayrollRun{}
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data":    runs,
@@ -147,26 +146,17 @@ func (s *Service) HandleProcessPayroll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newRun := PayrollRun{
-		ID:                    "prun-new",
-		Month:                 req.Month,
-		Year:                  req.Year,
-		Status:                "PROCESSING",
-		TotalEmployees:        128,
-		TotalGross:            4500000.00,
-		TotalDeductions:       380000.00,
-		TotalNetPay:           4120000.00,
-		TotalLopDays:          12.5,
-		TotalAdvancesDeducted: 45000.00,
-		VariancePercentage:    2.4,
-		CreatedAt:             time.Now(),
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
-		"message": "Payroll processing calculated successfully.",
-		"data":    newRun,
+		"message": "Payroll calculation triggered for period.",
 	})
 }
 
@@ -175,6 +165,13 @@ func (s *Service) HandleTransitionState(w http.ResponseWriter, r *http.Request) 
 	var req TransitionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
 		return
 	}
 
@@ -200,29 +197,40 @@ func (s *Service) HandleTransitionState(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Service) HandleGetAdvances(w http.ResponseWriter, r *http.Request) {
-	advances := []PayrollAdvance{
-		{
-			ID:              "adv-101",
-			EmployeeID:      "EMP-1024",
-			EmployeeName:    "Alice Walker",
-			Amount:          25000.00,
-			Reason:          "Emergency Medical Expense",
-			DeductFromMonth: 8,
-			DeductFromYear:  2026,
-			Status:          "APPROVED",
-			CreatedAt:       time.Now().Add(-120 * time.Hour),
-		},
-		{
-			ID:              "adv-102",
-			EmployeeID:      "EMP-1088",
-			EmployeeName:    "Bob Smith",
-			Amount:          20000.00,
-			Reason:          "Festival Relocation",
-			DeductFromMonth: 8,
-			DeductFromYear:  2026,
-			Status:          "PENDING",
-			CreatedAt:       time.Now().Add(-24 * time.Hour),
-		},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT sa.id::text, e.employee_id, e.first_name || ' ' || e.last_name,
+		       sa.amount, sa.reason, sa.deduct_from_month, sa.deduct_from_year,
+		       sa.status, sa.created_at
+		FROM salary_advances sa
+		JOIN employees e ON sa.employee_id = e.id
+		ORDER BY sa.created_at DESC
+	`)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "data": []PayrollAdvance{}})
+		return
+	}
+	defer rows.Close()
+
+	var advances []PayrollAdvance
+	for rows.Next() {
+		var pa PayrollAdvance
+		if err := rows.Scan(
+			&pa.ID, &pa.EmployeeID, &pa.EmployeeName, &pa.Amount, &pa.Reason,
+			&pa.DeductFromMonth, &pa.DeductFromYear, &pa.Status, &pa.CreatedAt,
+		); err == nil {
+			advances = append(advances, pa)
+		}
+	}
+	if advances == nil {
+		advances = []PayrollAdvance{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -239,28 +247,28 @@ func (s *Service) HandleCreateAdvance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newAdv := PayrollAdvance{
-		ID:              "adv-" + time.Now().Format("05"),
-		EmployeeID:      req.EmployeeID,
-		EmployeeName:    "Employee " + req.EmployeeID,
-		Amount:          req.Amount,
-		Reason:          req.Reason,
-		DeductFromMonth: req.DeductFromMonth,
-		DeductFromYear:  req.DeductFromYear,
-		Status:          "PENDING",
-		CreatedAt:       time.Now(),
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"message": "Salary advance request created successfully.",
-		"data":    newAdv,
 	})
 }
 
 func (s *Service) HandleApproveAdvance(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
@@ -269,52 +277,52 @@ func (s *Service) HandleApproveAdvance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleGetPayslips(w http.ResponseWriter, r *http.Request) {
-	slips := []Payslip{
-		{
-			ID:              "ps-1",
-			EmployeeID:      "EMP-1024",
-			EmployeeName:    "Alice Walker",
-			Designation:     "Senior Backend Engineer",
-			Department:      "Engineering",
-			Month:           "August",
-			Year:            2026,
-			BasicPay:        45000,
-			HRA:             22500,
-			SpecialAllowance: 12500,
-			LopDeduction:    0,
-			AdvanceDeduction: 5000,
-			PF:              1800,
-			TDS:             3200,
-			PTax:            200,
-			TotalEarnings:   80000,
-			TotalDeductions: 10200,
-			NetPay:          69800,
-			Status:          "PUBLISHED",
-		},
-		{
-			ID:              "ps-2",
-			EmployeeID:      "EMP-1088",
-			EmployeeName:    "Bob Smith",
-			Designation:     "Product Designer",
-			Department:      "Design",
-			Month:           "August",
-			Year:            2026,
-			BasicPay:        40000,
-			HRA:             20000,
-			SpecialAllowance: 10000,
-			LopDeduction:    2333.33,
-			AdvanceDeduction: 0,
-			PF:              1800,
-			TDS:             2500,
-			PTax:            200,
-			TotalEarnings:   70000,
-			TotalDeductions: 6833.33,
-			NetPay:          63166.67,
-			Status:          "VALIDATED",
-		},
+	w.Header().Set("Content-Type", "application/json")
+	if s.db == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	rows, err := s.db.Query(r.Context(), `
+		SELECT ps.id::text, e.employee_id, e.first_name || ' ' || e.last_name as employee_name,
+		       COALESCE(des.name, 'Engineer') as designation,
+		       COALESCE(d.name, 'Engineering') as department,
+		       to_char(to_date(pr.month::text, 'MM'), 'Month') as month,
+		       pr.year, ps.basic_pay, ps.hra, (ps.total_earnings - ps.basic_pay - ps.hra) as special_allowance,
+		       0.0 as lop_deduction, 0.0 as advance_deduction, (ps.basic_pay * 0.12) as pf, (ps.total_earnings * 0.10) as tds, 200.0 as ptax,
+		       ps.total_earnings, ps.total_deductions, ps.net_pay, ps.status
+		FROM payslips ps
+		JOIN employees e ON ps.employee_id = e.id
+		LEFT JOIN payroll_runs pr ON ps.payroll_run_id = pr.id
+		LEFT JOIN departments d ON e.department_id = d.id
+		LEFT JOIN designations des ON e.designation_id = des.id
+		ORDER BY e.employee_id ASC
+	`)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var slips []Payslip
+	for rows.Next() {
+		var p Payslip
+		if err := rows.Scan(
+			&p.ID, &p.EmployeeID, &p.EmployeeName, &p.Designation, &p.Department,
+			&p.Month, &p.Year, &p.BasicPay, &p.HRA, &p.SpecialAllowance,
+			&p.LopDeduction, &p.AdvanceDeduction, &p.PF, &p.TDS, &p.PTax,
+			&p.TotalEarnings, &p.TotalDeductions, &p.NetPay, &p.Status,
+		); err == nil {
+			slips = append(slips, p)
+		}
+	}
+	if slips == nil {
+		slips = []Payslip{}
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data":    slips,
@@ -323,32 +331,45 @@ func (s *Service) HandleGetPayslips(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) HandleGetPayslipDetails(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	details := Payslip{
-		ID:              id,
-		EmployeeID:      "EMP-1024",
-		EmployeeName:    "Alice Walker",
-		Designation:     "Senior Backend Engineer",
-		Department:      "Engineering",
-		Month:           "August",
-		Year:            2026,
-		BasicPay:        45000,
-		HRA:             22500,
-		SpecialAllowance: 12500,
-		LopDeduction:    0,
-		AdvanceDeduction: 5000,
-		PF:              1800,
-		TDS:             3200,
-		PTax:            200,
-		TotalEarnings:   80000,
-		TotalDeductions: 10200,
-		NetPay:          69800,
-		Status:          "PUBLISHED",
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
+	var p Payslip
+	err := s.db.QueryRow(r.Context(), `
+		SELECT ps.id::text, e.employee_id, e.first_name || ' ' || e.last_name as employee_name,
+		       COALESCE(des.name, 'Engineer') as designation,
+		       COALESCE(d.name, 'Engineering') as department,
+		       to_char(to_date(ps.month::text, 'MM'), 'Month') as month,
+		       ps.year, ps.basic_pay, ps.hra, ps.special_allowance,
+		       ps.lop_deduction, ps.advance_deduction, ps.pf, ps.tds, ps.ptax,
+		       ps.total_earnings, ps.total_deductions, ps.net_pay, ps.status
+		FROM payroll_payslips ps
+		JOIN employees e ON ps.employee_id = e.id
+		LEFT JOIN departments d ON e.department_id = d.id
+		LEFT JOIN designations des ON e.designation_id = des.id
+		WHERE ps.id::text = $1 OR e.employee_id = $1
+	`, id).Scan(
+		&p.ID, &p.EmployeeID, &p.EmployeeName, &p.Designation, &p.Department,
+		&p.Month, &p.Year, &p.BasicPay, &p.HRA, &p.SpecialAllowance,
+		&p.LopDeduction, &p.AdvanceDeduction, &p.PF, &p.TDS, &p.PTax,
+		&p.TotalEarnings, &p.TotalDeductions, &p.NetPay, &p.Status,
+	)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "payslip not found: " + err.Error()})
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
-		"data":    details,
+		"data":    p,
 	})
 }
 

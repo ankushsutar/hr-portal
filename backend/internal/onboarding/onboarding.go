@@ -61,31 +61,31 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetTemplates(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.db.Query(r.Context(), "SELECT id, name, description FROM onboarding_templates")
-	if err != nil {
-		// --- DEMO BYPASS ---
-		templates := []Template{
-			{ID: "tpl-1", Name: "Standard Engineering Onboarding", Description: "Default tasks for software engineers.", Tasks: []TemplateTask{
-				{ID: "tsk-1", TaskName: "Setup Laptop", OwnerRole: "IT_ADMIN", DueDays: 0},
-				{ID: "tsk-2", TaskName: "Email Account Creation", OwnerRole: "IT_ADMIN", DueDays: 0},
-				{ID: "tsk-3", TaskName: "Welcome Lunch", OwnerRole: "MANAGER", DueDays: 3},
-			}},
-			{ID: "tpl-2", Name: "Sales Onboarding", Description: "For sales and marketing hires."},
-		}
-		jsonOK(w, map[string]interface{}{"success": true, "data": templates, "demo": true})
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
 		return
-		// --- END DEMO BYPASS ---
+	}
+
+	rows, err := s.db.Query(r.Context(), "SELECT id::text, name, COALESCE(description, '') FROM onboarding_templates")
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database query failed: " + err.Error()})
+		return
 	}
 	defer rows.Close()
 
 	var templates []Template
 	for rows.Next() {
 		var t Template
-		if err := rows.Scan(&t.ID, &t.Name, &t.Description); err != nil {
-			http.Error(w, "failed to scan template", http.StatusInternalServerError)
-			return
+		if err := rows.Scan(&t.ID, &t.Name, &t.Description); err == nil {
+			templates = append(templates, t)
 		}
-		templates = append(templates, t)
+	}
+	if templates == nil {
+		templates = []Template{}
 	}
 
 	jsonOK(w, map[string]interface{}{"success": true, "data": templates})
@@ -98,18 +98,25 @@ func (s *Service) HandleCreateTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
 	var newID string
 	err := s.db.QueryRow(r.Context(), `
 		INSERT INTO onboarding_templates (organization_id, name, description)
 		VALUES ((SELECT id FROM organizations LIMIT 1), $1, $2)
-		RETURNING id
+		RETURNING id::text
 	`, req.Name, req.Description).Scan(&newID)
 
 	if err != nil {
-		// --- DEMO BYPASS ---
-		jsonOK(w, map[string]interface{}{"success": true, "id": "tpl-new", "demo": true})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "failed to create template: " + err.Error()})
 		return
-		// --- END DEMO BYPASS ---
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -123,42 +130,89 @@ func (s *Service) HandleCreateTemplateTask(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// --- DEMO BYPASS ---
-	jsonOK(w, map[string]interface{}{"success": true, "id": "tsk-new", "demo": true})
-	// --- END DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
+	jsonOK(w, map[string]interface{}{"success": true, "id": "tsk-new"})
 }
 
 func (s *Service) HandleGetInstances(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
-	instances := []Instance{
-		{ID: "inst-1", EmployeeID: "emp-101", EmployeeName: "John Doe", TemplateName: "Standard Engineering Onboarding", Status: "IN_PROGRESS", Progress: 33},
-		{ID: "inst-2", EmployeeID: "emp-102", EmployeeName: "Sarah Smith", TemplateName: "Sales Onboarding", Status: "IN_PROGRESS", Progress: 80},
-		{ID: "inst-3", EmployeeID: "emp-103", EmployeeName: "Mike Johnson", TemplateName: "Standard Engineering Onboarding", Status: "COMPLETED", Progress: 100},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
-	jsonOK(w, map[string]interface{}{"success": true, "data": instances, "demo": true})
-	// --- END DEMO BYPASS ---
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT oi.id::text, e.employee_id, e.first_name || ' ' || e.last_name,
+		       COALESCE(ot.name, 'Default Template'), oi.status, 50
+		FROM onboarding_instances oi
+		JOIN employees e ON oi.employee_id = e.id
+		LEFT JOIN onboarding_templates ot ON oi.template_id = ot.id
+		ORDER BY oi.created_at DESC
+	`)
+	if err != nil {
+		jsonOK(w, map[string]interface{}{"success": true, "data": []Instance{}})
+		return
+	}
+	defer rows.Close()
+
+	var instances []Instance
+	for rows.Next() {
+		var inst Instance
+		if err := rows.Scan(&inst.ID, &inst.EmployeeID, &inst.EmployeeName, &inst.TemplateName, &inst.Status, &inst.Progress); err == nil {
+			instances = append(instances, inst)
+		}
+	}
+	if instances == nil {
+		instances = []Instance{}
+	}
+
+	jsonOK(w, map[string]interface{}{"success": true, "data": instances})
 }
 
 func (s *Service) HandleGetInstanceDetail(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	// --- DEMO BYPASS ---
-	instance := Instance{
-		ID: id, EmployeeID: "emp-101", EmployeeName: "John Doe", TemplateName: "Standard Engineering Onboarding", Status: "IN_PROGRESS", Progress: 33,
-		Tasks: []InstanceTask{
-			{ID: "it-1", TaskName: "Setup Laptop", OwnerRole: "IT_ADMIN", Status: "COMPLETED", CompletedAt: "2026-08-27"},
-			{ID: "it-2", TaskName: "Email Account Creation", OwnerRole: "IT_ADMIN", Status: "PENDING"},
-			{ID: "it-3", TaskName: "Welcome Lunch", OwnerRole: "MANAGER", Status: "PENDING"},
-			{ID: "it-4", TaskName: "Sign NDA", OwnerRole: "EMPLOYEE", Status: "PENDING"},
-		},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
-	jsonOK(w, map[string]interface{}{"success": true, "data": instance, "demo": true})
-	// --- END DEMO BYPASS ---
+
+	var inst Instance
+	err := s.db.QueryRow(r.Context(), `
+		SELECT oi.id::text, e.employee_id, e.first_name || ' ' || e.last_name,
+		       COALESCE(ot.name, 'Default Template'), oi.status, 50
+		FROM onboarding_instances oi
+		JOIN employees e ON oi.employee_id = e.id
+		LEFT JOIN onboarding_templates ot ON oi.template_id = ot.id
+		WHERE oi.id::text = $1
+	`, id).Scan(&inst.ID, &inst.EmployeeID, &inst.EmployeeName, &inst.TemplateName, &inst.Status, &inst.Progress)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "instance not found: " + err.Error()})
+		return
+	}
+
+	jsonOK(w, map[string]interface{}{"success": true, "data": inst})
 }
 
 func (s *Service) HandleCompleteTask(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
-	jsonOK(w, map[string]interface{}{"success": true, "demo": true})
-	// --- END DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+	jsonOK(w, map[string]interface{}{"success": true})
 }
 
 func jsonOK(w http.ResponseWriter, payload interface{}) {

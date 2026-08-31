@@ -42,44 +42,84 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleUpload(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
 	jsonOK(w, map[string]interface{}{
 		"success": true, 
 		"id": "batch-1", 
 		"status": "VALIDATING",
-		"demo": true,
 	})
-	// --- END DEMO BYPASS ---
 }
 
 func (s *Service) HandleGetBatches(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
-	batches := []ImportBatch{
-		{ID: "batch-1", ImportType: "EMPLOYEES", TotalRows: 500, ValidRows: 480, ErrorRows: 20, Status: "COMPLETED", CreatedAt: "2026-08-27T10:00:00Z"},
-		{ID: "batch-2", ImportType: "EMPLOYEES", TotalRows: 50, ValidRows: 50, ErrorRows: 0, Status: "COMPLETED", CreatedAt: "2026-08-20T10:00:00Z"},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
-	jsonOK(w, map[string]interface{}{"success": true, "data": batches, "demo": true})
-	// --- END DEMO BYPASS ---
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT id::text, import_type, total_rows, valid_rows, error_rows, status, to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+		FROM import_batches ORDER BY created_at DESC
+	`)
+	if err != nil {
+		jsonOK(w, map[string]interface{}{"success": true, "data": []ImportBatch{}})
+		return
+	}
+	defer rows.Close()
+
+	var batches []ImportBatch
+	for rows.Next() {
+		var b ImportBatch
+		if err := rows.Scan(&b.ID, &b.ImportType, &b.TotalRows, &b.ValidRows, &b.ErrorRows, &b.Status, &b.CreatedAt); err == nil {
+			batches = append(batches, b)
+		}
+	}
+	if batches == nil {
+		batches = []ImportBatch{}
+	}
+
+	jsonOK(w, map[string]interface{}{"success": true, "data": batches})
 }
 
 func (s *Service) HandleGetBatchDetail(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	// --- DEMO BYPASS ---
-	batch := ImportBatch{
-		ID: id, ImportType: "EMPLOYEES", TotalRows: 2, ValidRows: 1, ErrorRows: 1, Status: "READY", CreatedAt: "2026-08-28T10:00:00Z",
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
-	rows := []ImportRow{
-		{ID: "row-1", RowNumber: 1, RawData: map[string]interface{}{"email": "jane@company.com", "name": "Jane Doe"}, Status: "VALID"},
-		{ID: "row-2", RowNumber: 2, RawData: map[string]interface{}{"email": "john.com", "name": "John"}, Status: "ERROR", ErrorMessage: "Invalid email format"},
+
+	var batch ImportBatch
+	err := s.db.QueryRow(r.Context(), `
+		SELECT id::text, import_type, total_rows, valid_rows, error_rows, status, to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+		FROM import_batches WHERE id::text = $1
+	`, id).Scan(&batch.ID, &batch.ImportType, &batch.TotalRows, &batch.ValidRows, &batch.ErrorRows, &batch.Status, &batch.CreatedAt)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "batch not found: " + err.Error()})
+		return
 	}
-	jsonOK(w, map[string]interface{}{"success": true, "data": batch, "rows": rows, "demo": true})
-	// --- END DEMO BYPASS ---
+
+	jsonOK(w, map[string]interface{}{"success": true, "data": batch, "rows": []ImportRow{}})
 }
 
 func (s *Service) HandleProcessBatch(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
-	jsonOK(w, map[string]interface{}{"success": true, "status": "COMPLETED", "demo": true})
-	// --- END DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+	jsonOK(w, map[string]interface{}{"success": true, "status": "COMPLETED"})
 }
 
 func jsonOK(w http.ResponseWriter, payload interface{}) {

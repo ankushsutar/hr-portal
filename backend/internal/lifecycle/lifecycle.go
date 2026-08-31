@@ -3,7 +3,6 @@ package lifecycle
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -59,7 +58,13 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetProbationDue(w http.ResponseWriter, r *http.Request) {
-	// Attempt real DB query
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
 	query := `
 		SELECT e.id, e.employee_id, e.first_name || ' ' || e.last_name as full_name,
 		       COALESCE(d.name, ''), COALESCE(des.name, ''), 
@@ -81,20 +86,10 @@ func (s *Service) HandleGetProbationDue(w http.ResponseWriter, r *http.Request) 
 	
 	rows, err := s.db.Query(r.Context(), query)
 	if err != nil {
-		// --- DEMO BYPASS ---
-		demoData := ProbationDashboard{
-			Overdue: []ProbationEmployee{
-				{ID: "emp-99", EmployeeID: "EMP-099", FullName: "Alice Walker", Department: "Engineering", Designation: "QA Engineer", JoiningDate: "2025-10-01", ProbationEndDate: "2025-12-30", Status: "OVERDUE"},
-			},
-			Next7Days: []ProbationEmployee{
-				{ID: "emp-2", EmployeeID: "EMP-1002", FullName: "Sarah Smith", Department: "Marketing", Designation: "Growth Marketer", JoiningDate: "2026-08-01", ProbationEndDate: time.Now().AddDate(0,0,3).Format("2006-01-02"), Status: "NEXT_7_DAYS"},
-			},
-			Next15Days: []ProbationEmployee{},
-			Next30Days: []ProbationEmployee{},
-		}
-		jsonOK(w, map[string]interface{}{"success": true, "data": demoData, "demo": true})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database query failed: " + err.Error()})
 		return
-		// --- END DEMO BYPASS ---
 	}
 	defer rows.Close()
 
@@ -125,6 +120,12 @@ func (s *Service) HandleGetProbationDue(w http.ResponseWriter, r *http.Request) 
 
 func (s *Service) HandleGetEmployeeTimeline(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
 	
 	query := `
 		SELECT id, employee_id, event_type, to_char(effective_date, 'YYYY-MM-DD'),
@@ -135,28 +136,8 @@ func (s *Service) HandleGetEmployeeTimeline(w http.ResponseWriter, r *http.Reque
 	`
 	rows, err := s.db.Query(r.Context(), query, id)
 	if err != nil {
-		// --- DEMO BYPASS ---
-		events := []Event{
-			{
-				ID: "evt-1", EmployeeID: id, EventType: "PROMOTED", EffectiveDate: "2026-06-01",
-				NewValue: map[string]interface{}{"designation": "Senior Software Engineer"},
-				PreviousValue: map[string]interface{}{"designation": "Software Engineer"},
-				Reason: func() *string { s := "Annual Appraisal"; return &s }(),
-				CreatedAt: time.Now().Format(time.RFC3339),
-			},
-			{
-				ID: "evt-2", EmployeeID: id, EventType: "CONFIRMED", EffectiveDate: "2026-04-15",
-				CreatedAt: time.Now().AddDate(0, -2, 0).Format(time.RFC3339),
-			},
-			{
-				ID: "evt-3", EmployeeID: id, EventType: "JOINED", EffectiveDate: "2026-01-15",
-				NewValue: map[string]interface{}{"department": "Engineering"},
-				CreatedAt: time.Now().AddDate(0, -5, 0).Format(time.RFC3339),
-			},
-		}
-		jsonOK(w, map[string]interface{}{"success": true, "data": events, "demo": true})
+		jsonOK(w, map[string]interface{}{"success": true, "data": []Event{}})
 		return
-		// --- END DEMO BYPASS ---
 	}
 	defer rows.Close()
 

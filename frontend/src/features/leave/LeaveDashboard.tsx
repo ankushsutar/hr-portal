@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Calendar, CheckCircle, Settings, Users } from 'lucide-react';
+import { Plus, Calendar, CheckCircle, Settings, Users, Search } from 'lucide-react';
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { LeaveApplicationForm } from './LeaveApplicationForm';
 import { Card } from '../../components/ui/Card';
+import { PaginationBar } from '../../components/ui/PaginationBar';
+import { useTableState } from '../../hooks/useTableState';
 
 interface LeaveBalance {
   id: string;
@@ -43,6 +45,18 @@ interface LeaveType {
 export const LeaveDashboard = () => {
   const [isApplyOpen, setIsApplyOpen] = useState(false);
 
+  const {
+    page,
+    setPage,
+    limit,
+    setLimit,
+    search,
+    setSearch,
+    filters,
+    setFilter,
+    queryParams,
+  } = useTableState({ initialLimit: 10 });
+
   const { data: balancesData } = useQuery<{ data: LeaveBalance[] }>({
     queryKey: ['leaveBalances'],
     queryFn: async () => {
@@ -54,10 +68,10 @@ export const LeaveDashboard = () => {
     }
   });
 
-  const { data: appsData, isLoading: appsLoading } = useQuery<{ data: LeaveApplication[] }>({
-    queryKey: ['leaveApplications'],
+  const { data: appsData, isLoading: appsLoading } = useQuery<{ data: LeaveApplication[]; total?: number; pagination?: any }>({
+    queryKey: ['leaveApplications', queryParams.toString()],
     queryFn: async () => {
-      const res = await fetch('/api/v1/leave/applications', {
+      const res = await fetch(`/api/v1/leave/applications?${queryParams.toString()}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (!res.ok) throw new Error('Failed to fetch leave applications');
@@ -367,14 +381,35 @@ export const LeaveDashboard = () => {
 
           {/* Applications History Table */}
           <Card className="p-0 overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
-              <h3 className="font-semibold text-slate-100 text-xs font-mono uppercase tracking-wider">Leave Applications History</h3>
-              <span className="text-[11px] font-mono text-slate-400">{applications.length} Records</span>
+            <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-800 px-3 py-1.5 rounded">
+                <Search size={14} className="text-slate-500" />
+                <input 
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search reason or leave type..."
+                  className="bg-transparent border-none focus:outline-none text-xs text-slate-200 placeholder-slate-500 font-mono w-64"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={filters.status || ''}
+                  onChange={e => setFilter('status', e.target.value)}
+                  className="bg-[#0B0F19] border border-slate-800 text-slate-200 rounded px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">All Statuses</option>
+                  <option value="APPROVED">APPROVED</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="REJECTED">REJECTED</option>
+                </select>
+                <span className="text-[11px] font-mono text-slate-400 ml-2">{appsData?.total ?? applications.length} Records</span>
+              </div>
             </div>
             {appsLoading && (!applications || applications.length === 0) ? (
               <div className="p-6 text-center text-slate-500 font-mono text-xs">Loading leave requests...</div>
             ) : applications.length === 0 ? (
-              <div className="p-6 text-center text-slate-500 font-mono text-xs">No leave applications submitted yet.</div>
+              <div className="p-6 text-center text-slate-500 font-mono text-xs">No leave applications found.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-mono">
@@ -423,6 +458,14 @@ export const LeaveDashboard = () => {
                 </table>
               </div>
             )}
+            <PaginationBar
+              meta={appsData?.pagination}
+              page={page}
+              limit={limit}
+              total={appsData?.total ?? applications.length}
+              onPageChange={setPage}
+              onLimitChange={setLimit}
+            />
           </Card>
         </Tabs.Content>
 

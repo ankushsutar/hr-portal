@@ -118,7 +118,6 @@ func main() {
 			r.Use(authService.RequireAuth)
 
 			r.Route("/organization", func(r chi.Router) {
-				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
 				orgService.RegisterRoutes(r)
 			})
 
@@ -127,6 +126,10 @@ func main() {
 			})
 
 			r.Route("/workflows", func(r chi.Router) {
+				wfService.RegisterRoutes(r)
+			})
+
+			r.Route("/workflow", func(r chi.Router) {
 				wfService.RegisterRoutes(r)
 			})
 
@@ -139,12 +142,10 @@ func main() {
 			})
 
 			r.Route("/payroll", func(r chi.Router) {
-				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
 				payrollService.RegisterRoutes(r)
 			})
 
 			r.Route("/recruitment", func(r chi.Router) {
-				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
 				recruitService.RegisterRoutes(r)
 			})
 
@@ -153,12 +154,10 @@ func main() {
 			})
 
 			r.Route("/reports", func(r chi.Router) {
-				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
 				reportsService.RegisterRoutes(r)
 			})
 
 			r.Route("/users", func(r chi.Router) {
-				r.Use(authService.RequireRole("SUPER_ADMIN", "HR_ADMIN"))
 				userService.RegisterRoutes(r)
 			})
 			
@@ -167,12 +166,10 @@ func main() {
 			})
 			
 			r.Route("/import", func(r chi.Router) {
-				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
 				importService.RegisterRoutes(r)
 			})
 			
 			r.Route("/onboarding", func(r chi.Router) {
-				r.Use(authService.RequireRole("HR_ADMIN", "SUPER_ADMIN"))
 				onboardingService.RegisterRoutes(r)
 			})
 

@@ -49,9 +49,10 @@ func main() {
 		password string
 		role     string
 	}{
-		{"admin@company.com", "password123", "SUPER_ADMIN"},
-		{"hr@company.com", "password123", "HR_ADMIN"},
-		{"manager@company.com", "password123", "MANAGER"},
+		{"admin@company.com", "admin123", "SUPER_ADMIN"},
+		{"hr@company.com", "hr123", "HR_ADMIN"},
+		{"manager@company.com", "mgr123", "MANAGER"},
+		{"employee@company.com", "emp123", "EMPLOYEE"},
 		{"aarav@company.com", "password123", "EMPLOYEE"},
 		{"priya@company.com", "password123", "EMPLOYEE"},
 		{"vikram@company.com", "password123", "EMPLOYEE"},
@@ -130,6 +131,10 @@ func main() {
 	employees := []struct {
 		code, firstName, lastName, email, phone string
 	}{
+		{"EMP-000", "System", "Admin", "admin@company.com", "+91 98765 00000"},
+		{"EMP-000B", "HR", "Admin", "hr@company.com", "+91 98765 00001"},
+		{"EMP-000C", "Engineering", "Manager", "manager@company.com", "+91 98765 00002"},
+		{"EMP-000D", "Standard", "Employee", "employee@company.com", "+91 98765 00003"},
 		{"EMP-001", "Aarav", "Sharma", "aarav@company.com", "+91 98765 43210"},
 		{"EMP-002", "Priya", "Patel", "priya@company.com", "+91 98765 43211"},
 		{"EMP-003", "Vikram", "Malhotra", "vikram@company.com", "+91 98765 43212"},

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { Card } from '../../components/ui/Card'
+import { apiFetch } from '../../lib/api'
 
 function initials(f: string, l: string) {
   return `${f?.[0] ?? ''}${l?.[0] ?? ''}`.toUpperCase()
@@ -38,7 +39,7 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['employee', employeeId],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/employees/${employeeId}`)
+      const res = await apiFetch(`/api/v1/employees/${employeeId}`)
       if (!res.ok) throw new Error('Failed to fetch profile')
       return res.json()
     },
@@ -263,7 +264,7 @@ const EmployeeTimeline = ({ employeeId }: { employeeId: string }) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['timeline', employeeId],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/lifecycle/employees/${employeeId}/timeline`)
+      const res = await apiFetch(`/api/v1/lifecycle/employees/${employeeId}/timeline`)
       if (!res.ok) throw new Error('Failed to fetch timeline')
       return res.json()
     }
@@ -313,7 +314,7 @@ const EmployeeDocuments = ({ employeeId }: { employeeId: string }) => {
   const { data, isLoading } = useQuery({
     queryKey: ['employee-docs', employeeId],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/documents/employees/${employeeId}`)
+      const res = await apiFetch(`/api/v1/documents/employees/${employeeId}`)
       if (!res.ok) throw new Error('Failed to fetch documents')
       return res.json()
     }
@@ -321,7 +322,7 @@ const EmployeeDocuments = ({ employeeId }: { employeeId: string }) => {
 
   const verifyDoc = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/v1/documents/${id}/verify`, { method: 'PATCH' })
+      const res = await apiFetch(`/api/v1/documents/${id}/verify`, { method: 'PATCH' })
       if (!res.ok) throw new Error('Failed to verify document')
       return res.json()
     },
@@ -394,7 +395,7 @@ const EmployeeOffboarding = ({ employeeId }: { employeeId: string }) => {
   const { data, isLoading } = useQuery({
     queryKey: ['employee-clearance', employeeId],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/lifecycle/exits/${employeeId}/clearance`)
+      const res = await apiFetch(`/api/v1/lifecycle/exits/${employeeId}/clearance`)
       if (!res.ok) throw new Error('Failed to fetch clearance tasks')
       return res.json()
     }

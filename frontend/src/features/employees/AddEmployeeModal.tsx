@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2, X, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { Card } from '../../components/ui/Card'
+import { apiFetch } from '../../lib/api'
 
 interface AddEmployeeModalProps {
   onClose: () => void
@@ -25,9 +26,9 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
     phone_number: '',
   })
 
-  const { data: deptsData } = useQuery({ queryKey: ['departments'], queryFn: () => fetch('/api/v1/organization/departments').then(r => r.json()) })
-  const { data: desigsData } = useQuery({ queryKey: ['designations'], queryFn: () => fetch('/api/v1/employees/designations').then(r => r.json()) })
-  const { data: locsData } = useQuery({ queryKey: ['locations'], queryFn: () => fetch('/api/v1/organization/locations').then(r => r.json()) })
+  const { data: deptsData } = useQuery({ queryKey: ['departments'], queryFn: () => apiFetch('/api/v1/organization/departments').then(r => r.json()) })
+  const { data: desigsData } = useQuery({ queryKey: ['designations'], queryFn: () => apiFetch('/api/v1/employees/designations').then(r => r.json()) })
+  const { data: locsData } = useQuery({ queryKey: ['locations'], queryFn: () => apiFetch('/api/v1/organization/locations').then(r => r.json()) })
 
   const departments = deptsData?.data ?? []
   const designations = desigsData?.data ?? []
@@ -36,7 +37,7 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
   const mutation = useMutation({
     mutationFn: async (payload: typeof formData) => {
       const cleaned = Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== ''))
-      const res = await fetch('/api/v1/employees', {
+      const res = await apiFetch('/api/v1/employees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleaned),

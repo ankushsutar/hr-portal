@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
+import { PaginationBar } from '../../components/ui/PaginationBar'
+import { useTableState } from '../../hooks/useTableState'
 import { Clock, CheckCircle2, XCircle, AlertCircle, Search, Calendar as CalendarIcon, UserPlus } from 'lucide-react'
 
 export const AttendanceDashboard = () => {
@@ -9,10 +11,24 @@ export const AttendanceDashboard = () => {
   const [isPunchModalOpen, setIsPunchModalOpen] = useState(false)
   const [punchEmployee, setPunchEmployee] = useState('')
 
+  const {
+    page,
+    setPage,
+    limit,
+    setLimit,
+    search,
+    setSearch,
+    filters,
+    setFilter,
+    queryParams,
+  } = useTableState({ initialLimit: 10 })
+
+  queryParams.set('date', date)
+
   const { data, isLoading } = useQuery({
-    queryKey: ['attendance-daily', date],
+    queryKey: ['attendance-daily', date, queryParams.toString()],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/attendance/daily?date=${date}`, {
+      const res = await fetch(`/api/v1/attendance/daily?${queryParams.toString()}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       })
       if (!res.ok) throw new Error('Failed to fetch attendance')
@@ -39,12 +55,23 @@ export const AttendanceDashboard = () => {
   })
 
   if (isLoading) return <div className="p-8 text-slate-500 font-mono text-xs">Loading attendance records...</div>
-  const attendance = data?.data || []
+  const allAttendance = data?.data || []
+  const pagination = data?.pagination
+  const totalCount = data?.total ?? allAttendance.length
+
+  // Filter client-side if backend returns non-paginated or fallback
+  const attendance = allAttendance.filter((a: any) => {
+    const matchesSearch = !search || 
+      a.employee_name?.toLowerCase().includes(search.toLowerCase()) || 
+      a.employee_id?.toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = !filters.status || a.status === filters.status
+    return matchesSearch && matchesStatus
+  })
 
   const stats = {
-    present: attendance.filter((a: any) => a.status === 'PRESENT').length,
-    late: attendance.filter((a: any) => a.status === 'LATE').length,
-    absent: attendance.filter((a: any) => a.status === 'ABSENT').length
+    present: allAttendance.filter((a: any) => a.status === 'PRESENT').length,
+    late: allAttendance.filter((a: any) => a.status === 'LATE').length,
+    absent: allAttendance.filter((a: any) => a.status === 'ABSENT').length
   }
 
   return (
@@ -93,14 +120,29 @@ export const AttendanceDashboard = () => {
       </div>
 
       <Card className="p-0 overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-800 px-3 py-1.5 rounded">
             <Search size={14} className="text-slate-500" />
             <input 
               type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
               placeholder="Search employees or IDs..."
               className="bg-transparent border-none focus:outline-none text-xs text-slate-200 placeholder-slate-500 font-mono w-64"
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-slate-400 font-mono text-xs">Filter Status:</label>
+            <select
+              value={filters.status || ''}
+              onChange={e => setFilter('status', e.target.value)}
+              className="bg-[#0B0F19] border border-slate-800 text-slate-200 rounded px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-blue-500"
+            >
+              <option value="">All Statuses</option>
+              <option value="PRESENT">PRESENT</option>
+              <option value="LATE">LATE</option>
+              <option value="ABSENT">ABSENT</option>
+            </select>
           </div>
         </div>
         <table className="w-full text-left">
@@ -150,8 +192,16 @@ export const AttendanceDashboard = () => {
           </tbody>
         </table>
         {attendance.length === 0 && (
-          <div className="p-8 text-center text-slate-500 font-mono text-xs">No attendance records for this date.</div>
+          <div className="p-8 text-center text-slate-500 font-mono text-xs">No attendance records found.</div>
         )}
+        <PaginationBar
+          meta={pagination}
+          page={page}
+          limit={limit}
+          total={totalCount}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
       </Card>
 
       {isPunchModalOpen && (

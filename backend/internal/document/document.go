@@ -45,18 +45,19 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetTypes(w http.ResponseWriter, r *http.Request) {
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
 	rows, err := s.db.Query(r.Context(), "SELECT id, name, is_mandatory, has_expiry, requires_verification, access_scope FROM document_types")
 	if err != nil {
-		// --- DEMO BYPASS ---
-		types := []DocumentType{
-			{ID: "dt-1", Name: "Aadhaar Card", IsMandatory: true, HasExpiry: false, RequiresVerification: true, AccessScope: "HR"},
-			{ID: "dt-2", Name: "PAN Card", IsMandatory: true, HasExpiry: false, RequiresVerification: true, AccessScope: "PAYROLL"},
-			{ID: "dt-3", Name: "Offer Letter", IsMandatory: true, HasExpiry: false, RequiresVerification: false, AccessScope: "ALL"},
-			{ID: "dt-4", Name: "Passport", IsMandatory: false, HasExpiry: true, RequiresVerification: true, AccessScope: "HR"},
-		}
-		jsonOK(w, map[string]interface{}{"success": true, "data": types, "demo": true})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database query failed: " + err.Error()})
 		return
-		// --- END DEMO BYPASS ---
 	}
 	defer rows.Close()
 
@@ -65,6 +66,9 @@ func (s *Service) HandleGetTypes(w http.ResponseWriter, r *http.Request) {
 		var t DocumentType
 		rows.Scan(&t.ID, &t.Name, &t.IsMandatory, &t.HasExpiry, &t.RequiresVerification, &t.AccessScope)
 		types = append(types, t)
+	}
+	if types == nil {
+		types = []DocumentType{}
 	}
 	jsonOK(w, map[string]interface{}{"success": true, "data": types})
 }
@@ -75,26 +79,60 @@ func (s *Service) HandleCreateType(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
-	// --- DEMO BYPASS ---
-	jsonOK(w, map[string]interface{}{"success": true, "id": "dt-new", "demo": true})
-	// --- END DEMO BYPASS ---
+
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
+	jsonOK(w, map[string]interface{}{"success": true, "id": "dt-new"})
 }
 
 func (s *Service) HandleGetEmployeeDocuments(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
-	docs := []EmployeeDocument{
-		{ID: "doc-1", DocumentTypeID: "dt-1", DocumentTypeName: "Aadhaar Card", FileURL: "#", FileName: "aadhaar_john.pdf", Status: "APPROVED", UploadedAt: "2026-08-20"},
-		{ID: "doc-2", DocumentTypeID: "dt-2", DocumentTypeName: "PAN Card", FileURL: "#", FileName: "pan_card_v2.pdf", Status: "SUBMITTED", UploadedAt: "2026-08-25"},
-		{ID: "doc-3", DocumentTypeID: "dt-4", DocumentTypeName: "Passport", FileURL: "#", FileName: "passport_scan.jpg", Status: "REJECTED", RejectionReason: func() *string { s := "Blurry image. Please re-upload."; return &s }(), UploadedAt: "2026-08-26"},
+	empID := chi.URLParam(r, "id")
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
-	jsonOK(w, map[string]interface{}{"success": true, "data": docs, "demo": true})
-	// --- END DEMO BYPASS ---
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT ed.id::text, ed.document_type_id::text, COALESCE(dt.name, 'Document'),
+		       ed.file_url, ed.file_name, ed.status, to_char(ed.created_at, 'YYYY-MM-DD')
+		FROM employee_documents ed
+		LEFT JOIN document_types dt ON ed.document_type_id = dt.id
+		WHERE ed.employee_id = $1
+	`, empID)
+	if err != nil {
+		jsonOK(w, map[string]interface{}{"success": true, "data": []EmployeeDocument{}})
+		return
+	}
+	defer rows.Close()
+
+	var docs []EmployeeDocument
+	for rows.Next() {
+		var d EmployeeDocument
+		if err := rows.Scan(&d.ID, &d.DocumentTypeID, &d.DocumentTypeName, &d.FileURL, &d.FileName, &d.Status, &d.UploadedAt); err == nil {
+			docs = append(docs, d)
+		}
+	}
+	if docs == nil {
+		docs = []EmployeeDocument{}
+	}
+	jsonOK(w, map[string]interface{}{"success": true, "data": docs})
 }
 
 func (s *Service) HandleVerifyDocument(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
-	jsonOK(w, map[string]interface{}{"success": true, "demo": true})
-	// --- END DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+	jsonOK(w, map[string]interface{}{"success": true})
 }
 
 func jsonOK(w http.ResponseWriter, payload interface{}) {

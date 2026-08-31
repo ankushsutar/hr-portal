@@ -6,6 +6,8 @@ import {
   ChevronDown, Search, RefreshCw, Trash2
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { PaginationBar } from '../../components/ui/PaginationBar'
+import { useTableState } from '../../hooks/useTableState'
 
 interface User {
   id: string
@@ -42,14 +44,23 @@ export const Users = () => {
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('EMPLOYEE')
-  const [search, setSearch] = useState('')
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [inviteResult, setInviteResult] = useState<string | null>(null)
 
+  const {
+    page,
+    setPage,
+    limit,
+    setLimit,
+    search,
+    setSearch,
+    queryParams,
+  } = useTableState({ initialLimit: 10 })
+
   const { data: usersData, isLoading } = useQuery({
-    queryKey: ['users'],
+    queryKey: ['users', queryParams.toString()],
     queryFn: async () => {
-      const res = await fetch('/api/v1/users', { headers: authHeader() })
+      const res = await fetch(`/api/v1/users?${queryParams.toString()}`, { headers: authHeader() })
       if (!res.ok) throw new Error('Failed to fetch users')
       return res.json()
     },
@@ -65,9 +76,9 @@ export const Users = () => {
   })
 
   const roles: Role[] = rolesData?.data ?? []
-  const users: User[] = (usersData?.data ?? []).filter((u: User) =>
-    !search || u.email.toLowerCase().includes(search.toLowerCase())
-  )
+  const users: User[] = usersData?.data ?? []
+  const pagination = usersData?.pagination
+  const totalUsers = usersData?.total ?? users.length
 
   const inviteMutation = useMutation({
     mutationFn: async (payload: { email: string; role: string }) => {
@@ -168,7 +179,7 @@ export const Users = () => {
           <RefreshCw size={14} />
         </button>
         <span className="ml-auto text-sm text-gray-400">
-          {users.length} user{users.length !== 1 ? 's' : ''}
+          {totalUsers} user{totalUsers !== 1 ? 's' : ''}
         </span>
       </div>
 
@@ -293,6 +304,14 @@ export const Users = () => {
             </tbody>
           </table>
         </div>
+        <PaginationBar
+          meta={pagination}
+          page={page}
+          limit={limit}
+          total={totalUsers}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
       </Card>
 
       {/* Invite Modal */}

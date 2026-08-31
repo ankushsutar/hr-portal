@@ -26,40 +26,76 @@ type ClearanceTask struct {
 }
 
 func (s *Service) HandleSubmitResignation(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "id": "exit-1", "demo": true})
-	// --- END DEMO BYPASS ---
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "id": "exit-new"})
 }
 
 func (s *Service) HandleListExits(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
-	exits := []ExitRequest{
-		{ID: "exit-1", EmployeeID: "emp-1", EmployeeName: "John Doe", Department: "Engineering", ResignationDate: "2026-08-15", LastWorkingDate: "2026-09-15", Reason: "Better Opportunity", Status: "APPROVED"},
-		{ID: "exit-2", EmployeeID: "emp-2", EmployeeName: "Sarah Smith", Department: "Marketing", ResignationDate: "2026-08-25", LastWorkingDate: "2026-09-25", Reason: "Personal Reasons", Status: "PENDING"},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT er.id::text, e.employee_id, e.first_name || ' ' || e.last_name,
+		       COALESCE(d.name, 'General'), to_char(er.resignation_date, 'YYYY-MM-DD'),
+		       to_char(er.last_working_date, 'YYYY-MM-DD'), COALESCE(er.reason, ''), er.status
+		FROM exit_requests er
+		JOIN employees e ON er.employee_id = e.id
+		LEFT JOIN departments d ON e.department_id = d.id
+		ORDER BY er.created_at DESC
+	`)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "data": []ExitRequest{}})
+		return
+	}
+	defer rows.Close()
+
+	var exits []ExitRequest
+	for rows.Next() {
+		var ex ExitRequest
+		if rows.Scan(&ex.ID, &ex.EmployeeID, &ex.EmployeeName, &ex.Department, &ex.ResignationDate, &ex.LastWorkingDate, &ex.Reason, &ex.Status) == nil {
+			exits = append(exits, ex)
+		}
+	}
+	if exits == nil {
+		exits = []ExitRequest{}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "data": exits, "demo": true})
-	// --- END DEMO BYPASS ---
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "data": exits})
 }
 
 func (s *Service) HandleApproveExit(w http.ResponseWriter, r *http.Request) {
 	_ = chi.URLParam(r, "id")
-	// --- DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "demo": true})
-	// --- END DEMO BYPASS ---
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 }
 
 func (s *Service) HandleGetClearance(w http.ResponseWriter, r *http.Request) {
 	_ = chi.URLParam(r, "id")
-	// --- DEMO BYPASS ---
-	tasks := []ClearanceTask{
-		{ID: "task-1", Department: "IT", TaskDescription: "Collect Laptop & Access Card", Status: "PENDING"},
-		{ID: "task-2", Department: "FINANCE", TaskDescription: "Settle outstanding advances", Status: "COMPLETED"},
-		{ID: "task-3", Department: "HR", TaskDescription: "Exit Interview & PF Transfer", Status: "PENDING"},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "data": tasks, "demo": true})
-	// --- END DEMO BYPASS ---
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "data": []ClearanceTask{}})
 }

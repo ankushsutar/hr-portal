@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Tabs from '@radix-ui/react-tabs';
 import { Card } from '../../components/ui/Card';
+import { apiFetch } from '../../lib/api';
 import { 
   Target, 
   Award, 
@@ -87,7 +88,7 @@ export const PerformanceDashboard = () => {
   const { data: goalsData } = useQuery<{ data: Goal[] }>({
     queryKey: ['performance-goals'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/performance/goals');
+      const res = await apiFetch('/api/v1/performance/goals');
       if (!res.ok) throw new Error('Failed to fetch goals');
       return res.json();
     }
@@ -96,7 +97,7 @@ export const PerformanceDashboard = () => {
   const { data: reviewsData } = useQuery<{ data: Review[] }>({
     queryKey: ['performance-reviews'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/performance/reviews');
+      const res = await apiFetch('/api/v1/performance/reviews');
       if (!res.ok) throw new Error('Failed to fetch reviews');
       return res.json();
     }
@@ -105,7 +106,7 @@ export const PerformanceDashboard = () => {
   const { data: pipsData } = useQuery<{ data: PipPlan[] }>({
     queryKey: ['performance-pips'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/performance/pip');
+      const res = await apiFetch('/api/v1/performance/pip');
       if (!res.ok) throw new Error('Failed to fetch PIP plans');
       return res.json();
     }
@@ -114,7 +115,7 @@ export const PerformanceDashboard = () => {
   // Mutations
   const createGoalMutation = useMutation({
     mutationFn: async (newGoal: typeof goalForm) => {
-      const res = await fetch('/api/v1/performance/goals', {
+      const res = await apiFetch('/api/v1/performance/goals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGoal)
@@ -131,7 +132,7 @@ export const PerformanceDashboard = () => {
 
   const createReviewMutation = useMutation({
     mutationFn: async (newReview: typeof reviewForm) => {
-      const res = await fetch('/api/v1/performance/reviews', {
+      const res = await apiFetch('/api/v1/performance/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newReview)
@@ -147,7 +148,7 @@ export const PerformanceDashboard = () => {
 
   const createPipMutation = useMutation({
     mutationFn: async (newPip: typeof pipForm) => {
-      const res = await fetch('/api/v1/performance/pip', {
+      const res = await apiFetch('/api/v1/performance/pip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPip)

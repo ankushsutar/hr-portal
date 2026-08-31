@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -141,22 +142,21 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 // ---------------------------------------------------------------------------
 
 func (s *Service) HandleListEmployees(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	search := q.Get("search")
-	dept := q.Get("department_id")
-	status := q.Get("status")
-	empType := q.Get("employment_type")
+	pg := common.ParsePaginationParams(r)
+	dept := r.URL.Query().Get("department_id")
+	status := r.URL.Query().Get("status")
+	empType := r.URL.Query().Get("employment_type")
 
 	// Build dynamic WHERE clause
 	conditions := []string{"e.deleted_at IS NULL"}
 	args := []interface{}{}
 	i := 1
 
-	if search != "" {
+	if pg.Search != "" {
 		conditions = append(conditions,
 			fmt.Sprintf("(e.first_name ILIKE $%d OR e.last_name ILIKE $%d OR e.employee_id ILIKE $%d OR u.email ILIKE $%d)",
 				i, i, i, i))
-		args = append(args, "%"+search+"%")
+		args = append(args, "%"+pg.Search+"%")
 		i++
 	}
 	if dept != "" {
@@ -177,6 +177,24 @@ func (s *Service) HandleListEmployees(w http.ResponseWriter, r *http.Request) {
 
 	where := "WHERE " + strings.Join(conditions, " AND ")
 
+	if s.db == nil {
+		jsonError(w, "database connection unavailable", http.StatusInternalServerError)
+		return
+	}
+
+	// Count query
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM employees e
+		LEFT JOIN users u ON e.user_id = u.id
+		%s
+	`, where)
+
+	var total int
+	_ = s.db.QueryRow(r.Context(), countQuery, args...).Scan(&total)
+
+	// Pagination query
+	dataArgs := append(args, pg.Limit, pg.Offset)
 	query := fmt.Sprintf(`
 		SELECT
 			e.id, e.employee_id, e.first_name, e.last_name,
@@ -202,43 +220,13 @@ func (s *Service) HandleListEmployees(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN employees m ON e.manager_id = m.id
 		%s
 		ORDER BY e.joining_date DESC, e.created_at DESC
-	`, where)
+		LIMIT $%d OFFSET $%d
+	`, where, i, i+1)
 
-	rows, err := s.db.Query(r.Context(), query, args...)
+	rows, err := s.db.Query(r.Context(), query, dataArgs...)
 	if err != nil {
-		// --- DEMO BYPASS ---
-		employees := []Employee{
-			{
-				ID:             "emp-1",
-				EmployeeID:     "EMP-1001",
-				FirstName:      "John",
-				LastName:       "Doe",
-				FullName:       "John Doe",
-				WorkEmail:      "john.doe@company.com",
-				EmploymentType: "PERMANENT",
-				Status:         "ACTIVE",
-				JoiningDate:    "2026-01-15",
-				DepartmentName: func() *string { s := "Engineering"; return &s }(),
-				DesignationName: func() *string { s := "Senior Software Engineer"; return &s }(),
-				LocationName:   func() *string { s := "MumbaiHQ"; return &s }(),
-			},
-			{
-				ID:             "emp-2",
-				EmployeeID:     "EMP-1002",
-				FirstName:      "Sarah",
-				LastName:       "Smith",
-				FullName:       "Sarah Smith",
-				WorkEmail:      "sarah.s@company.com",
-				EmploymentType: "CONTRACT",
-				Status:         "PROBATION",
-				JoiningDate:    "2026-08-01",
-				DepartmentName: func() *string { s := "Marketing"; return &s }(),
-				DesignationName: func() *string { s := "Growth Marketer"; return &s }(),
-			},
-		}
-		jsonOK(w, map[string]interface{}{"success": true, "data": employees, "total": len(employees), "demo": true})
+		jsonError(w, "database query failed: "+err.Error(), http.StatusInternalServerError)
 		return
-		// --- END DEMO BYPASS ---
 	}
 	defer rows.Close()
 
@@ -264,7 +252,8 @@ func (s *Service) HandleListEmployees(w http.ResponseWriter, r *http.Request) {
 		employees = []Employee{}
 	}
 
-	jsonOK(w, map[string]interface{}{"success": true, "data": employees, "total": len(employees)})
+	meta := common.BuildPaginationMeta(total, pg.Page, pg.Limit)
+	jsonOK(w, map[string]interface{}{"success": true, "data": employees, "total": total, "pagination": meta})
 }
 
 // ---------------------------------------------------------------------------
@@ -276,6 +265,11 @@ func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 	claims, hasClaims := auth.GetClaims(r)
 
 	var detail EmployeeDetail
+
+	if s.db == nil {
+		jsonError(w, "database connection unavailable", http.StatusInternalServerError)
+		return
+	}
 
 	// Core employee
 	err := s.db.QueryRow(r.Context(), `
@@ -314,40 +308,8 @@ func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 		&detail.UserID,
 	)
 	if err != nil {
-		// --- DEMO BYPASS ---
-		detail.ID = id
-		detail.EmployeeID = "EMP-1001"
-		detail.FirstName = "John"
-		detail.LastName = "Doe"
-		detail.FullName = "John Doe"
-		detail.WorkEmail = "john.doe@company.com"
-		wphone := "+91 9876543210"
-		detail.WorkPhone = &wphone
-		detail.EmploymentType = "PERMANENT"
-		detail.Status = "ACTIVE"
-		detail.JoiningDate = "2026-01-15"
-		detail.NoticePeriodDays = 30
-		detail.Nationality = "Indian"
-		dept := "Engineering"
-		desig := "Senior Software Engineer"
-		loc := "MumbaiHQ"
-		detail.DepartmentName = &dept
-		detail.DesignationName = &desig
-		detail.LocationName = &loc
-		
-		dob := "1990-05-15"
-		detail.Personal.DateOfBirth = &dob
-		
-		if hasClaims {
-			scope := auth.GetScopeForRoles(claims.Roles)
-			if scope == auth.ScopeOrganization || scope == auth.ScopeSalaryAccess {
-				pan := "ABCDE1234F"
-				detail.Statutory = &EmployeeStatutory{PANNumber: &pan}
-			}
-		}
-		jsonOK(w, map[string]interface{}{"success": true, "data": detail, "demo": true})
+		jsonError(w, "employee not found: "+err.Error(), http.StatusNotFound)
 		return
-		// --- END DEMO BYPASS ---
 	}
 
 	// Personal details
@@ -665,3 +627,5 @@ func jsonOK(w http.ResponseWriter, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(payload)
 }
+
+

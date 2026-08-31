@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Building2, Loader2, X, AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Card } from '../../components/ui/Card'
+import { apiFetch } from '../../lib/api'
 
 export const Designations = () => {
   const qc = useQueryClient()
@@ -12,7 +13,7 @@ export const Designations = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['designations'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/employees/designations')
+      const res = await apiFetch('/api/v1/employees/designations')
       if (!res.ok) throw new Error('Failed to fetch')
       return res.json()
     }
@@ -21,7 +22,7 @@ export const Designations = () => {
   const addMutation = useMutation({
     mutationFn: async () => {
       const payload = { name, grade: grade || undefined, organization_id: '11111111-1111-1111-1111-111111111111' }
-      const res = await fetch('/api/v1/employees/designations', {
+      const res = await apiFetch('/api/v1/employees/designations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

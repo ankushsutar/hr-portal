@@ -8,6 +8,9 @@ import { useState } from 'react'
 import { AddEmployeeModal } from './AddEmployeeModal'
 import { useAuth } from '../../contexts/AuthContext'
 import { Card } from '../../components/ui/Card'
+import { PaginationBar } from '../../components/ui/PaginationBar'
+import { useTableState } from '../../hooks/useTableState'
+import { apiFetch } from '../../lib/api'
 
 interface Employee {
   id: string
@@ -60,22 +63,28 @@ function avatarColor(name: string) {
 export const EmployeeDirectory = () => {
   const { hasRole } = useAuth()
   const qc = useQueryClient()
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('')
-  const [empType, setEmpType] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [showAdd, setShowAdd] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
-  const params = new URLSearchParams()
-  if (search) params.set('search', search)
-  if (status) params.set('status', status)
-  if (empType) params.set('employment_type', empType)
+  const {
+    page,
+    setPage,
+    limit,
+    setLimit,
+    search,
+    setSearch,
+    filters,
+    setFilter,
+    clearAllFilters,
+    hasActiveFilters,
+    queryParams,
+  } = useTableState({ initialLimit: 10 })
 
   const { data, isLoading } = useQuery({
-    queryKey: ['employees', search, status, empType],
+    queryKey: ['employees', queryParams.toString()],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/employees?${params}`)
+      const res = await apiFetch(`/api/v1/employees?${queryParams.toString()}`)
       if (!res.ok) throw new Error('Failed to fetch')
       return res.json()
     },
@@ -84,17 +93,19 @@ export const EmployeeDirectory = () => {
   const { data: statsData } = useQuery({
     queryKey: ['employee-stats'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/employees/stats')
+      const res = await apiFetch('/api/v1/employees/stats')
       if (!res.ok) return null
       return res.json()
     },
   })
 
   const employees: Employee[] = data?.data ?? []
+  const pagination = data?.pagination
+  const totalCount = data?.total ?? employees.length
   const stats = statsData?.data
 
   const toggleSelect = (id: string) => {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       return next
@@ -103,11 +114,8 @@ export const EmployeeDirectory = () => {
 
   const toggleAll = () => {
     if (selected.size === employees.length) setSelected(new Set())
-    else setSelected(new Set(employees.map(e => e.id)))
+    else setSelected(new Set(employees.map((e) => e.id)))
   }
-
-  const clearFilters = () => { setStatus(''); setEmpType(''); setSearch('') }
-  const hasFilters = status || empType || search
 
   return (
     <div className="p-8 space-y-6 max-w-7xl mx-auto">
@@ -174,14 +182,14 @@ export const EmployeeDirectory = () => {
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 border rounded transition-colors ${showFilters || hasFilters ? 'border-blue-500/50 text-blue-400 bg-blue-500/10' : 'border-slate-800 text-slate-400 bg-[#0B0F19] hover:bg-slate-800'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 border rounded transition-colors ${showFilters || hasActiveFilters ? 'border-blue-500/50 text-blue-400 bg-blue-500/10' : 'border-slate-800 text-slate-400 bg-[#0B0F19] hover:bg-slate-800'}`}
         >
           <Filter size={13} /> Filters
-          {hasFilters && <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />}
+          {hasActiveFilters && <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />}
         </button>
 
-        {hasFilters && (
-          <button onClick={clearFilters} className="flex items-center gap-1 text-slate-400 hover:text-slate-200">
+        {hasActiveFilters && (
+          <button onClick={clearAllFilters} className="flex items-center gap-1 text-slate-400 hover:text-slate-200">
             <X size={13} /> Clear
           </button>
         )}
@@ -193,7 +201,7 @@ export const EmployeeDirectory = () => {
           <RefreshCw size={14} />
         </button>
 
-        <span className="text-slate-400">{employees.length} employee{employees.length !== 1 ? 's' : ''}</span>
+        <span className="text-slate-400">{totalCount} employee{totalCount !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Filter panel */}
@@ -202,8 +210,8 @@ export const EmployeeDirectory = () => {
           <div>
             <label className="block text-[11px] text-slate-400 mb-1">Status</label>
             <select
-              value={status}
-              onChange={e => setStatus(e.target.value)}
+              value={filters.status || ''}
+              onChange={e => setFilter('status', e.target.value)}
               className="px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500"
             >
               <option value="">All Statuses</option>
@@ -217,8 +225,8 @@ export const EmployeeDirectory = () => {
           <div>
             <label className="block text-[11px] text-slate-400 mb-1">Employment Type</label>
             <select
-              value={empType}
-              onChange={e => setEmpType(e.target.value)}
+              value={filters.employment_type || ''}
+              onChange={e => setFilter('employment_type', e.target.value)}
               className="px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500"
             >
               <option value="">All Types</option>
@@ -288,7 +296,7 @@ export const EmployeeDirectory = () => {
                     <Users className="w-8 h-8 text-slate-600 mx-auto mb-2" />
                     <p className="text-slate-400 text-xs font-semibold">No employees found</p>
                     <p className="text-slate-500 text-[11px] mt-0.5">
-                      {hasFilters ? 'Try adjusting your search or filters' : 'Add your first employee to get started'}
+                      {hasActiveFilters ? 'Try adjusting your search or filters' : 'Add your first employee to get started'}
                     </p>
                   </td>
                 </tr>
@@ -350,6 +358,14 @@ export const EmployeeDirectory = () => {
             </tbody>
           </table>
         </div>
+        <PaginationBar
+          meta={pagination}
+          page={page}
+          limit={limit}
+          total={totalCount}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
       </Card>
 
       {/* Add Employee Modal */}

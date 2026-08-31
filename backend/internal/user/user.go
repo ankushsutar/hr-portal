@@ -7,9 +7,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -62,7 +65,39 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleListUsers(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.db.Query(r.Context(), `
+	pg := common.ParsePaginationParams(r)
+	role := r.URL.Query().Get("role")
+
+	conditions := []string{"1=1"}
+	args := []interface{}{}
+	i := 1
+
+	if pg.Search != "" {
+		conditions = append(conditions, fmt.Sprintf("(u.email ILIKE $%d)", i))
+		args = append(args, "%"+pg.Search+"%")
+		i++
+	}
+	if role != "" {
+		conditions = append(conditions, fmt.Sprintf("ro.name = $%d", i))
+		args = append(args, role)
+		i++
+	}
+
+	where := "WHERE " + strings.Join(conditions, " AND ")
+
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(DISTINCT u.id)
+		FROM users u
+		LEFT JOIN user_roles ur ON u.id = ur.user_id
+		LEFT JOIN roles ro ON ur.role_id = ro.id
+		%s
+	`, where)
+
+	var total int
+	_ = s.db.QueryRow(r.Context(), countQuery, args...).Scan(&total)
+
+	dataArgs := append(args, pg.Limit, pg.Offset)
+	query := fmt.Sprintf(`
 		SELECT 
 			u.id, u.email, u.is_active, 
 			to_char(u.last_login, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as last_login,
@@ -73,11 +108,15 @@ func (s *Service) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN user_roles ur ON u.id = ur.user_id
 		LEFT JOIN roles ro ON ur.role_id = ro.id
 		LEFT JOIN employees e ON e.user_id = u.id
+		%s
 		GROUP BY u.id, e.id
 		ORDER BY u.created_at DESC
-	`)
+		LIMIT $%d OFFSET $%d
+	`, where, i, i+1)
+
+	rows, err := s.db.Query(r.Context(), query, dataArgs...)
 	if err != nil {
-		jsonError(w, "failed to query users", http.StatusInternalServerError)
+		jsonError(w, "failed to query users: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -86,7 +125,7 @@ func (s *Service) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var u User
 		if err := rows.Scan(&u.ID, &u.Email, &u.IsActive, &u.LastLogin, &u.InvitedAt, &u.Roles, &u.EmployeeID); err != nil {
-			jsonError(w, "failed to scan user", http.StatusInternalServerError)
+			jsonError(w, "failed to scan user: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		users = append(users, u)
@@ -95,7 +134,8 @@ func (s *Service) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 		users = []User{}
 	}
 
-	jsonOK(w, map[string]interface{}{"success": true, "data": users})
+	meta := common.BuildPaginationMeta(total, pg.Page, pg.Limit)
+	jsonOK(w, map[string]interface{}{"success": true, "data": users, "total": total, "pagination": meta})
 }
 
 func (s *Service) HandleCreateUser(w http.ResponseWriter, r *http.Request) {

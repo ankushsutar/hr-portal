@@ -5,14 +5,23 @@ cd "$(dirname "$0")"
 
 echo "Starting HRMS Platform Development Environment..."
 
-# Export path for local go if it exists
+# Export path for Go
 if [ -d "./local_go/bin" ]; then
     export PATH=$PWD/local_go/bin:$PATH
 fi
+if ! command -v go &> /dev/null; then
+    export PATH=$PATH:/home/cwd/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.linux-amd64/bin:/home/cwd/go/bin:/usr/local/go/bin
+fi
 
-# Try to start docker-compose (ignore if it fails due to permissions or if docker is not installed)
-echo "Attempting to start database services via docker-compose..."
-docker-compose up -d 2>/dev/null || echo "Warning: Could not start docker-compose (this is fine if you just want to preview the UI)."
+# Ensure Local PostgreSQL on port 5433 is running
+echo "Checking local PostgreSQL database service..."
+if ! /usr/lib/postgresql/16/bin/psql -h 127.0.0.1 -p 5433 -U hrms_user -d hrms_db -c "SELECT 1;" >/dev/null 2>&1; then
+    echo "Starting local PostgreSQL server on port 5433..."
+    /usr/lib/postgresql/16/bin/postgres -D "$PWD/.pgdata_local" -p 5433 -k "$PWD/.pgdata_local" &
+    sleep 2
+fi
+
+export DATABASE_URL="postgres://hrms_user:@127.0.0.1:5433/hrms_db?sslmode=disable"
 
 echo "Starting Go Backend on port 8080..."
 cd backend

@@ -3,8 +3,10 @@ package attendance
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -51,31 +53,53 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
-	logs := []AttendanceLog{
-		{
-			ID:           "al-1",
-			Date:         "2026-08-25",
-			CheckInTime:  "09:05 AM",
-			CheckOutTime: "06:10 PM",
-			Status:       "PRESENT",
-			ShiftName:    "General Shift",
-		},
-		{
-			ID:           "al-2",
-			Date:         "2026-08-26",
-			CheckInTime:  "09:30 AM",
-			CheckOutTime: "06:00 PM",
-			Status:       "LATE",
-			ShiftName:    "General Shift",
-		},
-		{
-			ID:           "al-3",
-			Date:         "2026-08-27",
-			CheckInTime:  "09:00 AM",
-			CheckOutTime: "--:-- --",
-			Status:       "PRESENT",
-			ShiftName:    "General Shift",
-		},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "database connection unavailable",
+		})
+		return
+	}
+
+	empID := r.URL.Query().Get("employee_id")
+	var rows pgx.Rows
+	var err error
+
+	if empID != "" {
+		rows, err = s.db.Query(r.Context(), `
+			SELECT id::text, to_char(attendance_date, 'YYYY-MM-DD'),
+			       to_char(check_in_time, 'HH12:MI AM'), COALESCE(to_char(check_out_time, 'HH12:MI AM'), '--:-- --'),
+			       status, 'General Shift'
+			FROM attendance_logs WHERE employee_id = $1 ORDER BY attendance_date DESC LIMIT 30
+		`, empID)
+	} else {
+		rows, err = s.db.Query(r.Context(), `
+			SELECT id::text, to_char(attendance_date, 'YYYY-MM-DD'),
+			       to_char(check_in_time, 'HH12:MI AM'), COALESCE(to_char(check_out_time, 'HH12:MI AM'), '--:-- --'),
+			       status, 'General Shift'
+			FROM attendance_logs ORDER BY attendance_date DESC LIMIT 30
+		`)
+	}
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database query failed: " + err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var logs []AttendanceLog
+	for rows.Next() {
+		var l AttendanceLog
+		if err := rows.Scan(&l.ID, &l.Date, &l.CheckInTime, &l.CheckOutTime, &l.Status, &l.ShiftName); err == nil {
+			logs = append(logs, l)
+		}
+	}
+	if logs == nil {
+		logs = []AttendanceLog{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -138,7 +162,13 @@ func (s *Service) HandlePunch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- DEMO BYPASS ---
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -149,42 +179,70 @@ func (s *Service) HandlePunch(w http.ResponseWriter, r *http.Request) {
 			"punch_type":  req.PunchType,
 			"processed":   true,
 		},
-		"demo": true,
 	})
-	// --- END DEMO BYPASS ---
 }
 
 func (s *Service) HandleDailyStatus(w http.ResponseWriter, r *http.Request) {
-	// --- DEMO BYPASS ---
 	date := r.URL.Query().Get("date")
 	if date == "" {
-		date = "2026-08-28"
+		date = time.Now().Format("2006-01-02")
 	}
 
-	data := []map[string]interface{}{
-		{
-			"id": "ds-1", "employee_id": "EMP-001", "employee_name": "Alice Walker", 
-			"department": "Engineering", "date": date, "first_in": "09:05 AM", 
-			"last_out": "06:10 PM", "status": "PRESENT", "late_by_minutes": 5,
-		},
-		{
-			"id": "ds-2", "employee_id": "EMP-002", "employee_name": "Bob Smith", 
-			"department": "Design", "date": date, "first_in": "09:30 AM", 
-			"last_out": "--:--", "status": "LATE", "late_by_minutes": 30,
-		},
-		{
-			"id": "ds-3", "employee_id": "EMP-003", "employee_name": "Charlie Day", 
-			"department": "Marketing", "date": date, "first_in": "--:--", 
-			"last_out": "--:--", "status": "ABSENT", "late_by_minutes": 0,
-		},
+	if s.db == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
 	}
-	
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT al.id::text, e.employee_id, e.first_name || ' ' || e.last_name as employee_name,
+		       COALESCE(d.name, 'Unassigned') as department,
+		       to_char(al.attendance_date, 'YYYY-MM-DD') as date,
+		       to_char(al.check_in_time, 'HH12:MI AM') as first_in,
+		       COALESCE(to_char(al.check_out_time, 'HH12:MI AM'), '--:--') as last_out,
+		       al.status, COALESCE(al.late_by_minutes, 0) as late_by_minutes
+		FROM attendance_logs al
+		JOIN employees e ON al.employee_id = e.id
+		LEFT JOIN departments d ON e.department_id = d.id
+		WHERE al.attendance_date = $1::date
+		ORDER BY e.employee_id ASC
+	`, date)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database query failed: " + err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var data []map[string]interface{}
+	for rows.Next() {
+		var id, empID, empName, dept, dt, firstIn, lastOut, status string
+		var lateMin int
+		if err := rows.Scan(&id, &empID, &empName, &dept, &dt, &firstIn, &lastOut, &status, &lateMin); err == nil {
+			data = append(data, map[string]interface{}{
+				"id":              id,
+				"employee_id":     empID,
+				"employee_name":   empName,
+				"department":      dept,
+				"date":            dt,
+				"first_in":        firstIn,
+				"last_out":        lastOut,
+				"status":          status,
+				"late_by_minutes": lateMin,
+			})
+		}
+	}
+	if data == nil {
+		data = []map[string]interface{}{}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data":    data,
-		"demo":    true,
 	})
-	// --- END DEMO BYPASS ---
 }
 

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { AlertCircle, CalendarClock, ChevronRight, Clock, ShieldAlert } from 'lucide-react'
 import { Card } from '../../components/ui/Card'
+import { apiFetch } from '../../lib/api'
 
 interface ProbationEmployee {
   id: string
@@ -18,7 +19,7 @@ export const ProbationDashboard = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['probation-due'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/lifecycle/probation-due')
+      const res = await apiFetch('/api/v1/lifecycle/probation-due')
       if (!res.ok) throw new Error('Failed to fetch')
       return res.json()
     }
