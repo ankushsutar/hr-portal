@@ -49,7 +49,7 @@ export const Layout = () => {
   return (
     <div className="flex h-screen bg-[#0B0F19] text-slate-100 font-sans overflow-hidden">
       {/* Sidebar for Desktop & Mobile Overlay */}
-      <aside className={`w-64 flex flex-col bg-[#111827] border-r border-slate-800/80 z-30 transition-all duration-200 fixed md:static inset-y-0 left-0 ${
+      <aside className={`w-64 flex flex-col bg-[#111827] border-r border-slate-800/80 z-30 transition-transform duration-200 fixed md:static inset-y-0 left-0 ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         {/* Console Header */}
@@ -81,7 +81,7 @@ export const Layout = () => {
               key={item.name}
               to={item.href}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="group flex items-center px-3 py-2 text-xs font-medium rounded-md text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-all duration-150 [&.active]:bg-blue-500/10 [&.active]:text-blue-400 [&.active]:font-semibold [&.active]:border-l-2 [&.active]:border-blue-500"
+              className="group flex items-center px-3 py-2 text-xs font-medium rounded-md text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 [&.active]:bg-blue-500/10 [&.active]:text-blue-400 [&.active]:font-semibold [&.active]:border-l-2 [&.active]:border-blue-500"
             >
               <item.icon className="mr-2.5 h-4 w-4 shrink-0 text-slate-500 group-hover:text-slate-300 group-[.active]:text-blue-400 transition-colors" />
               <span className="truncate">{item.name}</span>
@@ -145,7 +145,7 @@ export const Layout = () => {
               <input 
                 type="text" 
                 placeholder="Search commands, employees (⌘K)..." 
-                className="bg-[#0B0F19] border border-slate-800 text-xs text-slate-200 placeholder-slate-500 pl-8 pr-10 py-1.5 rounded-md focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/40 w-64 transition-all"
+                className="bg-[#0B0F19] border border-slate-800 text-xs text-slate-200 placeholder-slate-500 pl-8 pr-10 py-1.5 rounded-md focus-visible:outline-none focus-visible:border-blue-500/60 focus-visible:ring-1 focus-visible:ring-blue-500/40 w-64 transition-colors"
               />
               <kbd className="absolute right-2.5 text-[10px] font-mono bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700 pointer-events-none">
                 ⌘K

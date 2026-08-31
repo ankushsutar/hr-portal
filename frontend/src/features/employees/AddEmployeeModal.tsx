@@ -95,7 +95,7 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
                 </div>
                 <div>
                   <label className="block text-slate-400 mb-1">Corporate Email</label>
-                  <input type="email" name="work_email" value={formData.work_email} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" placeholder="e.g. name@company.com" />
+                  <input type="email" name="work_email" spellCheck={false} value={formData.work_email} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus-visible:outline-none focus-visible:border-blue-500" placeholder="e.g. name@company.com" />
                 </div>
                 <div>
                   <label className="block text-slate-400 mb-1">Phone Contact</label>

@@ -26,7 +26,10 @@ export const Card = ({ children, className = '', onClick, title, description, ac
   return (
     <div 
       onClick={onClick}
-      className={`bg-[#111827] rounded-lg border border-slate-800 text-slate-100 transition-all duration-150 ${onClick ? 'cursor-pointer hover:border-slate-700' : ''} ${cleanedClass}`}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`bg-[#111827] rounded-lg border border-slate-800 text-slate-100 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 ${onClick ? 'cursor-pointer hover:border-slate-700' : ''} ${cleanedClass}`}
     >
       {(title || action) && (
         <div className="px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/40 flex items-center justify-between">

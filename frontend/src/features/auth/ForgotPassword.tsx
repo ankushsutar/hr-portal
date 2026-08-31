@@ -75,7 +75,8 @@ export const ForgotPassword = () => {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500 text-xs"
+                spellCheck={false}
+                className="w-full px-3 py-2 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 text-xs"
                 placeholder="employee@company.com"
                 required
               />
