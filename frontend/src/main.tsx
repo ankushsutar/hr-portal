@@ -311,6 +311,11 @@ window.fetch = async (...args) => {
   return originalFetch(...args)
 }
 
+import { useThemeStore } from './stores/themeStore'
+
+// Initialize saved theme & CSS properties
+useThemeStore.getState().initTheme()
+
 // --- RENDER ---
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

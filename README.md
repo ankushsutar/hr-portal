@@ -44,11 +44,21 @@ Built with a **Go 1.23 REST Backend** and a **Vite + React 19 + TypeScript + Tai
 - Node.js `18+`
 - PostgreSQL `14+`
 
-### 2. Startup Script
+### 2. Startup & Demo Data Seeding
 Run the automated startup script:
 ```bash
 bash start.sh
 ```
+
+To seed comprehensive demo data across all sections (Employees, Attendance, Leave, Payroll, Performance, Onboarding, Recruitment):
+```bash
+bash seed_demo_data.sh
+```
+
+### 3. Demo Credentials
+* **Admin**: `admin@company.com` / `password123`
+* **HR Manager**: `hr@company.com` / `password123`
+* **Employee**: `aarav@company.com` / `password123`
 
 ### 3. Manual Startup
 ```bash

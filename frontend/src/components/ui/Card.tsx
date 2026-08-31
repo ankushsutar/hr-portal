@@ -11,17 +11,14 @@ interface CardProps {
 
 export const Card = ({ children, className = '', onClick, title, description, action }: CardProps) => {
   const cleanedClass = className
-    .replace(/\bbg-white\b/g, 'bg-[#111827]')
-    .replace(/\bbg-gray-50\b/g, 'bg-[#161B26]')
-    .replace(/\bbg-gray-50\/50\b/g, 'bg-[#161B26]')
-    .replace(/\bbg-gray-50\/20\b/g, 'bg-[#161B26]/50')
-    .replace(/\bborder-gray-100\b/g, 'border-slate-800')
-    .replace(/\bborder-gray-200\b/g, 'border-slate-800')
-    .replace(/\btext-gray-900\b/g, 'text-slate-100')
-    .replace(/\btext-gray-800\b/g, 'text-slate-200')
-    .replace(/\btext-gray-700\b/g, 'text-slate-300')
-    .replace(/\btext-gray-600\b/g, 'text-slate-400')
-    .replace(/\btext-gray-500\b/g, 'text-slate-400');
+    .replace(/\bbg-white\b/g, 'bg-[var(--bg-card)]')
+    .replace(/\bbg-[#111827]\b/g, 'bg-[var(--bg-card)]')
+    .replace(/\bbg-gray-50\b/g, 'bg-[var(--bg-subtle)]')
+    .replace(/\bborder-gray-100\b/g, 'border-[var(--border-color)]')
+    .replace(/\bborder-gray-200\b/g, 'border-[var(--border-color)]')
+    .replace(/\bborder-slate-800\b/g, 'border-[var(--border-color)]')
+    .replace(/\btext-gray-900\b/g, 'text-[var(--text-main)]')
+    .replace(/\btext-gray-500\b/g, 'text-[var(--text-muted)]');
 
   return (
     <div 
@@ -29,13 +26,13 @@ export const Card = ({ children, className = '', onClick, title, description, ac
       onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`bg-[#111827] rounded-lg border border-slate-800 text-slate-100 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 ${onClick ? 'cursor-pointer hover:border-slate-700' : ''} ${cleanedClass}`}
+      className={`bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] text-[var(--text-main)] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] ${onClick ? 'cursor-pointer hover:border-[var(--color-primary)]' : ''} ${cleanedClass}`}
     >
       {(title || action) && (
-        <div className="px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/40 flex items-center justify-between">
+        <div className="px-5 py-3.5 border-b border-[var(--border-color)] bg-[var(--bg-subtle)] flex items-center justify-between">
           <div>
-            {title && <h3 className="font-semibold text-slate-100 text-sm tracking-tight">{title}</h3>}
-            {description && <p className="text-xs font-mono text-slate-400 mt-0.5">{description}</p>}
+            {title && <h3 className="font-semibold text-[var(--text-main)] text-sm tracking-tight">{title}</h3>}
+            {description && <p className="text-xs font-mono text-[var(--text-muted)] mt-0.5">{description}</p>}
           </div>
           {action && <div>{action}</div>}
         </div>

@@ -114,24 +114,24 @@ export const EmployeeDirectory = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-bold tracking-tight text-slate-100 font-mono">Employee Directory</h1>
+          <p className="text-xs font-mono text-slate-400 mt-1">
             {stats ? `${stats.total_active} active · ${stats.new_this_month} joined this month · ${stats.on_probation} on probation` : 'Loading stats...'}
           </p>
         </div>
         {hasRole(['HR_ADMIN', 'SUPER_ADMIN', 'HR_MANAGER']) && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 font-mono">
             <a
               href="/api/v1/employees/export"
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 text-gray-600 rounded-md hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-slate-700 text-slate-300 rounded hover:bg-slate-800 transition-colors"
             >
               <Download size={14} /> Export CSV
             </a>
             <button
               onClick={() => setShowAdd(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded transition-colors shadow-sm"
             >
-              <Plus size={15} /> Add Employee
+              <Plus size={14} /> Add Employee
             </button>
           </div>
         )}

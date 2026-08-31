@@ -46,7 +46,7 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-fade-in font-mono text-xs">
+      <div className="space-y-6 animate-fade-in font-mono text-xs max-w-5xl mx-auto p-6">
         <div className="h-40 bg-[#111827] rounded-lg border border-slate-800 animate-pulse" />
         <div className="h-96 bg-[#111827] rounded-lg border border-slate-800 animate-pulse" />
       </div>
@@ -55,9 +55,9 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
 
   if (isError || !data?.data) {
     return (
-      <div className="p-8 text-center">
-        <p className="text-red-500">Failed to load employee profile.</p>
-        <Link to="/employees" className="text-blue-600 hover:underline text-sm mt-2 inline-block">Back to Directory</Link>
+      <div className="p-8 text-center font-mono text-xs">
+        <p className="text-rose-400">Failed to load employee profile.</p>
+        <Link to="/employees" className="text-blue-400 hover:underline mt-2 inline-block">Back to Directory</Link>
       </div>
     )
   }
@@ -65,13 +65,13 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
   const emp = data.data
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <Link to="/employees" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+    <div className="p-6 max-w-5xl mx-auto space-y-6 animate-fade-in font-mono">
+      <Link to="/employees" className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors font-mono">
         <ArrowLeft size={14} /> Back to Directory
       </Link>
       
       {/* Profile Header Card */}
-      <Card className="p-6 relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 font-mono">
+      <Card className="p-6 relative overflow-hidden bg-slate-900/90 border-slate-800 font-mono">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
           <div className="shrink-0">
             <div className={`h-20 w-20 rounded-full flex items-center justify-center font-bold text-2xl border-2 border-slate-700 shadow ${avatarColor(emp.full_name)}`}>
@@ -107,9 +107,9 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
       </Card>
 
       {/* Tabs Card */}
-      <Card className="p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden border-slate-800 bg-[#111827]">
         <Tabs.Root defaultValue="overview" className="flex flex-col">
-          <Tabs.List className="flex border-b border-slate-800 px-3 bg-slate-900/60 font-mono text-xs overflow-x-auto hide-scrollbar">
+          <Tabs.List className="flex border-b border-slate-800 px-3 bg-slate-900/80 font-mono text-xs overflow-x-auto hide-scrollbar">
             {[
               { id: 'overview', icon: Shield, label: 'Overview' },
               { id: 'personal', icon: User, label: 'Personal' },
@@ -133,8 +133,8 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
             <Tabs.Content value="overview" className="outline-none space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2"><Briefcase size={14}/> Current Role</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2 font-mono"><Briefcase size={14}/> Current Role</h3>
+                  <div className="bg-slate-900/60 rounded-lg p-4 space-y-1 border border-slate-800/80">
                     <InfoRow label="Department" value={emp.department_name} />
                     <InfoRow label="Designation" value={emp.designation_name} />
                     <InfoRow label="Reporting To" value={emp.manager_name} />
@@ -142,8 +142,8 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2"><Calendar size={14}/> Tenure</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2 font-mono"><Calendar size={14}/> Tenure</h3>
+                  <div className="bg-slate-900/60 rounded-lg p-4 space-y-1 border border-slate-800/80">
                     <InfoRow label="Joining Date" value={emp.joining_date} />
                     <InfoRow label="Employment Type" value={emp.employment_type} />
                     <InfoRow label="Probation End" value={emp.probation_end_date} />
@@ -156,8 +156,8 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
             <Tabs.Content value="personal" className="outline-none space-y-6">
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Basic Details</h3>
-                  <div className="space-y-1">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-800 pb-2">Basic Details</h3>
+                  <div className="space-y-1 bg-slate-900/60 rounded-lg p-4 border border-slate-800/80">
                     <InfoRow label="Date of Birth" value={emp.personal?.date_of_birth} />
                     <InfoRow label="Gender" value={emp.personal?.gender} />
                     <InfoRow label="Blood Group" value={emp.personal?.blood_group} />
@@ -166,8 +166,8 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Contact Info</h3>
-                  <div className="space-y-1">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-800 pb-2">Contact Info</h3>
+                  <div className="space-y-1 bg-slate-900/60 rounded-lg p-4 border border-slate-800/80">
                     <InfoRow label="Personal Email" value={emp.personal?.personal_email} />
                     <InfoRow label="Phone Number" value={emp.personal?.phone_number} />
                     <InfoRow label="Emergency Contact" value={emp.personal?.emergency_contact_name} />
@@ -175,15 +175,15 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
                   </div>
                 </div>
                 <div className="md:col-span-2">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Addresses</h3>
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Current Address</p>
-                      <p className="text-sm text-gray-900 whitespace-pre-wrap">{emp.personal?.current_address || '—'}</p>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-800 pb-2">Addresses</h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-800/80">
+                      <p className="text-xs text-slate-400 mb-1 font-mono">Current Address</p>
+                      <p className="text-xs text-slate-200 whitespace-pre-wrap font-mono">{emp.personal?.current_address || '—'}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Permanent Address</p>
-                      <p className="text-sm text-gray-900 whitespace-pre-wrap">{emp.personal?.permanent_address || '—'}</p>
+                    <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-800/80">
+                      <p className="text-xs text-slate-400 mb-1 font-mono">Permanent Address</p>
+                      <p className="text-xs text-slate-200 whitespace-pre-wrap font-mono">{emp.personal?.permanent_address || '—'}</p>
                     </div>
                   </div>
                 </div>
@@ -192,8 +192,8 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
 
             <Tabs.Content value="work" className="outline-none">
               <div className="max-w-2xl">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Employment Information</h3>
-                <div className="space-y-1">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-800 pb-2">Employment Information</h3>
+                <div className="space-y-1 bg-slate-900/60 rounded-lg p-4 border border-slate-800/80">
                   <InfoRow label="Employee ID" value={<span className="font-mono">{emp.employee_id}</span>} />
                   <InfoRow label="System Status" value={emp.status} />
                   <InfoRow label="Employment Type" value={emp.employment_type} />
@@ -207,28 +207,28 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
 
             <Tabs.Content value="statutory" className="outline-none">
               <div className="max-w-2xl">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Statutory & Bank Details</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-800 pb-2">Statutory & Bank Details</h3>
                 {!hasScope('SALARY_ACCESS') && emp.id !== employeeId ? (
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500 text-sm">
-                    <Shield className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-lg text-center text-slate-400 text-xs font-mono">
+                    <Shield className="w-8 h-8 text-slate-600 mx-auto mb-2" />
                     You do not have permission to view statutory and bank details for this employee.
                   </div>
                 ) : !emp.statutory ? (
-                   <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500 text-sm">
+                   <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-lg text-center text-slate-400 text-xs font-mono">
                     No statutory details recorded.
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    <InfoRow label="PAN Number" value={<span className="font-mono uppercase">{emp.statutory.pan_number}</span>} />
+                  <div className="space-y-1 bg-slate-900/60 rounded-lg p-4 border border-slate-800/80">
+                    <InfoRow label="PAN Number" value={<span className="font-mono uppercase text-blue-400">{emp.statutory.pan_number}</span>} />
                     <InfoRow label="Aadhaar Number" value={<span className="font-mono">{emp.statutory.aadhaar_number}</span>} />
                     <InfoRow label="UAN Number" value={<span className="font-mono">{emp.statutory.uan_number}</span>} />
                     <InfoRow label="PF Number" value={<span className="font-mono uppercase">{emp.statutory.pf_number}</span>} />
                     <InfoRow label="ESIC Number" value={<span className="font-mono">{emp.statutory.esic_number}</span>} />
-                    <div className="my-4" />
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 pt-4 border-t border-gray-100">Bank Information</h4>
+                    <div className="my-4 border-t border-slate-800" />
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 pt-2">Bank Information</h4>
                     <InfoRow label="Bank Name" value={emp.statutory.bank_name} />
                     <InfoRow label="Account Number" value={<span className="font-mono">{emp.statutory.bank_account_number}</span>} />
-                    <InfoRow label="IFSC Code" value={<span className="font-mono uppercase">{emp.statutory.ifsc_code}</span>} />
+                    <InfoRow label="IFSC Code" value={<span className="font-mono uppercase text-blue-400">{emp.statutory.ifsc_code}</span>} />
                   </div>
                 )}
               </div>
@@ -242,7 +242,7 @@ export const EmployeeProfile = ({ employeeId }: { employeeId: string }) => {
             
             <Tabs.Content value="timeline" className="outline-none">
               <div className="max-w-2xl">
-                <h3 className="text-sm font-semibold text-gray-900 mb-6 border-b border-gray-100 pb-2">Employee Lifecycle</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 border-b border-slate-800 pb-2">Employee Lifecycle</h3>
                 <EmployeeTimeline employeeId={employeeId} />
               </div>
             </Tabs.Content>
@@ -269,34 +269,34 @@ const EmployeeTimeline = ({ employeeId }: { employeeId: string }) => {
     }
   })
 
-  if (isLoading) return <div className="text-sm text-gray-500 py-4">Loading timeline...</div>
-  if (isError) return <div className="text-sm text-red-500 py-4">Failed to load timeline.</div>
+  if (isLoading) return <div className="text-xs font-mono text-slate-500 py-4">Loading timeline...</div>
+  if (isError) return <div className="text-xs font-mono text-rose-400 py-4">Failed to load timeline.</div>
 
   const events = data?.data || []
 
   if (events.length === 0) {
-    return <div className="text-sm text-gray-500 py-4">No lifecycle events recorded.</div>
+    return <div className="text-xs font-mono text-slate-500 py-4">No lifecycle events recorded.</div>
   }
 
   return (
-    <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+    <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-slate-800 font-mono text-xs">
       {events.map((evt: any) => (
         <div key={evt.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-700 bg-blue-500/10 text-blue-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10">
             <History size={16} />
           </div>
-          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-lg border border-gray-100 bg-white shadow-sm">
+          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-lg border border-slate-800 bg-slate-900/60 shadow-sm">
             <div className="flex items-center justify-between mb-1">
-              <div className="font-bold text-gray-900 text-sm">{evt.event_type.replace('_', ' ')}</div>
-              <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{evt.effective_date}</div>
+              <div className="font-bold text-slate-200 text-xs">{evt.event_type.replace('_', ' ')}</div>
+              <div className="text-[10px] font-mono font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">{evt.effective_date}</div>
             </div>
-            {evt.reason && <p className="text-xs text-gray-500 mt-1">{evt.reason}</p>}
+            {evt.reason && <p className="text-xs text-slate-400 mt-1">{evt.reason}</p>}
             {evt.new_value && Object.keys(evt.new_value).length > 0 && (
-              <div className="mt-2 p-2 bg-gray-50 rounded text-xs border border-gray-100">
+              <div className="mt-2 p-2 bg-slate-950 rounded text-xs border border-slate-800">
                 {Object.entries(evt.new_value).map(([k, v]) => (
                   <div key={k} className="flex gap-2">
-                    <span className="text-gray-400 capitalize">{k.replace('_', ' ')}:</span>
-                    <span className="font-medium text-gray-700">{String(v)}</span>
+                    <span className="text-slate-500 capitalize">{k.replace('_', ' ')}:</span>
+                    <span className="font-medium text-slate-300">{String(v)}</span>
                   </div>
                 ))}
               </div>
@@ -328,51 +328,51 @@ const EmployeeDocuments = ({ employeeId }: { employeeId: string }) => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['employee-docs', employeeId] })
   })
 
-  if (isLoading) return <div className="py-8 text-gray-500">Loading documents...</div>
+  if (isLoading) return <div className="py-8 text-slate-500 font-mono text-xs">Loading documents...</div>
 
   const docs = data?.data || []
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-2">
-        <h3 className="text-sm font-semibold text-gray-900">Document Library</h3>
-        <button className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1">
+    <div className="space-y-4 font-mono text-xs">
+      <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-2">
+        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Document Library</h3>
+        <button className="text-xs font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1">
           <Upload size={14} /> Upload Document
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {docs.map((doc: any) => (
-          <div key={doc.id} className="p-4 border border-gray-200 rounded-xl bg-white shadow-sm flex flex-col justify-between">
+          <div key={doc.id} className="p-4 border border-slate-800 rounded-xl bg-slate-900/60 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><FileText size={16}/></div>
+                  <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20"><FileText size={16}/></div>
                   <div>
-                    <div className="font-medium text-gray-900">{doc.document_type_name}</div>
-                    <div className="text-xs text-gray-400">{doc.file_name}</div>
+                    <div className="font-medium text-slate-200">{doc.document_type_name}</div>
+                    <div className="text-[11px] text-slate-500">{doc.file_name}</div>
                   </div>
                 </div>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                  doc.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                  doc.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                  doc.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                  doc.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                 }`}>
                   {doc.status}
                 </span>
               </div>
               {doc.rejection_reason && (
-                <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded border border-red-100">
+                <div className="mt-2 text-xs text-rose-400 bg-rose-500/10 p-2 rounded border border-rose-500/20">
                   <span className="font-semibold">Reason:</span> {doc.rejection_reason}
                 </div>
               )}
             </div>
-            <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
-              <div className="text-xs text-gray-400">Uploaded {doc.uploaded_at}</div>
+            <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+              <div className="text-[11px] text-slate-500">Uploaded {doc.uploaded_at}</div>
               {doc.status === 'SUBMITTED' && (
                 <button 
                   disabled={verifyDoc.isPending}
                   onClick={() => verifyDoc.mutate(doc.id)}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                  className="text-xs font-semibold text-blue-400 hover:text-blue-300 disabled:opacity-50"
                 >
                   Verify Now
                 </button>
@@ -381,7 +381,7 @@ const EmployeeDocuments = ({ employeeId }: { employeeId: string }) => {
           </div>
         ))}
         {docs.length === 0 && (
-          <div className="col-span-full py-12 text-center text-gray-500 border-2 border-dashed border-gray-100 rounded-xl">
+          <div className="col-span-full py-12 text-center text-slate-500 border-2 border-dashed border-slate-800 rounded-xl font-mono">
             No documents uploaded yet.
           </div>
         )}
@@ -400,41 +400,41 @@ const EmployeeOffboarding = ({ employeeId }: { employeeId: string }) => {
     }
   })
 
-  if (isLoading) return <div className="py-8 text-gray-500">Loading offboarding details...</div>
+  if (isLoading) return <div className="py-8 text-slate-500 font-mono text-xs">Loading offboarding details...</div>
 
   const tasks = data?.data || []
 
   return (
-    <div className="space-y-6">
-      <div className="bg-orange-50 text-orange-800 p-4 rounded-xl border border-orange-100 flex items-start gap-3">
+    <div className="space-y-6 font-mono text-xs">
+      <div className="bg-amber-500/10 text-amber-400 p-4 rounded-xl border border-amber-500/20 flex items-start gap-3">
         <UserMinus className="w-5 h-5 mt-0.5 flex-shrink-0" />
         <div>
           <h4 className="font-semibold">Employee is serving notice period</h4>
-          <p className="text-sm mt-1 text-orange-700">Last working day is scheduled for September 15, 2026. Please complete the clearance checklist below.</p>
+          <p className="text-xs mt-1 text-amber-300">Last working day is scheduled for September 15, 2026. Please complete the clearance checklist below.</p>
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="font-semibold text-gray-900">Clearance Checklist</h3>
+      <div className="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-800 bg-slate-900">
+          <h3 className="font-semibold text-slate-200">Clearance Checklist</h3>
         </div>
-        <table className="w-full text-left">
+        <table className="w-full text-left font-mono">
           <thead>
-            <tr className="bg-gray-50/20 border-b border-gray-100">
-              <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Department</th>
-              <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Task Description</th>
-              <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+            <tr className="bg-slate-900/40 border-b border-slate-800">
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase">Department</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase">Task Description</th>
+              <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-slate-800/60">
             {tasks.map((t: any) => (
-              <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{t.department}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{t.task_description}</td>
+              <tr key={t.id} className="hover:bg-slate-800/40 transition-colors">
+                <td className="px-6 py-4 text-xs font-medium text-slate-200">{t.department}</td>
+                <td className="px-6 py-4 text-xs text-slate-400">{t.task_description}</td>
                 <td className="px-6 py-4">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={t.status === 'COMPLETED'} readOnly className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
-                    <span className={`text-xs font-bold uppercase ${t.status === 'COMPLETED' ? 'text-green-600' : 'text-gray-400'}`}>
+                    <input type="checkbox" checked={t.status === 'COMPLETED'} readOnly className="w-4 h-4 rounded text-blue-500 focus:ring-blue-500 bg-slate-800 border-slate-700" />
+                    <span className={`text-xs font-bold uppercase ${t.status === 'COMPLETED' ? 'text-emerald-400' : 'text-slate-500'}`}>
                       {t.status}
                     </span>
                   </label>
@@ -444,7 +444,7 @@ const EmployeeOffboarding = ({ employeeId }: { employeeId: string }) => {
           </tbody>
         </table>
         {tasks.length === 0 && (
-          <div className="p-8 text-center text-gray-500">No clearance tasks assigned.</div>
+          <div className="p-8 text-center text-slate-500">No clearance tasks assigned.</div>
         )}
       </div>
     </div>

@@ -1,8 +1,10 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck, Search, Shield, ChevronRight, Cpu, CheckSquare, X, Menu } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck, Search, Shield, ChevronRight, Cpu, CheckSquare, X, Menu, Palette } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useThemeStore } from '../../stores/themeStore'
+import { ThemeCustomizerModal } from '../theme/ThemeCustomizerModal'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
@@ -25,6 +27,7 @@ const navigation = [
 export const Layout = () => {
   const { user, logout, hasRole } = useAuth() as any
   const routerState = useRouterState()
+  const setCustomizerOpen = useThemeStore(state => state.setCustomizerOpen)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -47,25 +50,25 @@ export const Layout = () => {
   const pageTitle = currentNav ? currentNav.name : 'Console'
 
   return (
-    <div className="flex h-screen bg-[#0B0F19] text-slate-100 font-sans overflow-hidden">
+    <div className="flex h-screen bg-[var(--bg-page)] text-[var(--text-main)] font-sans overflow-hidden transition-colors">
       {/* Sidebar for Desktop & Mobile Overlay */}
-      <aside className={`w-64 flex flex-col bg-[#111827] border-r border-slate-800/80 z-30 transition-transform duration-200 fixed md:static inset-y-0 left-0 ${
+      <aside className={`w-64 flex flex-col bg-[var(--bg-sidebar)] border-r border-[var(--border-color)] z-30 transition-transform duration-200 fixed md:static inset-y-0 left-0 ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         {/* Console Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800/80 bg-[#111827]">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)]">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded bg-blue-600 flex items-center justify-center font-mono font-bold text-white text-xs shadow-sm">
+            <div className="w-7 h-7 rounded theme-accent-bg flex items-center justify-center font-mono font-bold text-white text-xs shadow-sm">
               H
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-bold text-slate-100 tracking-tight text-sm">HRMS</span>
-              <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20 uppercase tracking-widest font-semibold">CORE</span>
+              <span className="font-bold text-[var(--text-main)] tracking-tight text-sm">HRMS</span>
+              <span className="text-[10px] font-mono theme-accent-text bg-[var(--color-primary)]/10 px-1.5 py-0.5 rounded border border-[var(--color-primary)]/20 uppercase tracking-widest font-semibold">CORE</span>
             </div>
           </div>
           <button 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="md:hidden text-slate-400 hover:text-slate-200"
+            className="md:hidden text-[var(--text-muted)] hover:text-[var(--text-main)]"
           >
             <X size={18} />
           </button>
@@ -73,7 +76,7 @@ export const Layout = () => {
         
         {/* Navigation List */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 custom-scrollbar">
-          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider px-3 mb-2 font-semibold">
+          <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider px-3 mb-2 font-semibold">
             WORKSPACE
           </div>
           {navigation.filter(item => hasRole(item.roles)).map((item) => (
@@ -81,29 +84,29 @@ export const Layout = () => {
               key={item.name}
               to={item.href}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="group flex items-center px-3 py-2 text-xs font-medium rounded-md text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500/50 [&.active]:bg-blue-500/10 [&.active]:text-blue-400 [&.active]:font-semibold [&.active]:border-l-2 [&.active]:border-blue-500"
+              className="group flex items-center px-3 py-2 text-xs font-medium rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-main)] transition-colors duration-150 focus-visible:outline-none [&.active]:bg-[var(--color-primary)]/10 [&.active]:text-[var(--color-primary)] [&.active]:font-semibold [&.active]:border-l-2 [&.active]:border-[var(--color-primary)]"
             >
-              <item.icon className="mr-2.5 h-4 w-4 shrink-0 text-slate-500 group-hover:text-slate-300 group-[.active]:text-blue-400 transition-colors" />
+              <item.icon className="mr-2.5 h-4 w-4 shrink-0 text-[var(--text-muted)] group-hover:text-[var(--text-main)] group-[.active]:text-[var(--color-primary)] transition-colors" />
               <span className="truncate">{item.name}</span>
             </Link>
           ))}
         </nav>
         
         {/* Bottom User Pill */}
-        <div className="p-3 border-t border-slate-800/80 bg-[#0F1523]">
+        <div className="p-3 border-t border-[var(--border-color)] bg-[var(--bg-subtle)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center min-w-0 pr-2">
-              <div className="h-7 w-7 rounded bg-slate-800 border border-slate-700 text-blue-400 flex items-center justify-center font-mono text-xs font-bold shrink-0">
+              <div className="h-7 w-7 rounded bg-[var(--bg-card)] border border-[var(--border-color)] theme-accent-text flex items-center justify-center font-mono text-xs font-bold shrink-0">
                 {user?.email?.[0]?.toUpperCase() || 'U'}
               </div>
               <div className="ml-2.5 truncate">
-                <p className="text-xs font-medium text-slate-200 truncate leading-none">{user?.email}</p>
-                <p className="text-[10px] font-mono text-slate-500 truncate mt-1">{user?.roles?.[0] || 'USER'}</p>
+                <p className="text-xs font-medium text-[var(--text-main)] truncate leading-none">{user?.email}</p>
+                <p className="text-[10px] font-mono text-[var(--text-muted)] truncate mt-1">{user?.roles?.[0] || 'USER'}</p>
               </div>
             </div>
             <button 
               onClick={logout}
-              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+              className="p-1.5 text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
               title="Sign Out"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -121,36 +124,45 @@ export const Layout = () => {
       )}
 
       {/* Main Console Workspace */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#0B0F19]">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[var(--bg-page)]">
         {/* Top Header / Breadcrumb Bar */}
-        <header className="h-16 bg-[#111827]/80 backdrop-blur border-b border-slate-800/80 flex items-center justify-between px-6 sticky top-0 z-10">
+        <header className="h-16 bg-[var(--bg-header)] backdrop-blur border-b border-[var(--border-color)] flex items-center justify-between px-6 sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden text-slate-400 hover:text-slate-200 p-1"
+              className="md:hidden text-[var(--text-muted)] hover:text-[var(--text-main)] p-1"
             >
               <Menu size={20} />
             </button>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-              <span className="text-slate-500">console</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-              <span className="text-slate-100 font-semibold">{pageTitle.toLowerCase()}</span>
+            <div className="flex items-center gap-2 text-xs font-mono text-[var(--text-muted)]">
+              <span className="text-[var(--text-muted)]">console</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <span className="text-[var(--text-main)] font-semibold">{pageTitle.toLowerCase()}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             {/* Command / Search Input */}
             <div className="relative hidden sm:flex items-center">
-              <Search className="w-3.5 h-3.5 absolute left-3 text-slate-500" />
+              <Search className="w-3.5 h-3.5 absolute left-3 text-[var(--text-muted)]" />
               <input 
                 type="text" 
                 placeholder="Search commands, employees (⌘K)..." 
-                className="bg-[#0B0F19] border border-slate-800 text-xs text-slate-200 placeholder-slate-500 pl-8 pr-10 py-1.5 rounded-md focus-visible:outline-none focus-visible:border-blue-500/60 focus-visible:ring-1 focus-visible:ring-blue-500/40 w-64 transition-colors"
+                className="bg-[var(--bg-page)] border border-[var(--border-color)] text-xs text-[var(--text-main)] placeholder-[var(--text-muted)] pl-8 pr-10 py-1.5 rounded-md focus-visible:outline-none focus-visible:border-[var(--color-primary)] w-64 transition-colors"
               />
-              <kbd className="absolute right-2.5 text-[10px] font-mono bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700 pointer-events-none">
+              <kbd className="absolute right-2.5 text-[10px] font-mono bg-[var(--bg-subtle)] text-[var(--text-muted)] px-1.5 py-0.5 rounded border border-[var(--border-color)] pointer-events-none">
                 ⌘K
               </kbd>
             </div>
+
+            {/* Theme Customizer Palette Trigger */}
+            <button 
+              onClick={() => setCustomizerOpen(true)}
+              className="p-2 text-[var(--text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--bg-subtle)] rounded transition-colors"
+              title="Theme & Corporate Brand Customizer"
+            >
+              <Palette className="h-4 w-4" />
+            </button>
 
             {/* Notification Bell */}
             <div className="relative">
@@ -202,6 +214,9 @@ export const Layout = () => {
             <Outlet />
           </div>
         </div>
+
+        {/* Global Theme & Brand Customizer Drawer */}
+        <ThemeCustomizerModal />
       </main>
     </div>
   )
