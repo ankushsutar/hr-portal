@@ -4,6 +4,8 @@ import { useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Card } from '../../components/ui/Card'
 import { PayslipView } from './PayslipView'
+import { PaginationBar } from '../../components/ui/PaginationBar'
+import { useTableState } from '../../hooks/useTableState'
 
 const fetchPayrollRuns = async () => {
   const res = await fetch('/api/v1/payroll/runs', {
@@ -21,23 +23,26 @@ const fetchAdvances = async () => {
   return res.json()
 }
 
-const fetchPayslips = async () => {
-  const res = await fetch('/api/v1/payroll/payslips', {
-    headers: { Authorization: `Bearer ${localStorage.getItem('hrms_token') || localStorage.getItem('token')}` }
-  })
-  if (!res.ok) throw new Error('Failed to fetch payslips')
-  return res.json()
-}
-
 export const PayrollDashboard = () => {
   const qc = useQueryClient()
   const [selectedPayslipId, setSelectedPayslipId] = useState<string | null>(null)
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false)
   const [advanceForm, setAdvanceForm] = useState({ employee_id: '', amount: '', reason: '', month: 8, year: 2026 })
 
+  const { page, limit, search, setPage, setLimit, setSearch, queryParams } = useTableState({ initialLimit: 10 })
+
   const { data: runsData, isLoading: runsLoading } = useQuery({ queryKey: ['payroll-runs'], queryFn: fetchPayrollRuns })
   const { data: advancesData, isLoading: advancesLoading } = useQuery({ queryKey: ['payroll-advances'], queryFn: fetchAdvances })
-  const { data: payslipsData, isLoading: payslipsLoading } = useQuery({ queryKey: ['payslips'], queryFn: fetchPayslips })
+  const { data: payslipsData, isLoading: payslipsLoading } = useQuery({
+    queryKey: ['payslips', queryParams.toString()],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/payroll/payslips?${queryParams.toString()}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('hrms_token') || localStorage.getItem('token')}` }
+      })
+      if (!res.ok) throw new Error('Failed to fetch payslips')
+      return res.json()
+    }
+  })
 
   const processMutation = useMutation({
     mutationFn: async () => {
@@ -369,46 +374,63 @@ export const PayrollDashboard = () => {
         {/* Tab 3: Published Payslips */}
         <Tabs.Content value="payslips" className="focus:outline-none">
           <Card className="p-0 overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
+            <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between gap-4">
               <h3 className="font-semibold text-slate-100 text-sm">Published Employee Payslips</h3>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search employee or ID..."
+                className="px-3 py-1 bg-[#0B0F19] border border-slate-800 rounded text-xs text-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 w-56 font-mono"
+              />
             </div>
             {payslipsLoading ? (
               <div className="p-6 text-center text-slate-500 font-mono text-xs">Loading payslips...</div>
             ) : (
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-900/40">
-                    <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Employee</th>
-                    <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Period</th>
-                    <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Gross Pay</th>
-                    <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Deductions</th>
-                    <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Net Pay</th>
-                    <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs font-mono">
-                  {payslipsData?.data?.map((slip: any) => (
-                    <tr key={slip.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="px-5 py-3">
-                        <div className="font-semibold text-slate-200">{slip.employee_name}</div>
-                        <div className="text-[11px] font-normal text-slate-500">{slip.designation}</div>
-                      </td>
-                      <td className="px-5 py-3 text-slate-300">{slip.month} {slip.year}</td>
-                      <td className="px-5 py-3 text-slate-300">₹{slip.total_earnings.toLocaleString()}</td>
-                      <td className="px-5 py-3 text-rose-400">₹{slip.total_deductions.toLocaleString()}</td>
-                      <td className="px-5 py-3 text-emerald-400 font-bold">₹{slip.net_pay.toLocaleString()}</td>
-                      <td className="px-5 py-3 text-right">
-                        <button 
-                          onClick={() => setSelectedPayslipId(slip.id)}
-                          className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-medium"
-                        >
-                          <Eye size={13} /> View Payslip
-                        </button>
-                      </td>
+              <>
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-800 bg-slate-900/40">
+                      <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Employee</th>
+                      <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Period</th>
+                      <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Gross Pay</th>
+                      <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Deductions</th>
+                      <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Net Pay</th>
+                      <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-xs font-mono">
+                    {payslipsData?.data?.map((slip: any) => (
+                      <tr key={slip.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="px-5 py-3">
+                          <div className="font-semibold text-slate-200">{slip.employee_name}</div>
+                          <div className="text-[11px] font-normal text-slate-500">{slip.designation}</div>
+                        </td>
+                        <td className="px-5 py-3 text-slate-300">{slip.month} {slip.year}</td>
+                        <td className="px-5 py-3 text-slate-300">₹{slip.total_earnings.toLocaleString()}</td>
+                        <td className="px-5 py-3 text-rose-400">₹{slip.total_deductions.toLocaleString()}</td>
+                        <td className="px-5 py-3 text-emerald-400 font-bold">₹{slip.net_pay.toLocaleString()}</td>
+                        <td className="px-5 py-3 text-right">
+                          <button 
+                            onClick={() => setSelectedPayslipId(slip.id)}
+                            className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs font-medium"
+                          >
+                            <Eye size={13} /> View Payslip
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <PaginationBar
+                  page={page}
+                  limit={limit}
+                  total={payslipsData?.total ?? payslipsData?.data?.length ?? 0}
+                  meta={payslipsData?.pagination}
+                  onPageChange={setPage}
+                  onLimitChange={setLimit}
+                />
+              </>
             )}
           </Card>
         </Tabs.Content>

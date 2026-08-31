@@ -211,7 +211,8 @@ export const LeaveDashboard = () => {
       }
     ];
 
-    if (!rawApps || rawApps.length === 0) return defaults;
+    if (rawApps === undefined) return defaults;
+    if (rawApps.length === 0) return [];
 
     return rawApps.map((app) => {
       const name = (app.leave_type || '').toLowerCase();

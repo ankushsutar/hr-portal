@@ -20,7 +20,9 @@ export const LeaveApplicationForm = ({ onClose }: { onClose: () => void }) => {
   const { data: typesData } = useQuery<{ data: LeaveType[] }>({
     queryKey: ['leaveTypes'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/leave/types');
+      const res = await fetch('/api/v1/leave/types', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       if (!res.ok) throw new Error('Failed to fetch leave types');
       return res.json();
     }
@@ -30,7 +32,10 @@ export const LeaveApplicationForm = ({ onClose }: { onClose: () => void }) => {
     mutationFn: async (payload: { leave_type: string; start_date: string; end_date: string; total_days: number; reason: string }) => {
       const res = await fetch('/api/v1/leave/applications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
+        },
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error('Failed to submit leave application');

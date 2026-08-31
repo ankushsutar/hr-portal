@@ -2,9 +2,12 @@ package attendance
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -69,17 +72,17 @@ func (s *Service) HandleGetLogs(w http.ResponseWriter, r *http.Request) {
 
 	if empID != "" {
 		rows, err = s.db.Query(r.Context(), `
-			SELECT id::text, to_char(attendance_date, 'YYYY-MM-DD'),
+			SELECT id::text, to_char(date, 'YYYY-MM-DD'),
 			       to_char(check_in_time, 'HH12:MI AM'), COALESCE(to_char(check_out_time, 'HH12:MI AM'), '--:-- --'),
 			       status, 'General Shift'
-			FROM attendance_logs WHERE employee_id = $1 ORDER BY attendance_date DESC LIMIT 30
+			FROM attendance_logs WHERE employee_id = $1 ORDER BY date DESC LIMIT 30
 		`, empID)
 	} else {
 		rows, err = s.db.Query(r.Context(), `
-			SELECT id::text, to_char(attendance_date, 'YYYY-MM-DD'),
+			SELECT id::text, to_char(date, 'YYYY-MM-DD'),
 			       to_char(check_in_time, 'HH12:MI AM'), COALESCE(to_char(check_out_time, 'HH12:MI AM'), '--:-- --'),
 			       status, 'General Shift'
-			FROM attendance_logs ORDER BY attendance_date DESC LIMIT 30
+			FROM attendance_logs ORDER BY date DESC LIMIT 30
 		`)
 	}
 
@@ -183,10 +186,9 @@ func (s *Service) HandlePunch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleDailyStatus(w http.ResponseWriter, r *http.Request) {
-	date := r.URL.Query().Get("date")
-	if date == "" {
-		date = time.Now().Format("2006-01-02")
-	}
+	pg := common.ParsePaginationParams(r)
+	dateStr := r.URL.Query().Get("date")
+	statusFilter := r.URL.Query().Get("status")
 
 	if s.db == nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -195,24 +197,69 @@ func (s *Service) HandleDailyStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := s.db.Query(r.Context(), `
+	var conditions []string
+	var args []interface{}
+	i := 1
+
+	if dateStr != "" {
+		if _, err := time.Parse("2006-01-02", dateStr); err == nil {
+			conditions = append(conditions, fmt.Sprintf("al.date = $%d::date", i))
+			args = append(args, dateStr)
+			i++
+		}
+	}
+
+	if pg.Search != "" {
+		conditions = append(conditions, fmt.Sprintf("(e.first_name ILIKE $%d OR e.last_name ILIKE $%d OR e.employee_id ILIKE $%d)", i, i, i))
+		args = append(args, "%"+pg.Search+"%")
+		i++
+	}
+	if statusFilter != "" {
+		conditions = append(conditions, fmt.Sprintf("al.status = $%d", i))
+		args = append(args, statusFilter)
+		i++
+	}
+
+	where := ""
+	if len(conditions) > 0 {
+		where = "WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	countQuery := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM attendance_logs al
+		JOIN employees e ON al.employee_id = e.id
+		%s
+	`, where)
+
+	var total int
+	_ = s.db.QueryRow(r.Context(), countQuery, args...).Scan(&total)
+
+	dataArgs := append(args, pg.Limit, pg.Offset)
+	query := fmt.Sprintf(`
 		SELECT al.id::text, e.employee_id, e.first_name || ' ' || e.last_name as employee_name,
 		       COALESCE(d.name, 'Unassigned') as department,
-		       to_char(al.attendance_date, 'YYYY-MM-DD') as date,
+		       to_char(al.date, 'YYYY-MM-DD') as date,
 		       to_char(al.check_in_time, 'HH12:MI AM') as first_in,
 		       COALESCE(to_char(al.check_out_time, 'HH12:MI AM'), '--:--') as last_out,
-		       al.status, COALESCE(al.late_by_minutes, 0) as late_by_minutes
+		       al.status, 0 as late_by_minutes
 		FROM attendance_logs al
 		JOIN employees e ON al.employee_id = e.id
 		LEFT JOIN departments d ON e.department_id = d.id
-		WHERE al.attendance_date = $1::date
+		%s
 		ORDER BY e.employee_id ASC
-	`, date)
+		LIMIT $%d OFFSET $%d
+	`, where, i, i+1)
 
+	rows, err := s.db.Query(r.Context(), query, dataArgs...)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database query failed: " + err.Error()})
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":    true,
+			"data":       []map[string]interface{}{},
+			"total":      0,
+			"pagination": common.BuildPaginationMeta(0, pg.Page, pg.Limit),
+		})
 		return
 	}
 	defer rows.Close()
@@ -239,10 +286,13 @@ func (s *Service) HandleDailyStatus(w http.ResponseWriter, r *http.Request) {
 		data = []map[string]interface{}{}
 	}
 
+	meta := common.BuildPaginationMeta(total, pg.Page, pg.Limit)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    data,
+		"success":    true,
+		"data":       data,
+		"total":      total,
+		"pagination": meta,
 	})
 }
 

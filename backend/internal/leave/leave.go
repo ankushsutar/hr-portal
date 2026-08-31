@@ -3,8 +3,11 @@ package leave
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
 
+	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -45,11 +48,50 @@ type LeaveApplication struct {
 }
 
 type Service struct {
-	db *pgxpool.Pool
+	db   *pgxpool.Pool
+	mu   sync.Mutex
+	apps []LeaveApplication
 }
 
 func NewService(db *pgxpool.Pool) *Service {
-	return &Service{db: db}
+	return &Service{
+		db: db,
+		apps: []LeaveApplication{
+			{
+				ID:        "la-1",
+				LeaveType: "Privilege Leave (PL)",
+				Code:      "PL",
+				StartDate: "2026-08-10",
+				EndDate:   "2026-08-14",
+				TotalDays: 5,
+				Status:    "APPROVED",
+				Reason:    "Family Vacation",
+				AppliedOn: "2026-08-01",
+			},
+			{
+				ID:        "la-2",
+				LeaveType: "Casual Leave (CL)",
+				Code:      "CL",
+				StartDate: "2026-08-25",
+				EndDate:   "2026-08-25",
+				TotalDays: 1,
+				Status:    "APPROVED",
+				Reason:    "Personal Work",
+				AppliedOn: "2026-08-20",
+			},
+			{
+				ID:        "la-3",
+				LeaveType: "Sick Leave (SL)",
+				Code:      "SL",
+				StartDate: "2026-08-28",
+				EndDate:   "2026-08-29",
+				TotalDays: 2,
+				Status:    "PENDING",
+				Reason:    "Viral Fever & Recovery",
+				AppliedOn: "2026-08-28",
+			},
+		},
+	}
 }
 
 func (s *Service) RegisterRoutes(r chi.Router) {
@@ -147,46 +189,46 @@ func (s *Service) HandleGetBalances(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleGetApplications(w http.ResponseWriter, r *http.Request) {
-	applications := []LeaveApplication{
-		{
-			ID:        "la-1",
-			LeaveType: "Privilege Leave (PL)",
-			Code:      "PL",
-			StartDate: "2026-08-10",
-			EndDate:   "2026-08-14",
-			TotalDays: 5,
-			Status:    "APPROVED",
-			Reason:    "Family Vacation",
-			AppliedOn: "2026-08-01",
-		},
-		{
-			ID:        "la-2",
-			LeaveType: "Casual Leave (CL)",
-			Code:      "CL",
-			StartDate: "2026-08-25",
-			EndDate:   "2026-08-25",
-			TotalDays: 1,
-			Status:    "APPROVED",
-			Reason:    "Personal Work",
-			AppliedOn: "2026-08-20",
-		},
-		{
-			ID:        "la-3",
-			LeaveType: "Sick Leave (SL)",
-			Code:      "SL",
-			StartDate: "2026-08-28",
-			EndDate:   "2026-08-29",
-			TotalDays: 2,
-			Status:    "PENDING",
-			Reason:    "Viral Fever & Recovery",
-			AppliedOn: "2026-08-28",
-		},
+	pg := common.ParsePaginationParams(r)
+	statusFilter := r.URL.Query().Get("status")
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var filtered []LeaveApplication
+	for _, app := range s.apps {
+		matchesSearch := pg.Search == "" ||
+			strings.Contains(strings.ToLower(app.Reason), strings.ToLower(pg.Search)) ||
+			strings.Contains(strings.ToLower(app.LeaveType), strings.ToLower(pg.Search))
+		matchesStatus := statusFilter == "" || app.Status == statusFilter
+
+		if matchesSearch && matchesStatus {
+			filtered = append(filtered, app)
+		}
 	}
 
+	total := len(filtered)
+	start := pg.Offset
+	if start > total {
+		start = total
+	}
+	end := start + pg.Limit
+	if end > total {
+		end = total
+	}
+
+	paged := filtered[start:end]
+	if paged == nil {
+		paged = []LeaveApplication{}
+	}
+
+	meta := common.BuildPaginationMeta(total, pg.Page, pg.Limit)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    applications,
+		"success":    true,
+		"data":       paged,
+		"total":      total,
+		"pagination": meta,
 	})
 }
 
@@ -198,8 +240,16 @@ func (s *Service) HandleCreateApplication(w http.ResponseWriter, r *http.Request
 	}
 
 	app.ID = "la-" + time.Now().Format("20060102150405")
-	app.Status = "PENDING"
-	app.AppliedOn = time.Now().Format("2006-01-02")
+	if app.Status == "" {
+		app.Status = "PENDING"
+	}
+	if app.AppliedOn == "" {
+		app.AppliedOn = time.Now().Format("2006-01-02")
+	}
+
+	s.mu.Lock()
+	s.apps = append([]LeaveApplication{app}, s.apps...)
+	s.mu.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
