@@ -1,9 +1,11 @@
 package workflow
 
 import (
+	"github.com/company/hrms-backend/internal/common"
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -51,68 +53,11 @@ type NotificationItem struct {
 }
 
 type Service struct {
-	db    *pgxpool.Pool
-	mu    sync.Mutex
-	tasks []UniversalApprovalTask
+	db *pgxpool.Pool
 }
 
 func NewService(db *pgxpool.Pool) *Service {
-	now := time.Now()
-	tasks := []UniversalApprovalTask{
-		{
-			ID:            "task-leave-101",
-			Module:        "LEAVE",
-			Type:          "Casual Leave",
-			EmployeeID:    "EMP-1024",
-			EmployeeName:  "Alice Walker",
-			Department:    "Engineering",
-			RequestedDate: "2026-09-01 to 2026-09-02",
-			Reason:        "Family function in home town",
-			Priority:      "URGENT",
-			Status:        "PENDING",
-			CreatedAt:     now.Add(-2 * time.Hour),
-		},
-		{
-			ID:            "task-att-202",
-			Module:        "ATTENDANCE",
-			Type:          "Work From Home",
-			EmployeeID:    "EMP-1088",
-			EmployeeName:  "Bob Smith",
-			Department:    "Design",
-			RequestedDate: "2026-08-29",
-			Reason:        "Laptop hardware upgrade transit",
-			Priority:      "NORMAL",
-			Status:        "PENDING",
-			CreatedAt:     now.Add(-5 * time.Hour),
-		},
-		{
-			ID:            "task-adv-303",
-			Module:        "ADVANCE",
-			Type:          "Salary Advance",
-			EmployeeID:    "EMP-1090",
-			EmployeeName:  "Carol Danvers",
-			Department:    "Product",
-			RequestedDate: "Aug 2026",
-			Reason:        "Emergency Relocation Advance ₹25,000",
-			Priority:      "URGENT",
-			Status:        "PENDING",
-			CreatedAt:     now.Add(-12 * time.Hour),
-		},
-		{
-			ID:            "task-exit-404",
-			Module:        "OFFBOARDING",
-			Type:          "Clearance Sign-off",
-			EmployeeID:    "EMP-1010",
-			EmployeeName:  "David Miller",
-			Department:    "Sales",
-			RequestedDate: "2026-08-31",
-			Reason:        "IT Hardware & Finance No-Dues clearance",
-			Priority:      "NORMAL",
-			Status:        "PENDING",
-			CreatedAt:     now.Add(-24 * time.Hour),
-		},
-	}
-	return &Service{db: db, tasks: tasks}
+	return &Service{db: db}
 }
 
 func (s *Service) RegisterRoutes(r chi.Router) {
@@ -126,14 +71,39 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Request) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	if s.db == nil {
+		common.JSONError(w, "Database connection unavailable", http.StatusInternalServerError)
+		return
+	}
+
+	rows, err := s.db.Query(r.Context(), `
+		SELECT 
+			v.id::text, v.module, v.type, e.employee_id, 
+			e.first_name || ' ' || e.last_name as employee_name, 
+			COALESCE(d.name, 'General'), 
+			COALESCE(v.requested_date, ''), COALESCE(v.reason, ''), 
+			v.priority, v.status, v.created_at
+		FROM v_universal_approvals v
+		JOIN employees e ON v.employee_id = e.id
+		LEFT JOIN departments d ON e.department_id = d.id
+		WHERE v.status = 'PENDING'
+		ORDER BY v.created_at DESC
+	`)
+	if err != nil {
+		common.JSONError(w, "Failed to fetch approvals", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
 	var pendingTasks []UniversalApprovalTask
-	for _, t := range s.tasks {
-		if t.Status == "PENDING" {
+	for rows.Next() {
+		var t UniversalApprovalTask
+		if err := rows.Scan(&t.ID, &t.Module, &t.Type, &t.EmployeeID, &t.EmployeeName, &t.Department, &t.RequestedDate, &t.Reason, &t.Priority, &t.Status, &t.CreatedAt); err == nil {
 			pendingTasks = append(pendingTasks, t)
 		}
+	}
+	if pendingTasks == nil {
+		pendingTasks = []UniversalApprovalTask{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -143,22 +113,50 @@ func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Req
 	})
 }
 
+func (s *Service) updateTaskStatus(ctx context.Context, id string, status string) error {
+	queries := []string{
+		"UPDATE leave_applications SET status = $1 WHERE id = $2 AND status = 'PENDING'",
+		"UPDATE regularization_requests SET status = $1 WHERE id = $2 AND status = 'PENDING'",
+		"UPDATE od_requests SET status = $1 WHERE id = $2 AND status = 'PENDING'",
+		"UPDATE wfh_requests SET status = $1 WHERE id = $2 AND status = 'PENDING'",
+		"UPDATE payroll_advances SET status = $1 WHERE id = $2 AND status = 'PENDING'",
+		"UPDATE exit_requests SET status = $1 WHERE id = $2 AND status = 'PENDING'",
+	}
+	updated := false
+	for _, q := range queries {
+		res, err := s.db.Exec(ctx, q, status, id)
+		if err != nil {
+			return err
+		}
+		if res.RowsAffected() > 0 {
+			updated = true
+			break
+		}
+	}
+	if !updated {
+		return fmt.Errorf("task not found or already processed")
+	}
+	return nil
+}
+
 func (s *Service) HandleBulkAction(w http.ResponseWriter, r *http.Request) {
 	var req BulkActionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request payload", http.StatusBadRequest)
+		common.JSONError(w, "invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	s.mu.Lock()
-	for i := range s.tasks {
-		for _, targetID := range req.TaskIDs {
-			if s.tasks[i].ID == targetID {
-				s.tasks[i].Status = req.Action // e.g. "APPROVE" or "REJECT"
-			}
+	if s.db == nil {
+		common.JSONError(w, "Database connection unavailable", http.StatusInternalServerError)
+		return
+	}
+
+	for _, id := range req.TaskIDs {
+		if err := s.updateTaskStatus(r.Context(), id, req.Action); err != nil {
+			common.JSONError(w, fmt.Sprintf("Failed to process task %s: %v", id, err), http.StatusBadRequest)
+			return
 		}
 	}
-	s.mu.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -170,15 +168,15 @@ func (s *Service) HandleBulkAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleApproveTask(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	s.mu.Lock()
-	for i := range s.tasks {
-		if s.tasks[i].ID == id {
-			s.tasks[i].Status = "APPROVED"
-			break
-		}
+	if s.db == nil {
+		common.JSONError(w, "Database connection unavailable", http.StatusInternalServerError)
+		return
 	}
-	s.mu.Unlock()
+	id := chi.URLParam(r, "id")
+	if err := s.updateTaskStatus(r.Context(), id, "APPROVED"); err != nil {
+		common.JSONError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -188,15 +186,15 @@ func (s *Service) HandleApproveTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleRejectTask(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	s.mu.Lock()
-	for i := range s.tasks {
-		if s.tasks[i].ID == id {
-			s.tasks[i].Status = "REJECTED"
-			break
-		}
+	if s.db == nil {
+		common.JSONError(w, "Database connection unavailable", http.StatusInternalServerError)
+		return
 	}
-	s.mu.Unlock()
+	id := chi.URLParam(r, "id")
+	if err := s.updateTaskStatus(r.Context(), id, "REJECTED"); err != nil {
+		common.JSONError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
