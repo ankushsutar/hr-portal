@@ -27,7 +27,7 @@ export const PendingApprovals = () => {
 
   const singleActionMutation = useMutation({
     mutationFn: async ({ id, action, comments }: { id: string; action: string; comments?: string }) => {
-      const res = await fetch(`/api/v1/attendance/requests/${id}/${action.toLowerCase()}`, {
+      const res = await fetch(`/api/v1/workflow/tasks/${id}/${action.toLowerCase()}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

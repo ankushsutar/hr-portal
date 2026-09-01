@@ -3,6 +3,7 @@ package workflow
 import (
 	"encoding/json"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -50,22 +51,12 @@ type NotificationItem struct {
 }
 
 type Service struct {
-	db *pgxpool.Pool
+	db    *pgxpool.Pool
+	mu    sync.Mutex
+	tasks []UniversalApprovalTask
 }
 
 func NewService(db *pgxpool.Pool) *Service {
-	return &Service{db: db}
-}
-
-func (s *Service) RegisterRoutes(r chi.Router) {
-	r.Get("/universal-approvals", s.HandleGetUniversalApprovals)
-	r.Post("/tasks/bulk-action", s.HandleBulkAction)
-	r.Get("/hr-tasks", s.HandleGetHRTasks)
-	r.Get("/notifications", s.HandleGetNotifications)
-	r.Post("/notifications/mark-read", s.HandleMarkNotificationsRead)
-}
-
-func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	tasks := []UniversalApprovalTask{
 		{
@@ -121,11 +112,34 @@ func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Req
 			CreatedAt:     now.Add(-24 * time.Hour),
 		},
 	}
+	return &Service{db: db, tasks: tasks}
+}
+
+func (s *Service) RegisterRoutes(r chi.Router) {
+	r.Get("/universal-approvals", s.HandleGetUniversalApprovals)
+	r.Post("/tasks/bulk-action", s.HandleBulkAction)
+	r.Post("/tasks/{id}/approve", s.HandleApproveTask)
+	r.Post("/tasks/{id}/reject", s.HandleRejectTask)
+	r.Get("/hr-tasks", s.HandleGetHRTasks)
+	r.Get("/notifications", s.HandleGetNotifications)
+	r.Post("/notifications/mark-read", s.HandleMarkNotificationsRead)
+}
+
+func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var pendingTasks []UniversalApprovalTask
+	for _, t := range s.tasks {
+		if t.Status == "PENDING" {
+			pendingTasks = append(pendingTasks, t)
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
-		"data":    tasks,
+		"data":    pendingTasks,
 	})
 }
 
@@ -136,12 +150,58 @@ func (s *Service) HandleBulkAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.mu.Lock()
+	for i := range s.tasks {
+		for _, targetID := range req.TaskIDs {
+			if s.tasks[i].ID == targetID {
+				s.tasks[i].Status = req.Action // e.g. "APPROVE" or "REJECT"
+			}
+		}
+	}
+	s.mu.Unlock()
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success":  true,
-		"message":  "Bulk action " + req.Action + " executed successfully for " + string(rune(len(req.TaskIDs))) + " tasks.",
+		"message":  "Bulk action executed successfully",
 		"task_ids": req.TaskIDs,
 		"action":   req.Action,
+	})
+}
+
+func (s *Service) HandleApproveTask(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	s.mu.Lock()
+	for i := range s.tasks {
+		if s.tasks[i].ID == id {
+			s.tasks[i].Status = "APPROVED"
+			break
+		}
+	}
+	s.mu.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Task approved successfully",
+	})
+}
+
+func (s *Service) HandleRejectTask(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	s.mu.Lock()
+	for i := range s.tasks {
+		if s.tasks[i].ID == id {
+			s.tasks[i].Status = "REJECTED"
+			break
+		}
+	}
+	s.mu.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Task rejected successfully",
 	})
 }
 
