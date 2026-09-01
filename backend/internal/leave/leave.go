@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"github.com/company/hrms-backend/internal/audit"
 	"github.com/company/hrms-backend/internal/auth"
 	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
@@ -46,11 +47,12 @@ type LeaveApplication struct {
 }
 
 type Service struct {
-	db *pgxpool.Pool
+	db           *pgxpool.Pool
+	auditService *audit.Service
 }
 
-func NewService(db *pgxpool.Pool) *Service {
-	return &Service{db: db}
+func NewService(db *pgxpool.Pool, auditService *audit.Service) *Service {
+	return &Service{db: db, auditService: auditService}
 }
 
 func (s *Service) RegisterRoutes(r chi.Router) {
@@ -58,6 +60,9 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 	r.Get("/balances", s.HandleGetBalances)
 	r.Get("/applications", s.HandleGetApplications)
 	r.Post("/applications", s.HandleCreateApplication)
+
+	// Sprint 5 Policy & Accrual Engine
+	s.RegisterPolicyRoutes(r)
 }
 
 func (s *Service) HandleGetTypes(w http.ResponseWriter, r *http.Request) {

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/company/hrms-backend/internal/attendance"
+	"github.com/company/hrms-backend/internal/audit"
 	"github.com/company/hrms-backend/internal/auth"
 	"github.com/company/hrms-backend/internal/document"
 	"github.com/company/hrms-backend/internal/employee"
@@ -59,11 +60,12 @@ func main() {
 	}
 	defer db.Close()
 
+	auditService := audit.NewService(db)
 	authService := auth.NewService(jwtSecret, db)
 	orgService := organization.NewService(db)
 	empService := employee.NewService(db)
 	wfService := workflow.NewService(db)
-	leaveService := leave.NewService(db)
+	leaveService := leave.NewService(db, auditService)
 	attService := attendance.NewService(db)
 	payrollService := payroll.NewService(db)
 	recruitService := recruitment.NewService(db)
