@@ -252,13 +252,12 @@ func (s *Service) HandleCreateApplication(w http.ResponseWriter, r *http.Request
 	}
 	
 	var empID string
-	err := s.db.QueryRow(r.Context(), "SELECT id FROM employees WHERE user_id::text = $1 OR id::text = $1", claims.UserID).Scan(&empID)
+	err := s.db.QueryRow(r.Context(), "SELECT id::text FROM employees WHERE user_id::text = $1 OR id::text = $1", claims.UserID).Scan(&empID)
 	if err != nil {
-	    // For mock preset users that might not have employees row, just use a fallback or fail
-	    err = s.db.QueryRow(r.Context(), "SELECT id FROM employees LIMIT 1").Scan(&empID)
-	    if err != nil {
-		    common.JSONError(w, "Employee record not found", http.StatusInternalServerError)
-		    return
+		err = s.db.QueryRow(r.Context(), "SELECT id::text FROM employees WHERE LOWER(work_email) = LOWER($1) OR LOWER(personal_email) = LOWER($1)", claims.Email).Scan(&empID)
+		if err != nil {
+			common.JSONError(w, "Employee record not found for active user session", http.StatusBadRequest)
+			return
 		}
 	}
 

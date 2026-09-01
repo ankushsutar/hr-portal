@@ -3,6 +3,9 @@ package attendance
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/authz"
 )
 
 type AttendanceRequest struct {
@@ -39,6 +42,12 @@ func (s *Service) HandleSubmitRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleMyRequests(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
 	if s.db == nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -47,9 +56,12 @@ func (s *Service) HandleMyRequests(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := s.db.Query(r.Context(), `
-		SELECT id::text, request_type, to_char(request_date, 'YYYY-MM-DD'), status, COALESCE(reason, '')
-		FROM attendance_requests ORDER BY created_at DESC LIMIT 50
-	`)
+		SELECT ar.id::text, ar.request_type, to_char(ar.request_date, 'YYYY-MM-DD'), ar.status, COALESCE(ar.reason, '')
+		FROM attendance_requests ar
+		JOIN employees e ON ar.employee_id = e.id
+		WHERE e.user_id::text = $1 OR e.id::text = $1
+		ORDER BY ar.created_at DESC LIMIT 50
+	`, claims.UserID)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/authz"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -74,6 +76,12 @@ func (s *Service) HandleGetTypes(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleCreateType(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only HR Admins can create document types.")
+		return
+	}
+
 	var req DocumentType
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
@@ -91,11 +99,25 @@ func (s *Service) HandleCreateType(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleGetEmployeeDocuments(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
 	empID := chi.URLParam(r, "id")
 	if s.db == nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "database connection unavailable"})
+		return
+	}
+
+	var callerEmpID string
+	s.db.QueryRow(r.Context(), "SELECT id::text FROM employees WHERE user_id::text = $1 OR id::text = $1 LIMIT 1", claims.UserID).Scan(&callerEmpID)
+
+	if !authz.CanViewDocument(claims, empID, callerEmpID) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_RESOURCE", "You do not have permission to view these documents.")
 		return
 	}
 

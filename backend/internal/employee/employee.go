@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/authz"
 	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -142,15 +143,32 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 // ---------------------------------------------------------------------------
 
 func (s *Service) HandleListEmployees(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
 	pg := common.ParsePaginationParams(r)
 	dept := r.URL.Query().Get("department_id")
 	status := r.URL.Query().Get("status")
 	empType := r.URL.Query().Get("employment_type")
 
-	// Build dynamic WHERE clause
+	// Get current caller's employee_id and department_id
+	var callerEmpID, callerDeptID string
+	if s.db != nil {
+		s.db.QueryRow(r.Context(), "SELECT id::text, COALESCE(department_id::text, '') FROM employees WHERE user_id::text = $1 OR id::text = $1 LIMIT 1", claims.UserID).Scan(&callerEmpID, &callerDeptID)
+	}
+
 	conditions := []string{"e.deleted_at IS NULL"}
 	args := []interface{}{}
 	i := 1
+
+	// Apply data scope
+	scopeCond, scopeArgs, nextI := authz.BuildScopeWhereClause(claims, callerEmpID, callerDeptID, i, "e")
+	conditions = append(conditions, scopeCond)
+	args = append(args, scopeArgs...)
+	i = nextI
 
 	if pg.Search != "" {
 		conditions = append(conditions,
@@ -263,12 +281,28 @@ func (s *Service) HandleListEmployees(w http.ResponseWriter, r *http.Request) {
 func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	claims, hasClaims := auth.GetClaims(r)
+	if !hasClaims {
+		authz.UnauthorizedResponse(w)
+		return
+	}
 
 	var detail EmployeeDetail
 
 	if s.db == nil {
 		jsonError(w, "database connection unavailable", http.StatusInternalServerError)
 		return
+	}
+
+	var callerEmpID string
+	s.db.QueryRow(r.Context(), "SELECT id::text FROM employees WHERE user_id::text = $1 OR id::text = $1 LIMIT 1", claims.UserID).Scan(&callerEmpID)
+
+	// Special support for "me" endpoint alias
+	if id == "me" || id == "self" {
+		if callerEmpID != "" {
+			id = callerEmpID
+		} else {
+			id = claims.UserID
+		}
 	}
 
 	// Core employee
@@ -295,7 +329,7 @@ func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 		LEFT JOIN designations des ON e.designation_id = des.id
 		LEFT JOIN locations l ON e.location_id = l.id
 		LEFT JOIN employees m ON e.manager_id = m.id
-		WHERE e.id = $1 AND e.deleted_at IS NULL
+		WHERE (e.id::text = $1 OR e.user_id::text = $1) AND e.deleted_at IS NULL
 	`, id).Scan(
 		&detail.ID, &detail.EmployeeID, &detail.FirstName, &detail.LastName, &detail.FullName,
 		&detail.WorkEmail, &detail.WorkPhone, &detail.EmploymentType, &detail.Status,
@@ -312,6 +346,19 @@ func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// IDOR Scope Validation
+	isSelf := (callerEmpID != "" && callerEmpID == detail.ID) || (detail.UserID != nil && *detail.UserID == claims.UserID)
+	if !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN") {
+		if claims.Scope == authz.ScopeSelf && !isSelf {
+			authz.ForbiddenResponse(w, "FORBIDDEN_RESOURCE", "You do not have permission to view this employee profile.")
+			return
+		}
+		if claims.Scope == authz.ScopeDirectReports && !isSelf && (detail.ManagerID == nil || *detail.ManagerID != callerEmpID) {
+			authz.ForbiddenResponse(w, "FORBIDDEN_RESOURCE", "You can only view your direct reports.")
+			return
+		}
+	}
+
 	// Personal details
 	s.db.QueryRow(r.Context(), `
 		SELECT date_of_birth, gender, marital_status, blood_group,
@@ -319,7 +366,7 @@ func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 		       emergency_contact_name, emergency_contact_number,
 		       current_address, permanent_address
 		FROM employee_personal_details WHERE employee_id = $1
-	`, id).Scan(
+	`, detail.ID).Scan(
 		&detail.Personal.DateOfBirth, &detail.Personal.Gender,
 		&detail.Personal.MaritalStatus, &detail.Personal.BloodGroup,
 		&detail.Personal.PersonalEmail, &detail.Personal.PhoneNumber,
@@ -327,35 +374,21 @@ func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 		&detail.Personal.CurrentAddress, &detail.Personal.PermanentAddress,
 	)
 
-	// Statutory — only for SALARY_ACCESS scope
-	if hasClaims {
-		scope := auth.GetScopeForRoles(claims.Roles)
-		if scope == auth.ScopeOrganization || scope == auth.ScopeSalaryAccess {
-			var stat EmployeeStatutory
-			err := s.db.QueryRow(r.Context(), `
-				SELECT pan_number, aadhaar_number, uan_number, pf_number,
-				       esic_number, bank_account_number, ifsc_code, bank_name,
-				       COALESCE(pt_applicable, false)
-				FROM employee_statutory_details WHERE employee_id = $1
-			`, id).Scan(
-				&stat.PANNumber, &stat.AadhaarNumber, &stat.UANNumber, &stat.PFNumber,
-				&stat.ESICNumber, &stat.BankAccountNumber, &stat.IFSCCode, &stat.BankName,
-				&stat.PTApplicable,
-			)
-			if err == nil {
-				// Mask sensitive fields for non-payroll roles
-				if scope != auth.ScopeSalaryAccess {
-					maskLast4 := func(s *string) {
-						if s != nil && len(*s) > 4 {
-							masked := "****" + (*s)[len(*s)-4:]
-							*s = masked
-						}
-					}
-					maskLast4(stat.AadhaarNumber)
-					maskLast4(stat.BankAccountNumber)
-				}
-				detail.Statutory = &stat
-			}
+	// Statutory — strictly enforced by authz.CanViewStatutory
+	if authz.CanViewStatutory(claims, detail.ID, callerEmpID) {
+		var stat EmployeeStatutory
+		err := s.db.QueryRow(r.Context(), `
+			SELECT pan_number, aadhaar_number, uan_number, pf_number,
+			       esic_number, bank_account_number, ifsc_code, bank_name,
+			       COALESCE(pt_applicable, false)
+			FROM employee_statutory_details WHERE employee_id = $1
+		`, detail.ID).Scan(
+			&stat.PANNumber, &stat.AadhaarNumber, &stat.UANNumber, &stat.PFNumber,
+			&stat.ESICNumber, &stat.BankAccountNumber, &stat.IFSCCode, &stat.BankName,
+			&stat.PTApplicable,
+		)
+		if err == nil {
+			detail.Statutory = &stat
 		}
 	}
 
@@ -367,6 +400,12 @@ func (s *Service) HandleGetEmployee(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------
 
 func (s *Service) HandleCreateEmployee(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only HR Admins can create employees.")
+		return
+	}
+
 	var req CreateEmployeeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		jsonError(w, "invalid request", http.StatusBadRequest)
@@ -448,6 +487,12 @@ func (s *Service) HandleCreateEmployee(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------
 
 func (s *Service) HandleUpdateEmployee(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only HR Admins can update employee records.")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	var req UpdateEmployeeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -499,6 +544,12 @@ func (s *Service) HandleUpdateEmployee(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------
 
 func (s *Service) HandleExportCSV(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "PAYROLL_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "You do not have permission to export employee data.")
+		return
+	}
+
 	rows, err := s.db.Query(r.Context(), `
 		SELECT e.employee_id, e.first_name, e.last_name,
 		       COALESCE(u.email,''), e.employment_type, e.status,

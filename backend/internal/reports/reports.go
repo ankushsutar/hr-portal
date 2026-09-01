@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/authz"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -157,6 +159,12 @@ func (s *Service) HandleGetDataQuality(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleExportReport(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanExportReports(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only HR/Payroll Administrators can export organizational reports.")
+		return
+	}
+
 	reportType := r.URL.Query().Get("type")
 	format := r.URL.Query().Get("format") // csv or json
 

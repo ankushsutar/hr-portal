@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/authz"
 	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -101,6 +103,12 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetRuns(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanManagePayroll(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Payroll Admins can access payroll runs.")
+		return
+	}
+
 	pg := common.ParsePaginationParams(r)
 	w.Header().Set("Content-Type", "application/json")
 	if s.db == nil {
@@ -303,6 +311,12 @@ func (s *Service) HandleApproveAdvance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleGetPayslips(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
 	pg := common.ParsePaginationParams(r)
 	w.Header().Set("Content-Type", "application/json")
 	if s.db == nil {
@@ -311,9 +325,19 @@ func (s *Service) HandleGetPayslips(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var callerEmpID string
+	s.db.QueryRow(r.Context(), "SELECT id::text FROM employees WHERE user_id::text = $1 OR id::text = $1 LIMIT 1", claims.UserID).Scan(&callerEmpID)
+
 	var conditions []string
 	var args []interface{}
 	i := 1
+
+	// Scoping logic: if non-payroll admin, restrict to self payslips
+	if !authz.CanManagePayroll(claims) {
+		conditions = append(conditions, fmt.Sprintf("(e.user_id::text = $%d OR e.id::text = $%d)", i, i+1))
+		args = append(args, claims.UserID, callerEmpID)
+		i += 2
+	}
 
 	if pg.Search != "" {
 		conditions = append(conditions, fmt.Sprintf("(e.first_name ILIKE $%d OR e.last_name ILIKE $%d OR e.employee_id ILIKE $%d)", i, i, i))

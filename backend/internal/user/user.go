@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/authz"
 	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -65,6 +67,12 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleListUsers(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanManageUsers(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Administrators can list user accounts.")
+		return
+	}
+
 	pg := common.ParsePaginationParams(r)
 	role := r.URL.Query().Get("role")
 
@@ -139,6 +147,12 @@ func (s *Service) HandleListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanManageUsers(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Administrators can create user accounts.")
+		return
+	}
+
 	var req CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		jsonError(w, "invalid request", http.StatusBadRequest)
@@ -161,6 +175,12 @@ func (s *Service) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleInviteUser(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanManageUsers(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Administrators can invite users.")
+		return
+	}
+
 	var req InviteUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		jsonError(w, "invalid request", http.StatusBadRequest)
@@ -258,6 +278,12 @@ func (s *Service) HandleListRoles(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleUpdateRole(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.HasRole(claims, "SUPER_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Super Admins can update user roles.")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	var req UpdateRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -281,19 +307,47 @@ func (s *Service) HandleUpdateRole(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleSuspendUser(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanManageUsers(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Administrators can suspend users.")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
+	if id == claims.UserID {
+		authz.ForbiddenResponse(w, "INVALID_ACTION", "You cannot suspend your own account.")
+		return
+	}
+
 	s.db.Exec(r.Context(), "UPDATE users SET is_active = false WHERE id = $1", id)
 	jsonOK(w, map[string]interface{}{"success": true, "message": "User suspended"})
 }
 
 func (s *Service) HandleActivateUser(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanManageUsers(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Administrators can activate users.")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	s.db.Exec(r.Context(), "UPDATE users SET is_active = true WHERE id = $1", id)
 	jsonOK(w, map[string]interface{}{"success": true, "message": "User activated"})
 }
 
 func (s *Service) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.HasRole(claims, "SUPER_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Super Admins can delete users.")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
+	if id == claims.UserID {
+		authz.ForbiddenResponse(w, "INVALID_ACTION", "You cannot delete your own account.")
+		return
+	}
+
 	s.db.Exec(r.Context(), "UPDATE employees SET user_id = NULL WHERE user_id = $1", id)
 	s.db.Exec(r.Context(), "DELETE FROM users WHERE id = $1", id)
 	jsonOK(w, map[string]interface{}{"success": true, "message": "User deleted"})

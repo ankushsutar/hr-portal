@@ -1,13 +1,15 @@
 package workflow
 
 import (
-	"github.com/company/hrms-backend/internal/common"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/company/hrms-backend/internal/auth"
+	"github.com/company/hrms-backend/internal/authz"
+	"github.com/company/hrms-backend/internal/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -23,6 +25,7 @@ type UniversalApprovalTask struct {
 	Reason        string    `json:"reason"`
 	Priority      string    `json:"priority"` // URGENT, NORMAL
 	Status        string    `json:"status"`   // PENDING, APPROVED, REJECTED
+	IsSelfRequest bool      `json:"is_self_request"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
@@ -71,10 +74,18 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 }
 
 func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
 	if s.db == nil {
 		common.JSONError(w, "Database connection unavailable", http.StatusInternalServerError)
 		return
 	}
+
+	callerEmpID, callerUserID, _ := s.getCallerIDs(r.Context(), claims.UserID)
 
 	rows, err := s.db.Query(r.Context(), `
 		SELECT 
@@ -82,15 +93,16 @@ func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Req
 			e.first_name || ' ' || e.last_name as employee_name, 
 			COALESCE(d.name, 'General'), 
 			COALESCE(v.requested_date, ''), COALESCE(v.reason, ''), 
-			v.priority, v.status, v.created_at
+			v.priority, v.status, v.created_at,
+			e.id::text, COALESCE(e.user_id::text, '')
 		FROM v_universal_approvals v
-		JOIN employees e ON v.employee_id = e.id
+		JOIN employees e ON v.employee_id = e.id OR v.employee_id = e.user_id
 		LEFT JOIN departments d ON e.department_id = d.id
 		WHERE v.status = 'PENDING'
 		ORDER BY v.created_at DESC
 	`)
 	if err != nil {
-		common.JSONError(w, "Failed to fetch approvals", http.StatusInternalServerError)
+		common.JSONError(w, "Failed to fetch approvals: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -98,7 +110,14 @@ func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Req
 	var pendingTasks []UniversalApprovalTask
 	for rows.Next() {
 		var t UniversalApprovalTask
-		if err := rows.Scan(&t.ID, &t.Module, &t.Type, &t.EmployeeID, &t.EmployeeName, &t.Department, &t.RequestedDate, &t.Reason, &t.Priority, &t.Status, &t.CreatedAt); err == nil {
+		var reqEmpUUID, reqUserID string
+		if err := rows.Scan(&t.ID, &t.Module, &t.Type, &t.EmployeeID, &t.EmployeeName, &t.Department, &t.RequestedDate, &t.Reason, &t.Priority, &t.Status, &t.CreatedAt, &reqEmpUUID, &reqUserID); err == nil {
+			isSelf := (reqEmpUUID != "" && reqEmpUUID == callerEmpID) ||
+				(reqUserID != "" && reqUserID == callerUserID) ||
+				(reqEmpUUID != "" && reqEmpUUID == claims.UserID) ||
+				(reqUserID != "" && reqUserID == claims.UserID) ||
+				(t.EmployeeID != "" && t.EmployeeID == callerEmpID)
+			t.IsSelfRequest = isSelf
 			pendingTasks = append(pendingTasks, t)
 		}
 	}
@@ -139,7 +158,58 @@ func (s *Service) updateTaskStatus(ctx context.Context, id string, status string
 	return nil
 }
 
+func (s *Service) getTaskRequesterIDs(ctx context.Context, taskID string) (empID string, userID string, err error) {
+	err = s.db.QueryRow(ctx, `
+		SELECT v.employee_id::text, COALESCE(e.user_id::text, '')
+		FROM v_universal_approvals v
+		LEFT JOIN employees e ON v.employee_id = e.id OR v.employee_id = e.user_id
+		WHERE v.id::text = $1 LIMIT 1
+	`, taskID).Scan(&empID, &userID)
+	return empID, userID, err
+}
+
+func (s *Service) getCallerIDs(ctx context.Context, userID string) (empID string, callerUserID string, err error) {
+	err = s.db.QueryRow(ctx, `
+		SELECT id::text, COALESCE(user_id::text, '') FROM employees WHERE user_id::text = $1 OR id::text = $1 LIMIT 1
+	`, userID).Scan(&empID, &callerUserID)
+	if err != nil {
+		return "", userID, nil
+	}
+	return empID, callerUserID, nil
+}
+
+func (s *Service) isSelfApproval(r *http.Request, taskID string) bool {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		return true
+	}
+	reqEmpID, reqUserID, _ := s.getTaskRequesterIDs(r.Context(), taskID)
+	callerEmpID, callerUserID, _ := s.getCallerIDs(r.Context(), claims.UserID)
+
+	if reqEmpID != "" && (reqEmpID == callerEmpID || reqEmpID == claims.UserID) {
+		return true
+	}
+	if reqUserID != "" && (reqUserID == callerUserID || reqUserID == claims.UserID) {
+		return true
+	}
+	if !authz.CanApproveTask(reqEmpID, callerEmpID) {
+		return true
+	}
+	return false
+}
+
 func (s *Service) HandleBulkAction(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
+	if !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "HR_MANAGER", "MANAGER", "DEPT_HEAD", "PAYROLL_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only managers and HR administrators can approve or reject requests.")
+		return
+	}
+
 	var req BulkActionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		common.JSONError(w, "invalid request payload", http.StatusBadRequest)
@@ -152,6 +222,11 @@ func (s *Service) HandleBulkAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, id := range req.TaskIDs {
+		if s.isSelfApproval(r, id) {
+			authz.SelfApprovalError(w)
+			return
+		}
+
 		if err := s.updateTaskStatus(r.Context(), id, req.Action); err != nil {
 			common.JSONError(w, fmt.Sprintf("Failed to process task %s: %v", id, err), http.StatusBadRequest)
 			return
@@ -172,7 +247,23 @@ func (s *Service) HandleApproveTask(w http.ResponseWriter, r *http.Request) {
 		common.JSONError(w, "Database connection unavailable", http.StatusInternalServerError)
 		return
 	}
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
+	if !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "HR_MANAGER", "MANAGER", "DEPT_HEAD", "PAYROLL_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only managers and HR administrators can approve workflow tasks.")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
+	if s.isSelfApproval(r, id) {
+		authz.SelfApprovalError(w)
+		return
+	}
+
 	if err := s.updateTaskStatus(r.Context(), id, "APPROVED"); err != nil {
 		common.JSONError(w, err.Error(), http.StatusBadRequest)
 		return
@@ -190,7 +281,23 @@ func (s *Service) HandleRejectTask(w http.ResponseWriter, r *http.Request) {
 		common.JSONError(w, "Database connection unavailable", http.StatusInternalServerError)
 		return
 	}
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
+	if !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "HR_MANAGER", "MANAGER", "DEPT_HEAD", "PAYROLL_ADMIN") {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only managers and HR administrators can reject workflow tasks.")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
+	if s.isSelfApproval(r, id) {
+		authz.SelfApprovalError(w)
+		return
+	}
+
 	if err := s.updateTaskStatus(r.Context(), id, "REJECTED"); err != nil {
 		common.JSONError(w, err.Error(), http.StatusBadRequest)
 		return

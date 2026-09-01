@@ -25,8 +25,11 @@ export const PendingApprovals = () => {
     queryFn: fetchUniversalApprovals 
   })
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
   const singleActionMutation = useMutation({
     mutationFn: async ({ id, action, comments }: { id: string; action: string; comments?: string }) => {
+      setErrorMessage(null)
       const res = await fetch(`/api/v1/workflow/tasks/${id}/${action.toLowerCase()}`, {
         method: 'POST',
         headers: { 
@@ -35,14 +38,23 @@ export const PendingApprovals = () => {
         },
         body: JSON.stringify({ comments })
       })
-      if (!res.ok) throw new Error('Action failed')
-      return res.json()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data?.error?.message || data?.message || 'Action failed')
+      }
+      return data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['universal-approvals'] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['universal-approvals'] })
+    },
+    onError: (err: any) => {
+      setErrorMessage(err.message || 'Self-approval is forbidden by company policy.')
+    }
   })
 
   const bulkActionMutation = useMutation({
     mutationFn: async () => {
+      setErrorMessage(null)
       const res = await fetch('/api/v1/workflow/tasks/bulk-action', {
         method: 'POST',
         headers: { 
@@ -55,14 +67,20 @@ export const PendingApprovals = () => {
           comments: actionComment
         })
       })
-      if (!res.ok) throw new Error('Bulk action failed')
-      return res.json()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data?.error?.message || data?.message || 'Bulk action failed')
+      }
+      return data
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['universal-approvals'] })
       setSelectedTaskIds([])
       setIsCommentModalOpen(false)
       setActionComment('')
+    },
+    onError: (err: any) => {
+      setErrorMessage(err.message || 'Self-approval is forbidden by company policy.')
     }
   })
 
@@ -128,6 +146,17 @@ export const PendingApprovals = () => {
           </button>
         ))}
       </div>
+
+      {/* Error / Forbidden Notice */}
+      {errorMessage && (
+        <div className="bg-rose-950/40 border border-rose-500/30 p-3 rounded flex items-center justify-between font-mono text-xs text-rose-300">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} className="text-rose-400" />
+            <span>{errorMessage}</span>
+          </div>
+          <button onClick={() => setErrorMessage(null)} className="text-rose-400 hover:text-rose-200">Dismiss</button>
+        </div>
+      )}
 
       {/* Bulk Action Toolbar */}
       {selectedTaskIds.length > 0 && (
@@ -228,20 +257,26 @@ export const PendingApprovals = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button 
-                          onClick={() => singleActionMutation.mutate({ id: t.id, action: 'APPROVE' })}
-                          className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded text-xs font-mono hover:bg-emerald-500/20 transition-colors flex items-center gap-1"
-                        >
-                          <CheckCircle size={12} /> Approve
-                        </button>
-                        <button 
-                          onClick={() => singleActionMutation.mutate({ id: t.id, action: 'REJECT' })}
-                          className="px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded text-xs font-mono hover:bg-rose-500/20 transition-colors flex items-center gap-1"
-                        >
-                          <XCircle size={12} /> Reject
-                        </button>
-                      </div>
+                      {t.is_self_request ? (
+                        <span className="inline-block px-2.5 py-1 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                          Self-Request (Action Blocked)
+                        </span>
+                      ) : (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button 
+                            onClick={() => singleActionMutation.mutate({ id: t.id, action: 'APPROVE' })}
+                            className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded text-xs font-mono hover:bg-emerald-500/20 transition-colors flex items-center gap-1"
+                          >
+                            <CheckCircle size={12} /> Approve
+                          </button>
+                          <button 
+                            onClick={() => singleActionMutation.mutate({ id: t.id, action: 'REJECT' })}
+                            className="px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded text-xs font-mono hover:bg-rose-500/20 transition-colors flex items-center gap-1"
+                          >
+                            <XCircle size={12} /> Reject
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 )
