@@ -3,12 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
 import { PaginationBar } from '../../components/ui/PaginationBar'
 import { useTableState } from '../../hooks/useTableState'
-import { Clock, CheckCircle2, XCircle, AlertCircle, Search, Calendar as CalendarIcon, UserPlus, ShieldCheck, ListFilter } from 'lucide-react'
+import { Clock, CheckCircle2, XCircle, AlertCircle, Search, Calendar as CalendarIcon, UserPlus, ShieldCheck, ListFilter, ShieldAlert } from 'lucide-react'
 import { AttendanceValidation } from './AttendanceValidation'
+import { ExceptionQueue } from './ExceptionQueue'
 
 export const AttendanceDashboard = () => {
   const qc = useQueryClient()
-  const [viewMode, setViewMode] = useState<'daily' | 'validation'>('daily')
+  const [viewMode, setViewMode] = useState<'daily' | 'validation' | 'exceptions'>('daily')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [isPunchModalOpen, setIsPunchModalOpen] = useState(false)
   const [punchEmployee, setPunchEmployee] = useState('')
@@ -81,7 +82,7 @@ export const AttendanceDashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Daily Attendance Console</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">ORGANIZATION PUNCH MONITORING & 3-STAGE VALIDATION</p>
+          <p className="text-xs font-mono text-slate-400 mt-1">ORGANIZATION PUNCH MONITORING & SHIFT EXCEPTION ENGINE</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center bg-[#111827] border border-slate-800 rounded p-1">
@@ -100,6 +101,14 @@ export const AttendanceDashboard = () => {
               }`}
             >
               <ShieldCheck size={13} /> 3-Stage Validation
+            </button>
+            <button
+              onClick={() => setViewMode('exceptions')}
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors flex items-center gap-1.5 ${
+                viewMode === 'exceptions' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <ShieldAlert size={13} /> Shift Exceptions
             </button>
           </div>
           {viewMode === 'daily' && (
@@ -126,6 +135,8 @@ export const AttendanceDashboard = () => {
 
       {viewMode === 'validation' ? (
         <AttendanceValidation />
+      ) : viewMode === 'exceptions' ? (
+        <ExceptionQueue />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

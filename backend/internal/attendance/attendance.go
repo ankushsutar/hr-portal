@@ -84,6 +84,9 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 	r.Get("/validation-queue", s.HandleGetValidationQueue)
 	r.Post("/validate-batch", s.HandleBatchValidation)
 
+	// Sprint 2 — Shift Exceptions & Tracking
+	s.RegisterExceptionRoutes(r)
+
 	// Sprint 9 Requests
 	r.Post("/requests", s.HandleSubmitRequest)
 	r.Get("/requests/me", s.HandleMyRequests)
