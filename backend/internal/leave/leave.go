@@ -63,6 +63,9 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 
 	// Sprint 5 Policy & Accrual Engine
 	s.RegisterPolicyRoutes(r)
+
+	// Sprint 6 Encashment & Multi-Level Approvals Engine
+	s.RegisterEncashmentRoutes(r)
 }
 
 func (s *Service) HandleGetTypes(w http.ResponseWriter, r *http.Request) {
