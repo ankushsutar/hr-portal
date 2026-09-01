@@ -163,6 +163,12 @@ func (s *Service) HandleGetRuns(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) HandleProcessPayroll(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.GetClaims(r)
+	if !ok || !authz.CanManagePayroll(claims) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_ROLE", "Only Payroll Admins can process payroll runs.")
+		return
+	}
+
 	var req ProcessRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid payload", http.StatusBadRequest)
@@ -176,10 +182,31 @@ func (s *Service) HandleProcessPayroll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// PAYROLL DEPENDENCY GUARD: Ensure 100% of attendance records in period are VALIDATED
+	var unvalidatedCount int
+	err := s.db.QueryRow(r.Context(), `
+		SELECT COUNT(*) 
+		FROM attendance_daily_status 
+		WHERE EXTRACT(MONTH FROM date) = $1 
+		  AND EXTRACT(YEAR FROM date) = $2 
+		  AND validation_status IN ('TO_VALIDATE', 'OT_PENDING')
+	`, req.Month, req.Year).Scan(&unvalidatedCount)
+
+	if err == nil && unvalidatedCount > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":           false,
+			"error":             fmt.Sprintf("PAYROLL_BLOCKED_UNVALIDATED_ATTENDANCE: %d attendance records are pending validation for period %02d/%d. Attendance must be 100%% VALIDATED before payroll can be processed.", unvalidatedCount, req.Month, req.Year),
+			"unvalidated_count": unvalidatedCount,
+		})
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
-		"message": "Payroll calculation triggered for period.",
+		"message": fmt.Sprintf("Payroll calculation triggered successfully for period %02d/%d. All attendance records verified as VALIDATED.", req.Month, req.Year),
 	})
 }
 
