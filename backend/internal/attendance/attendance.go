@@ -87,6 +87,9 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 	// Sprint 2 — Shift Exceptions & Tracking
 	s.RegisterExceptionRoutes(r)
 
+	// Sprint 4 — Attendance Rules, IP Allowlisting, Geofencing & Biometrics
+	s.RegisterConfigRoutes(r)
+
 	// Sprint 9 Requests
 	r.Post("/requests", s.HandleSubmitRequest)
 	r.Get("/requests/me", s.HandleMyRequests)
