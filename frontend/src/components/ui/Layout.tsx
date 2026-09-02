@@ -1,18 +1,18 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, UserCheck, Search, Shield, ChevronRight, Cpu, CheckSquare, X, Menu, Palette } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, Search, Shield, ChevronRight, Cpu, CheckSquare, X, Menu, Palette } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useThemeStore } from '../../stores/themeStore'
 import { ThemeCustomizerModal } from '../theme/ThemeCustomizerModal'
+import { QuickPunchWidget } from '../../features/attendance/QuickPunchWidget'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Universal Inbox', href: '/inbox', icon: CheckSquare, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'HR Task Center', href: '/hr-tasks', icon: Clock, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
-  { name: 'My Attendance', href: '/my/attendance', icon: UserCheck, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'People', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
-  { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
+  { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Leave', href: '/leave', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Performance', href: '/performance', icon: Target, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
@@ -156,6 +156,9 @@ export const Layout = () => {
                 ⌘K
               </kbd>
             </div>
+
+            {/* Horilla Parity Quick Check-In / Check-Out Widget */}
+            <QuickPunchWidget />
 
             {/* Theme Customizer Palette Trigger */}
             <button 

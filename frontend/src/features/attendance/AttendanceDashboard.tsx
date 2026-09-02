@@ -3,14 +3,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
 import { PaginationBar } from '../../components/ui/PaginationBar'
 import { useTableState } from '../../hooks/useTableState'
-import { Clock, CheckCircle2, XCircle, AlertCircle, Search, Calendar as CalendarIcon, UserPlus, ShieldCheck, ListFilter, ShieldAlert, Settings } from 'lucide-react'
+import { Clock, CheckCircle2, XCircle, AlertCircle, Search, Calendar as CalendarIcon, UserPlus } from 'lucide-react'
 import { AttendanceValidation } from './AttendanceValidation'
 import { ExceptionQueue } from './ExceptionQueue'
 import { AttendanceRulesConfig } from './AttendanceRulesConfig'
+import { AttendanceDashboardView } from './AttendanceDashboardView'
+import { AttendanceRequestsView } from './AttendanceRequestsView'
+import { AttendanceActivityView } from './AttendanceActivityView'
+import { MonthlySummaryConsole } from './MonthlySummaryConsole'
 
 export const AttendanceDashboard = () => {
   const qc = useQueryClient()
-  const [viewMode, setViewMode] = useState<'daily' | 'validation' | 'exceptions' | 'rules'>('daily')
+  const [viewMode, setViewMode] = useState<'dashboard' | 'daily' | 'requests' | 'activity' | 'monthly' | 'validation' | 'exceptions' | 'rules'>('dashboard')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [isPunchModalOpen, setIsPunchModalOpen] = useState(false)
   const [punchEmployee, setPunchEmployee] = useState('')
@@ -82,42 +86,74 @@ export const AttendanceDashboard = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Daily Attendance Console</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">ORGANIZATION PUNCH MONITORING & SECURITY POLICIES</p>
+          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Enterprise Attendance Portal</h1>
+          <p className="text-xs font-mono text-slate-400 mt-1">HORILLA PARITY ATTENDANCE MANAGEMENT & LOGISTICS</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-[#111827] border border-slate-800 rounded p-1">
+          <div className="flex items-center bg-[#111827] border border-slate-800 rounded p-1 flex-wrap gap-1">
+            <button
+              onClick={() => setViewMode('dashboard')}
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                viewMode === 'dashboard' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Dashboard
+            </button>
             <button
               onClick={() => setViewMode('daily')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
                 viewMode === 'daily' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <ListFilter size={13} /> Punch Monitor
+              Attendances
+            </button>
+            <button
+              onClick={() => setViewMode('requests')}
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                viewMode === 'requests' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Requests
+            </button>
+            <button
+              onClick={() => setViewMode('activity')}
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                viewMode === 'activity' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Activity Log
+            </button>
+            <button
+              onClick={() => setViewMode('monthly')}
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                viewMode === 'monthly' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Monthly Summary
             </button>
             <button
               onClick={() => setViewMode('validation')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
                 viewMode === 'validation' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <ShieldCheck size={13} /> 3-Stage Validation
+              Validation
             </button>
             <button
               onClick={() => setViewMode('exceptions')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
                 viewMode === 'exceptions' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <ShieldAlert size={13} /> Shift Exceptions
+              Exceptions
             </button>
             <button
               onClick={() => setViewMode('rules')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
                 viewMode === 'rules' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Settings size={13} /> Rules & Security
+              Rules
             </button>
           </div>
           {viewMode === 'daily' && (
@@ -142,13 +178,15 @@ export const AttendanceDashboard = () => {
         </div>
       </div>
 
-      {viewMode === 'validation' ? (
-        <AttendanceValidation />
-      ) : viewMode === 'exceptions' ? (
-        <ExceptionQueue />
-      ) : viewMode === 'rules' ? (
-        <AttendanceRulesConfig />
-      ) : (
+      {viewMode === 'dashboard' && <AttendanceDashboardView />}
+      {viewMode === 'requests' && <AttendanceRequestsView />}
+      {viewMode === 'activity' && <AttendanceActivityView />}
+      {viewMode === 'monthly' && <MonthlySummaryConsole />}
+      {viewMode === 'validation' && <AttendanceValidation />}
+      {viewMode === 'exceptions' && <ExceptionQueue />}
+      {viewMode === 'rules' && <AttendanceRulesConfig />}
+
+      {viewMode === 'daily' && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="p-5">

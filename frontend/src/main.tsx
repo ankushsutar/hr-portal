@@ -32,7 +32,6 @@ import { OnboardingInstance } from './features/employees/onboarding/OnboardingIn
 import { BulkImportWizard } from './features/import/BulkImportWizard'
 import { ImportHistory } from './features/import/ImportHistory'
 import { ExitDashboard } from './features/lifecycle/ExitDashboard'
-import { MyAttendance } from './features/attendance/MyAttendance'
 import { DataQualityCenter } from './features/reports/DataQualityCenter'
 import { ReportsDashboard } from './features/reports/ReportsDashboard'
 import { PerformanceDashboard } from './features/performance/PerformanceDashboard'
@@ -217,7 +216,7 @@ const exitRoute = createRoute({
 const myAttendanceRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/my/attendance',
-  component: MyAttendance,
+  component: AttendanceDashboard,
 })
 
 const hrTasksRoute = createRoute({
