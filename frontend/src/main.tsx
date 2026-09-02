@@ -36,6 +36,7 @@ import { MyAttendance } from './features/attendance/MyAttendance'
 import { DataQualityCenter } from './features/reports/DataQualityCenter'
 import { ReportsDashboard } from './features/reports/ReportsDashboard'
 import { PerformanceDashboard } from './features/performance/PerformanceDashboard'
+import { HelpdeskConsole } from './features/helpdesk/HelpdeskConsole'
 
 // --- ROUTER SETUP ---
 
@@ -242,6 +243,12 @@ const performanceRoute = createRoute({
   component: PerformanceDashboard,
 })
 
+const helpdeskRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/helpdesk',
+  component: HelpdeskConsole,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
@@ -253,6 +260,7 @@ const routeTree = rootRoute.addChildren([
     dataQualityRoute,
     reportsRoute,
     performanceRoute,
+    helpdeskRoute,
     attendanceRoute, 
     leaveRoute, 
     payrollRoute, 

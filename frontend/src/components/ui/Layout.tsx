@@ -18,6 +18,7 @@ const navigation = [
   { name: 'Performance', href: '/performance', icon: Target, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Recruitment', href: '/recruitment', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Services', href: '/services', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'HR Helpdesk', href: '/helpdesk', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
   { name: 'Organization', href: '/organization', icon: Settings, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Data Quality', href: '/data-quality', icon: Shield, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Reports', href: '/reports', icon: Cpu, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
