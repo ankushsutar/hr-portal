@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/company/hrms-backend/internal/audit"
 	"github.com/company/hrms-backend/internal/auth"
 	"github.com/company/hrms-backend/internal/authz"
 	"github.com/company/hrms-backend/internal/common"
@@ -84,11 +85,12 @@ type AdvanceRequest struct {
 }
 
 type Service struct {
-	db *pgxpool.Pool
+	db           *pgxpool.Pool
+	auditService *audit.Service
 }
 
-func NewService(db *pgxpool.Pool) *Service {
-	return &Service{db: db}
+func NewService(db *pgxpool.Pool, auditService *audit.Service) *Service {
+	return &Service{db: db, auditService: auditService}
 }
 
 func (s *Service) RegisterRoutes(r chi.Router) {
@@ -100,6 +102,9 @@ func (s *Service) RegisterRoutes(r chi.Router) {
 	r.Post("/advances/{id}/approve", s.HandleApproveAdvance)
 	r.Get("/payslips", s.HandleGetPayslips)
 	r.Get("/payslips/{id}", s.HandleGetPayslipDetails)
+
+	// Sprint 7 Multi-Currency & Salary Component Matrix Engine
+	s.RegisterMatrixRoutes(r)
 }
 
 func (s *Service) HandleGetRuns(w http.ResponseWriter, r *http.Request) {

@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { FileText, Eye, TrendingUp, DollarSign, Play, CheckCircle2, Lock, Share2, Plus, AlertTriangle, ShieldCheck      } from 'lucide-react'
+import { FileText, Eye, TrendingUp, DollarSign, Play, CheckCircle2, Lock, Share2, Plus, AlertTriangle, ShieldCheck, Globe } from 'lucide-react'
 import { useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Card } from '../../components/ui/Card'
 import { PayslipView } from './PayslipView'
+import { SalaryMatrixConsole } from './SalaryMatrixConsole'
 import { PaginationBar } from '../../components/ui/PaginationBar'
 import { useTableState } from '../../hooks/useTableState'
 
@@ -260,6 +261,12 @@ export const PayrollDashboard = () => {
           >
             <FileText className="w-3.5 h-3.5" /> PUBLISHED PAYSLIPS
           </Tabs.Trigger>
+          <Tabs.Trigger 
+            value="matrix" 
+            className="px-3.5 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 data-[state=active]:text-emerald-400 data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 transition-colors flex items-center gap-1.5 font-mono"
+          >
+            <Globe className="w-3.5 h-3.5" /> CURRENCIES & SALARY MATRIX
+          </Tabs.Trigger>
         </Tabs.List>
 
         {/* Tab 1: Payroll Runs & Variance Analysis */}
@@ -433,6 +440,10 @@ export const PayrollDashboard = () => {
               </>
             )}
           </Card>
+        </Tabs.Content>
+
+        <Tabs.Content value="matrix" className="focus:outline-none">
+          <SalaryMatrixConsole />
         </Tabs.Content>
       </Tabs.Root>
 

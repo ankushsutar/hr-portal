@@ -67,7 +67,7 @@ func main() {
 	wfService := workflow.NewService(db)
 	leaveService := leave.NewService(db, auditService)
 	attService := attendance.NewService(db)
-	payrollService := payroll.NewService(db)
+	payrollService := payroll.NewService(db, auditService)
 	recruitService := recruitment.NewService(db)
 	onboardingService := onboarding.NewService(db)
 	lifecycleService := lifecycle.NewService(db)
