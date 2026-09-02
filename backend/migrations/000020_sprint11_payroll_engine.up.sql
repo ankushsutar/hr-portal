@@ -8,10 +8,12 @@ ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS total_lop_days NUMERIC(8,2) DE
 ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS total_advances_deducted NUMERIC(12,2) DEFAULT 0;
 ALTER TABLE payroll_runs ADD COLUMN IF NOT EXISTS variance_percentage NUMERIC(5,2) DEFAULT 0;
 
-CREATE TABLE IF NOT EXISTS payroll_advances (
+DROP TABLE IF EXISTS payroll_advances CASCADE;
+CREATE TABLE payroll_advances (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     employee_id UUID NOT NULL REFERENCES employees(id),
     amount NUMERIC(12,2) NOT NULL,
+    recovery_months INT NOT NULL DEFAULT 1,
     reason TEXT,
     deduct_from_month INT NOT NULL,
     deduct_from_year INT NOT NULL,

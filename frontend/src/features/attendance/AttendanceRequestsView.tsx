@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
-import { Plus, Check, X, Search } from 'lucide-react'
+import { Plus, Check, X, Search, Loader2 } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiFetch } from '../../lib/api'
 
 interface RequestItem {
   id: string
@@ -19,49 +21,60 @@ export const AttendanceRequestsView: React.FC = () => {
   const [search, setSearch] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   // Form State
-  const [reqEmp, setReqEmp] = useState('PEP00 - Adam Admin')
-  const [reqDate, setReqDate] = useState('2026-09-02')
+  const [reqEmp, setReqEmp] = useState('')
+  const [reqDate, setReqDate] = useState(new Date().toISOString().split('T')[0])
   const [reqIn, setReqIn] = useState('09:00')
   const [reqOut, setReqOut] = useState('18:00')
   const [reqShift, setReqShift] = useState('Regular Shift')
   const [reqReason, setReqReason] = useState('')
 
-  const [requests, setRequests] = useState<RequestItem[]>([
-    { id: '1', employee_code: 'PEP00', employee_name: 'Adam Admin', date: '2026-09-01', check_in: '09:13 AM', check_out: '06:36 PM', shift: 'Regular Shift', at_work: '09:23', status: 'PENDING', reason: 'Forgot RFID card swipe' },
-    { id: '2', employee_code: 'PEP10', employee_name: 'David King', date: '2026-09-01', check_in: '09:18 AM', check_out: '06:13 PM', shift: 'Regular Shift', at_work: '08:55', status: 'PENDING', reason: 'Biometric terminal offline' },
-    { id: '3', employee_code: 'PEP03', employee_name: 'Emily Clark', date: '2026-09-01', check_in: '09:12 AM', check_out: '06:55 PM', shift: 'Regular Shift', at_work: '09:43', status: 'APPROVED', reason: 'Client site deployment' },
-    { id: '4', employee_code: 'PEP11', employee_name: 'Emma Lee', date: '2026-09-01', check_in: '09:21 AM', check_out: '06:16 PM', shift: 'Regular Shift', at_work: '08:55', status: 'REJECTED', reason: 'No manager approval' },
-  ])
+  const endpoint = activeTab === 'REQUESTED' 
+    ? '/attendance/requests/pending' 
+    : '/attendance/requests/me'
 
-  const handleAction = (id: string, action: 'APPROVE' | 'REJECT') => {
-    setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED' } : r))
-    )
-    setToastMsg(`Request ${action === 'APPROVE' ? 'Approved' : 'Rejected'} Successfully!`)
-    setTimeout(() => setToastMsg(null), 3000)
-  }
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['attendance-requests', activeTab],
+    queryFn: () => apiFetch(endpoint)
+  })
+
+  const requests: RequestItem[] = response?.data || []
+
+  const submitMutation = useMutation({
+    mutationFn: (payload: any) => apiFetch('/attendance/requests', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance-requests'] })
+      setIsModalOpen(false)
+      setReqReason('')
+      setToastMsg('Regularization Request Submitted!')
+      setTimeout(() => setToastMsg(null), 3000)
+    }
+  })
+
+  const actionMutation = useMutation({
+    mutationFn: ({ id, action }: { id: string, action: 'approve' | 'reject' }) => 
+      apiFetch(`/attendance/requests/${id}/${action}`, { method: 'POST' }),
+    onSuccess: (_, { action }) => {
+      queryClient.invalidateQueries({ queryKey: ['attendance-requests'] })
+      setToastMsg(`Request ${action === 'approve' ? 'Approved' : 'Rejected'} Successfully!`)
+      setTimeout(() => setToastMsg(null), 3000)
+    }
+  })
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const newItem: RequestItem = {
-      id: Date.now().toString(),
-      employee_code: reqEmp.split(' - ')[0],
-      employee_name: reqEmp.split(' - ')[1] || 'Employee',
+    submitMutation.mutate({
+      employee_id: reqEmp, // optional, for managers to submit on behalf of
       date: reqDate,
       check_in: reqIn,
       check_out: reqOut,
-      shift: reqShift,
-      at_work: '09:00',
-      status: 'PENDING',
-      reason: reqReason || 'Attendance Regularization Request',
-    }
-    setRequests([newItem, ...requests])
-    setIsModalOpen(false)
-    setReqReason('')
-    setToastMsg('Regularization Request Submitted!')
-    setTimeout(() => setToastMsg(null), 3000)
+      reason: reqReason || 'Attendance Regularization Request'
+    })
   }
 
   const filteredRequests = requests.filter((r) => {
@@ -93,7 +106,7 @@ export const AttendanceRequestsView: React.FC = () => {
                 : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800'
             }`}
           >
-            Requested Attendances ({requests.filter((r) => r.status === 'PENDING').length})
+            Requested Attendances {activeTab === 'REQUESTED' && !isLoading ? `(${filteredRequests.length})` : ''}
           </button>
           <button
             onClick={() => setActiveTab('ALL')}
@@ -103,7 +116,7 @@ export const AttendanceRequestsView: React.FC = () => {
                 : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800'
             }`}
           >
-            All Attendances ({requests.length})
+            All Attendances {activeTab === 'ALL' && !isLoading ? `(${requests.length})` : ''}
           </button>
         </div>
 
@@ -129,7 +142,12 @@ export const AttendanceRequestsView: React.FC = () => {
       </div>
 
       {/* Requests Data Table */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl min-h-[300px] relative">
+        {isLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+            <Loader2 className="w-6 h-6 animate-spin text-rose-500" />
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
             <thead className="bg-slate-800/60 text-slate-400 uppercase font-mono text-[11px] border-b border-slate-800">
@@ -178,18 +196,20 @@ export const AttendanceRequestsView: React.FC = () => {
                     )}
                   </td>
                   <td className="p-4 text-right">
-                    {r.status === 'PENDING' && (
+                    {r.status === 'PENDING' && activeTab === 'REQUESTED' && (
                       <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => handleAction(r.id, 'APPROVE')}
-                          className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 transition-colors"
+                          onClick={() => actionMutation.mutate({ id: r.id, action: 'approve' })}
+                          disabled={actionMutation.isPending}
+                          className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 transition-colors disabled:opacity-50"
                           title="Approve Request"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleAction(r.id, 'REJECT')}
-                          className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 transition-colors"
+                          onClick={() => actionMutation.mutate({ id: r.id, action: 'reject' })}
+                          disabled={actionMutation.isPending}
+                          className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 transition-colors disabled:opacity-50"
                           title="Reject Request"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -199,6 +219,13 @@ export const AttendanceRequestsView: React.FC = () => {
                   </td>
                 </tr>
               ))}
+              {!isLoading && filteredRequests.length === 0 && (
+                 <tr>
+                   <td colSpan={9} className="p-8 text-center text-slate-500 font-medium">
+                     No requests found
+                   </td>
+                 </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -217,17 +244,14 @@ export const AttendanceRequestsView: React.FC = () => {
 
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Employee</label>
-                <select
+                <label className="block text-xs font-medium text-slate-400 mb-1">Employee ID (Optional)</label>
+                <input
+                  type="text"
                   value={reqEmp}
                   onChange={(e) => setReqEmp(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
-                >
-                  <option>PEP00 - Adam Admin</option>
-                  <option>PEP10 - David King</option>
-                  <option>PEP03 - Emily Clark</option>
-                  <option>PEP11 - Emma Lee</option>
-                </select>
+                  placeholder="e.g. PEP00 (Leave blank for self)"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -235,6 +259,7 @@ export const AttendanceRequestsView: React.FC = () => {
                   <label className="block text-xs font-medium text-slate-400 mb-1">Date</label>
                   <input
                     type="date"
+                    required
                     value={reqDate}
                     onChange={(e) => setReqDate(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
@@ -259,6 +284,7 @@ export const AttendanceRequestsView: React.FC = () => {
                   <label className="block text-xs font-medium text-slate-400 mb-1">Check-In Time</label>
                   <input
                     type="time"
+                    required
                     value={reqIn}
                     onChange={(e) => setReqIn(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
@@ -268,6 +294,7 @@ export const AttendanceRequestsView: React.FC = () => {
                   <label className="block text-xs font-medium text-slate-400 mb-1">Check-Out Time</label>
                   <input
                     type="time"
+                    required
                     value={reqOut}
                     onChange={(e) => setReqOut(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
@@ -278,11 +305,12 @@ export const AttendanceRequestsView: React.FC = () => {
               <div>
                 <label className="block text-xs font-medium text-slate-400 mb-1">Reason / Justification</label>
                 <textarea
+                  required
                   value={reqReason}
                   onChange={(e) => setReqReason(e.target.value)}
                   rows={3}
                   placeholder="Enter reason for regularization..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500"
                 />
               </div>
 
@@ -296,9 +324,10 @@ export const AttendanceRequestsView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-medium bg-rose-500 hover:bg-rose-600 text-white shadow-lg"
+                  disabled={submitMutation.isPending}
+                  className="px-5 py-2 rounded-xl text-xs font-medium bg-rose-500 hover:bg-rose-600 text-white shadow-lg disabled:opacity-50"
                 >
-                  Submit Request
+                  {submitMutation.isPending ? 'Submitting...' : 'Submit Request'}
                 </button>
               </div>
             </form>

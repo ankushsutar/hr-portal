@@ -50,7 +50,7 @@ CREATE TABLE employee_onboarding_tasks (
 );
 
 -- Employee Documents
-CREATE TABLE employee_documents (
+CREATE TABLE IF NOT EXISTS employee_documents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     instance_id UUID REFERENCES employee_onboarding_instances(id) ON DELETE CASCADE,
     checklist_id UUID REFERENCES document_checklists(id),

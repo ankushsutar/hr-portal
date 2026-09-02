@@ -1,0 +1,8 @@
+{
+  "namespace": "HRMS_TEST",
+  "employees": 50,
+  "managers": 5,
+  "departments": 8,
+  "locations": 4,
+  "createdAt": "2026-09-02T12:49:27Z"
+}

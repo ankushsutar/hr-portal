@@ -23,7 +23,8 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token_hash ON user_sessions(token_hash);
 
 -- Permissions registry (module + action + scope)
-CREATE TABLE IF NOT EXISTS permissions (
+DROP TABLE IF EXISTS permissions CASCADE;
+CREATE TABLE permissions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     module VARCHAR(100) NOT NULL,
     action VARCHAR(100) NOT NULL,  -- READ, WRITE, APPROVE, EXPORT, DELETE
