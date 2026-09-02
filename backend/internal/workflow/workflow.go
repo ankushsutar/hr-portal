@@ -87,7 +87,17 @@ func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Req
 
 	callerEmpID, callerUserID, _ := s.getCallerIDs(r.Context(), claims.UserID)
 
-	rows, err := s.db.Query(r.Context(), `
+	isAdmin := authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "PAYROLL_ADMIN")
+	isManager := authz.HasRole(claims, "MANAGER", "DEPT_HEAD")
+
+	scopeCond := "1=0" // Default deny for standard employees
+	if isAdmin {
+		scopeCond = "1=1" // Admins see all pending approvals
+	} else if isManager && callerEmpID != "" {
+		scopeCond = fmt.Sprintf("e.manager_id::text = '%s'", callerEmpID)
+	}
+
+	rows, err := s.db.Query(r.Context(), fmt.Sprintf(`
 		SELECT 
 			v.id::text, v.module, v.type, e.employee_id, 
 			e.first_name || ' ' || e.last_name as employee_name, 
@@ -98,9 +108,9 @@ func (s *Service) HandleGetUniversalApprovals(w http.ResponseWriter, r *http.Req
 		FROM v_universal_approvals v
 		JOIN employees e ON v.employee_id = e.id OR v.employee_id = e.user_id
 		LEFT JOIN departments d ON e.department_id = d.id
-		WHERE v.status = 'PENDING'
+		WHERE v.status = 'PENDING' AND (%s)
 		ORDER BY v.created_at DESC
-	`)
+	`, scopeCond))
 	if err != nil {
 		common.JSONError(w, "Failed to fetch approvals: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -198,6 +208,31 @@ func (s *Service) isSelfApproval(r *http.Request, taskID string) bool {
 	return false
 }
 
+func (s *Service) isAuthorizedToApprove(r *http.Request, taskID string) bool {
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		return false
+	}
+	
+	// HR Admins, Super Admins, Payroll Admins can approve anything
+	if authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "PAYROLL_ADMIN") {
+		return true
+	}
+
+	reqEmpID, reqUserID, _ := s.getTaskRequesterIDs(r.Context(), taskID)
+	callerEmpID, _, _ := s.getCallerIDs(r.Context(), claims.UserID)
+
+	// Check if the requester's manager is the caller
+	var mgrID string
+	err := s.db.QueryRow(r.Context(), "SELECT COALESCE(manager_id::text, '') FROM employees WHERE id::text = $1 OR user_id::text = $2 LIMIT 1", reqEmpID, reqUserID).Scan(&mgrID)
+	
+	if err == nil && mgrID != "" && mgrID == callerEmpID {
+		return true
+	}
+	
+	return false
+}
+
 func (s *Service) HandleBulkAction(w http.ResponseWriter, r *http.Request) {
 	claims, ok := auth.GetClaims(r)
 	if !ok {
@@ -224,6 +259,11 @@ func (s *Service) HandleBulkAction(w http.ResponseWriter, r *http.Request) {
 	for _, id := range req.TaskIDs {
 		if s.isSelfApproval(r, id) {
 			authz.SelfApprovalError(w)
+			return
+		}
+
+		if !s.isAuthorizedToApprove(r, id) {
+			authz.ForbiddenResponse(w, "FORBIDDEN_RESOURCE", "You can only approve tasks for your direct reports.")
 			return
 		}
 
@@ -264,6 +304,11 @@ func (s *Service) HandleApproveTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !s.isAuthorizedToApprove(r, id) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_RESOURCE", "You can only approve tasks for your direct reports.")
+		return
+	}
+
 	if err := s.updateTaskStatus(r.Context(), id, "APPROVED"); err != nil {
 		common.JSONError(w, err.Error(), http.StatusBadRequest)
 		return
@@ -295,6 +340,11 @@ func (s *Service) HandleRejectTask(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if s.isSelfApproval(r, id) {
 		authz.SelfApprovalError(w)
+		return
+	}
+
+	if !s.isAuthorizedToApprove(r, id) {
+		authz.ForbiddenResponse(w, "FORBIDDEN_RESOURCE", "You can only reject tasks for your direct reports.")
 		return
 	}
 

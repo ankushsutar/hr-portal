@@ -12,7 +12,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func main() {
+func Seed50Employees() {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		dbURL = "postgres://hrms_user:@127.0.0.1:5433/hrms_db?sslmode=disable"

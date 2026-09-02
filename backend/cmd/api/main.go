@@ -17,6 +17,7 @@ import (
 	"github.com/company/hrms-backend/internal/employee"
 	"github.com/company/hrms-backend/internal/helpdesk"
 	"github.com/company/hrms-backend/internal/importer"
+	"github.com/company/hrms-backend/internal/jobs"
 	"github.com/company/hrms-backend/internal/leave"
 	"github.com/company/hrms-backend/internal/lifecycle"
 	"github.com/company/hrms-backend/internal/onboarding"
@@ -80,6 +81,7 @@ func main() {
 	perfService := performance.NewService(db)
 	helpdeskService := helpdesk.NewService(db, auditService)
 	securityService := security.NewService(db)
+	jobsService := jobs.NewService(db)
 
 	r := chi.NewRouter()
 
@@ -189,6 +191,10 @@ func main() {
 
 			r.Route("/performance", func(r chi.Router) {
 				perfService.RegisterRoutes(r)
+			})
+
+			r.Route("/jobs", func(r chi.Router) {
+				jobsService.RegisterRoutes(r)
 			})
 		})
 	})

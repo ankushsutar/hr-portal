@@ -2,27 +2,27 @@ import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { LayoutDashboard, Users, Calendar, Clock, DollarSign, Target, Briefcase, Settings, HelpCircle, LogOut, Bell, Search, Shield, ChevronRight, Cpu, CheckSquare, X, Menu, Palette } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useThemeStore } from '../../stores/themeStore'
 import { ThemeCustomizerModal } from '../theme/ThemeCustomizerModal'
 import { QuickPunchWidget } from '../../features/attendance/QuickPunchWidget'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
-  { name: 'Universal Inbox', href: '/inbox', icon: CheckSquare, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE'] },
+  { name: 'Universal Inbox', href: '/inbox', icon: CheckSquare, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
   { name: 'HR Task Center', href: '/hr-tasks', icon: Clock, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
-  { name: 'People', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
-  { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
-  { name: 'Leave', href: '/leave', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'People', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE'] },
+  { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE'] },
+  { name: 'Leave', href: '/leave', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE'] },
   { name: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
-  { name: 'Performance', href: '/performance', icon: Target, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
-  { name: 'Recruitment', href: '/recruitment', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
-  { name: 'Services', href: '/services', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
-  { name: 'HR Helpdesk', href: '/helpdesk', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'EMPLOYEE'] },
+  { name: 'Performance', href: '/performance', icon: Target, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
+  { name: 'Recruitment', href: '/recruitment', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
+  { name: 'Services', href: '/services', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE'] },
+  { name: 'HR Helpdesk', href: '/helpdesk', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE'] },
   { name: 'Organization', href: '/organization', icon: Settings, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Data Quality', href: '/data-quality', icon: Shield, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Security & Audit', href: '/security-audit', icon: Shield, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
-  { name: 'Reports', href: '/reports', icon: Cpu, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
+  { name: 'Reports', href: '/reports', icon: Cpu, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
   { name: 'Bulk Operations', href: '/import', icon: Cpu, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
 ]
 
@@ -144,6 +144,7 @@ export const Layout = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <LiveClock />
             {/* Command / Search Input */}
             <div className="relative hidden sm:flex items-center">
               <Search className="w-3.5 h-3.5 absolute left-3 text-[var(--text-muted)]" />
@@ -223,6 +224,24 @@ export const Layout = () => {
         {/* Global Theme & Brand Customizer Drawer */}
         <ThemeCustomizerModal />
       </main>
+    </div>
+  )
+}
+
+const LiveClock = () => {
+  const [time, setTime] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div className="hidden lg:flex items-center gap-2 text-[11px] font-mono text-[var(--text-muted)] bg-[var(--bg-subtle)] px-2.5 py-1.5 rounded-md border border-[var(--border-color)] whitespace-nowrap">
+      <Clock className="w-3.5 h-3.5" />
+      <span>{time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+      <span className="opacity-40">|</span>
+      <span>{time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
     </div>
   )
 }

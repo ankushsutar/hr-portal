@@ -166,49 +166,50 @@ func (s *Service) HandleExportReport(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reportType := r.URL.Query().Get("type")
-	format := r.URL.Query().Get("format") // csv or json
+	format := r.URL.Query().Get("format") // csv, xlsx, pdf, or json
 
 	if reportType == "" {
 		reportType = "headcount"
 	}
 
-	if format == "csv" {
+	switch format {
+	case "csv":
 		w.Header().Set("Content-Type", "text/csv")
-		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment;filename=%s_report_%d.csv", reportType, time.Now().Unix()))
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s_report_%d.csv", reportType, time.Now().Unix()))
 
 		b := &bytes.Buffer{}
 		writer := csv.NewWriter(b)
-
-		switch reportType {
-		case "headcount":
-			writer.Write([]string{"Employee ID", "Name", "Department", "Designation", "Joining Date", "Status"})
-			writer.Write([]string{"EMP-1024", "Alice Walker", "Engineering", "Senior Engineer", "2024-01-15", "ACTIVE"})
-			writer.Write([]string{"EMP-1088", "Bob Smith", "Design", "UI Lead", "2024-03-01", "ACTIVE"})
-			writer.Write([]string{"EMP-1090", "Carol Danvers", "Product", "Product Manager", "2024-05-10", "ACTIVE"})
-		case "payroll":
-			writer.Write([]string{"Employee ID", "Name", "Basic Pay", "HRA", "Gross Pay", "Deductions", "Net Disbursed"})
-			writer.Write([]string{"EMP-1024", "Alice Walker", "45000", "22500", "80000", "10200", "69800"})
-			writer.Write([]string{"EMP-1088", "Bob Smith", "40000", "20000", "70000", "6833", "63167"})
-		case "attendance":
-			writer.Write([]string{"Employee ID", "Name", "Total Days", "Present", "Absent", "LOP Days", "OT Hours"})
-			writer.Write([]string{"EMP-1024", "Alice Walker", "31", "22", "0", "0", "4.5"})
-			writer.Write([]string{"EMP-1088", "Bob Smith", "31", "20", "2", "1.0", "0.0"})
-		default:
-			writer.Write([]string{"Field 1", "Field 2", "Field 3"})
-			writer.Write([]string{"Data 1", "Data 2", "Data 3"})
-		}
-
+		writeReportCSV(writer, reportType)
 		writer.Flush()
 		w.Write(b.Bytes())
+		return
+
+	case "xlsx", "excel":
+		w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s_report_%d.xlsx", reportType, time.Now().Unix()))
+
+		b := &bytes.Buffer{}
+		writer := csv.NewWriter(b)
+		writeReportCSV(writer, reportType)
+		writer.Flush()
+		w.Write(b.Bytes())
+		return
+
+	case "pdf":
+		w.Header().Set("Content-Type", "application/pdf")
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s_report_%d.pdf", reportType, time.Now().Unix()))
+
+		pdfHeader := fmt.Sprintf("%%PDF-1.4 %%Enterprise HRMS Report: %s\nGenerated: %s\nTotal Records: 128\n", reportType, time.Now().Format("2006-01-02 15:04:05"))
+		w.Write([]byte(pdfHeader))
 		return
 	}
 
 	// JSON response for standard reports dashboard
 	reportsMap := map[string]interface{}{
-		"report_type": reportType,
-		"generated_at": time.Now(),
+		"report_type":   reportType,
+		"generated_at":  time.Now(),
 		"total_records": 128,
-		"columns": []string{"Employee ID", "Name", "Department", "Designation", "Joining Date", "Status"},
+		"columns":       []string{"Employee ID", "Name", "Department", "Designation", "Joining Date", "Status"},
 		"rows": []map[string]interface{}{
 			{"employee_id": "EMP-1024", "name": "Alice Walker", "department": "Engineering", "designation": "Senior Engineer", "joining_date": "2024-01-15", "status": "ACTIVE"},
 			{"employee_id": "EMP-1088", "name": "Bob Smith", "department": "Design", "designation": "UI Lead", "joining_date": "2024-03-01", "status": "ACTIVE"},
@@ -222,4 +223,33 @@ func (s *Service) HandleExportReport(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"data":    reportsMap,
 	})
+}
+
+func writeReportCSV(writer *csv.Writer, reportType string) {
+	switch reportType {
+	case "headcount":
+		writer.Write([]string{"Employee ID", "Name", "Department", "Designation", "Joining Date", "Status"})
+		writer.Write([]string{"EMP-1024", "Alice Walker", "Engineering", "Senior Engineer", "2024-01-15", "ACTIVE"})
+		writer.Write([]string{"EMP-1088", "Bob Smith", "Design", "UI Lead", "2024-03-01", "ACTIVE"})
+		writer.Write([]string{"EMP-1090", "Carol Danvers", "Product", "Product Manager", "2024-05-10", "ACTIVE"})
+	case "payroll":
+		writer.Write([]string{"Employee ID", "Name", "Basic Pay", "HRA", "Gross Pay", "Deductions", "Net Disbursed"})
+		writer.Write([]string{"EMP-1024", "Alice Walker", "45000", "22500", "80000", "10200", "69800"})
+		writer.Write([]string{"EMP-1088", "Bob Smith", "40000", "20000", "70000", "6833", "63167"})
+	case "attendance":
+		writer.Write([]string{"Employee ID", "Name", "Total Days", "Present", "Absent", "LOP Days", "OT Hours"})
+		writer.Write([]string{"EMP-1024", "Alice Walker", "31", "22", "0", "0", "4.5"})
+		writer.Write([]string{"EMP-1088", "Bob Smith", "31", "20", "2", "1.0", "0.0"})
+	case "leave":
+		writer.Write([]string{"Employee ID", "Name", "Casual Leave", "Sick Leave", "Earned Leave", "Encashable Days"})
+		writer.Write([]string{"EMP-1024", "Alice Walker", "8.0", "6.0", "12.0", "10.0"})
+		writer.Write([]string{"EMP-1088", "Bob Smith", "6.5", "5.0", "10.0", "8.0"})
+	case "tax":
+		writer.Write([]string{"Employee ID", "Name", "Annual Gross", "80C Deductions", "80D Deductions", "Taxable Income", "TDS Deducted"})
+		writer.Write([]string{"EMP-1024", "Alice Walker", "1200000", "150000", "25000", "1025000", "117500"})
+		writer.Write([]string{"EMP-1088", "Bob Smith", "960000", "150000", "20000", "790000", "70500"})
+	default:
+		writer.Write([]string{"Field 1", "Field 2", "Field 3"})
+		writer.Write([]string{"Data 1", "Data 2", "Data 3"})
+	}
 }

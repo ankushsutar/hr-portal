@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '../../contexts/AuthContext'
 import { Card } from '../../components/ui/Card'
 import { PaginationBar } from '../../components/ui/PaginationBar'
 import { useTableState } from '../../hooks/useTableState'
-import { Clock, CheckCircle2, XCircle, AlertCircle, Search, Calendar as CalendarIcon, UserPlus } from 'lucide-react'
+import { Clock, CheckCircle2, XCircle, AlertCircle, Search } from 'lucide-react'
 import { AttendanceValidation } from './AttendanceValidation'
 import { ExceptionQueue } from './ExceptionQueue'
 import { AttendanceRulesConfig } from './AttendanceRulesConfig'
@@ -13,11 +14,9 @@ import { AttendanceActivityView } from './AttendanceActivityView'
 import { MonthlySummaryConsole } from './MonthlySummaryConsole'
 
 export const AttendanceDashboard = () => {
-  const qc = useQueryClient()
+  const { hasRole } = useAuth() as any
   const [viewMode, setViewMode] = useState<'dashboard' | 'daily' | 'requests' | 'activity' | 'monthly' | 'validation' | 'exceptions' | 'rules'>('dashboard')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [isPunchModalOpen, setIsPunchModalOpen] = useState(false)
-  const [punchEmployee, setPunchEmployee] = useState('')
+  const [date] = useState(new Date().toISOString().split('T')[0])
 
   const {
     page,
@@ -44,23 +43,7 @@ export const AttendanceDashboard = () => {
     }
   })
 
-  const manualPunch = useMutation({
-    mutationFn: async (punchData: any) => {
-      const res = await fetch('/api/v1/attendance/punch', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
-        },
-        body: JSON.stringify(punchData)
-      })
-      if (!res.ok) throw new Error('Punch failed')
-      return res.json()
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['attendance-daily'] })
-    }
-  })
+  // manualPunch mutation removed
 
   if (isLoading) return <div className="p-8 text-slate-500 font-mono text-xs">Loading attendance records...</div>
   const allAttendance = data?.data || []
@@ -86,8 +69,8 @@ export const AttendanceDashboard = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Enterprise Attendance Portal</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">HORILLA PARITY ATTENDANCE MANAGEMENT & LOGISTICS</p>
+          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Attendance</h1>
+          <p className="text-xs font-mono text-slate-400 mt-1">ATTENDANCE MANAGEMENT</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center bg-[#111827] border border-slate-800 rounded p-1 flex-wrap gap-1">
@@ -99,14 +82,16 @@ export const AttendanceDashboard = () => {
             >
               Dashboard
             </button>
-            <button
-              onClick={() => setViewMode('daily')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'daily' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Attendances
-            </button>
+            {hasRole(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']) && (
+              <button
+                onClick={() => setViewMode('daily')}
+                className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                  viewMode === 'daily' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Attendances
+              </button>
+            )}
             <button
               onClick={() => setViewMode('requests')}
               className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
@@ -131,50 +116,37 @@ export const AttendanceDashboard = () => {
             >
               Monthly Summary
             </button>
-            <button
-              onClick={() => setViewMode('validation')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'validation' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Validation
-            </button>
-            <button
-              onClick={() => setViewMode('exceptions')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'exceptions' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Exceptions
-            </button>
-            <button
-              onClick={() => setViewMode('rules')}
-              className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'rules' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Rules
-            </button>
-          </div>
-          {viewMode === 'daily' && (
-            <>
-              <div className="flex items-center gap-2 bg-[#111827] border border-slate-800 px-3 py-1.5 rounded text-xs">
-                <CalendarIcon size={14} className="text-slate-400" />
-                <input 
-                  type="date" 
-                  value={date} 
-                  onChange={e => setDate(e.target.value)}
-                  className="bg-transparent border-none focus:outline-none text-slate-200 font-mono"
-                />
-              </div>
-              <button 
-                onClick={() => setIsPunchModalOpen(true)}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+            {hasRole(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']) && (
+              <button
+                onClick={() => setViewMode('validation')}
+                className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                  viewMode === 'validation' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
               >
-                <UserPlus size={14} /> Manual Punch
+                Validation
               </button>
-            </>
-          )}
+            )}
+            {hasRole(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']) && (
+              <button
+                onClick={() => setViewMode('exceptions')}
+                className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                  viewMode === 'exceptions' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Exceptions
+              </button>
+            )}
+            {hasRole(['SUPER_ADMIN', 'HR_ADMIN']) && (
+              <button
+                onClick={() => setViewMode('rules')}
+                className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
+                  viewMode === 'rules' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Rules
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -182,11 +154,11 @@ export const AttendanceDashboard = () => {
       {viewMode === 'requests' && <AttendanceRequestsView />}
       {viewMode === 'activity' && <AttendanceActivityView />}
       {viewMode === 'monthly' && <MonthlySummaryConsole />}
-      {viewMode === 'validation' && <AttendanceValidation />}
-      {viewMode === 'exceptions' && <ExceptionQueue />}
-      {viewMode === 'rules' && <AttendanceRulesConfig />}
+      {viewMode === 'validation' && hasRole(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']) && <AttendanceValidation />}
+      {viewMode === 'exceptions' && hasRole(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']) && <ExceptionQueue />}
+      {viewMode === 'rules' && hasRole(['SUPER_ADMIN', 'HR_ADMIN']) && <AttendanceRulesConfig />}
 
-      {viewMode === 'daily' && (
+      {viewMode === 'daily' && hasRole(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']) && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="p-5">
@@ -291,51 +263,6 @@ export const AttendanceDashboard = () => {
               onLimitChange={setLimit}
             />
           </Card>
-
-          {isPunchModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-              <div className="bg-[#111827] rounded-lg border border-slate-800 shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
-                <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
-                  <h3 className="font-semibold text-slate-100 text-sm">Manual Override Punch</h3>
-                  <button onClick={() => setIsPunchModalOpen(false)} className="text-slate-400 hover:text-slate-200">
-                    <XCircle size={18} />
-                  </button>
-                </div>
-                <div className="p-5 space-y-4 text-xs">
-                  <div>
-                    <label className="block font-mono text-slate-400 mb-1">Employee ID</label>
-                    <input 
-                      type="text" 
-                      value={punchEmployee}
-                      onChange={(e) => setPunchEmployee(e.target.value)}
-                      placeholder="e.g. EMP-001" 
-                      className="w-full bg-[#0B0F19] border border-slate-800 rounded p-2 text-slate-200 focus:border-blue-500 focus:outline-none font-mono uppercase"
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={() => {
-                        manualPunch.mutate({ employee_id: punchEmployee || 'EMP-MANUAL', provider: 'MANUAL', punch_type: 'IN' })
-                        setIsPunchModalOpen(false)
-                      }}
-                      className="flex-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 py-2 rounded font-mono font-medium transition-colors"
-                    >
-                      PUNCH IN
-                    </button>
-                    <button 
-                      onClick={() => {
-                        manualPunch.mutate({ employee_id: punchEmployee || 'EMP-MANUAL', provider: 'MANUAL', punch_type: 'OUT' })
-                        setIsPunchModalOpen(false)
-                      }}
-                      className="flex-1 bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 py-2 rounded font-mono font-medium transition-colors"
-                    >
-                      PUNCH OUT
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>

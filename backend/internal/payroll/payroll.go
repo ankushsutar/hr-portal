@@ -456,8 +456,19 @@ func (s *Service) HandleGetPayslipDetails(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
+	scopeCond := "1=1"
+	if !authz.HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "PAYROLL_ADMIN") {
+		scopeCond = fmt.Sprintf("(e.user_id::text = '%s' OR e.id::text = '%s')", claims.UserID, claims.UserID)
+	}
+
 	var p Payslip
-	err := s.db.QueryRow(r.Context(), `
+	err := s.db.QueryRow(r.Context(), fmt.Sprintf(`
 		SELECT ps.id::text, e.employee_id, e.first_name || ' ' || e.last_name as employee_name,
 		       COALESCE(des.name, 'Engineer') as designation,
 		       COALESCE(d.name, 'Engineering') as department,
@@ -469,8 +480,8 @@ func (s *Service) HandleGetPayslipDetails(w http.ResponseWriter, r *http.Request
 		JOIN employees e ON ps.employee_id = e.id
 		LEFT JOIN departments d ON e.department_id = d.id
 		LEFT JOIN designations des ON e.designation_id = des.id
-		WHERE ps.id::text = $1 OR e.employee_id = $1
-	`, id).Scan(
+		WHERE (ps.id::text = $1 OR e.employee_id = $1) AND %s
+	`, scopeCond), id).Scan(
 		&p.ID, &p.EmployeeID, &p.EmployeeName, &p.Designation, &p.Department,
 		&p.Month, &p.Year, &p.BasicPay, &p.HRA, &p.SpecialAllowance,
 		&p.LopDeduction, &p.AdvanceDeduction, &p.PF, &p.TDS, &p.PTax,
