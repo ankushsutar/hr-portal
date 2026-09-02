@@ -37,6 +37,7 @@ import { DataQualityCenter } from './features/reports/DataQualityCenter'
 import { ReportsDashboard } from './features/reports/ReportsDashboard'
 import { PerformanceDashboard } from './features/performance/PerformanceDashboard'
 import { HelpdeskConsole } from './features/helpdesk/HelpdeskConsole'
+import { SecurityAuditConsole } from './features/admin/SecurityAuditConsole'
 
 // --- ROUTER SETUP ---
 
@@ -249,6 +250,12 @@ const helpdeskRoute = createRoute({
   component: HelpdeskConsole,
 })
 
+const securityRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/security-audit',
+  component: SecurityAuditConsole,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
@@ -261,6 +268,7 @@ const routeTree = rootRoute.addChildren([
     reportsRoute,
     performanceRoute,
     helpdeskRoute,
+    securityRoute,
     attendanceRoute, 
     leaveRoute, 
     payrollRoute, 

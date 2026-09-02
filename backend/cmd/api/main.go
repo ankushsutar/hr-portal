@@ -25,6 +25,7 @@ import (
 	"github.com/company/hrms-backend/internal/performance"
 	"github.com/company/hrms-backend/internal/recruitment"
 	"github.com/company/hrms-backend/internal/reports"
+	"github.com/company/hrms-backend/internal/security"
 	"github.com/company/hrms-backend/internal/user"
 	"github.com/company/hrms-backend/internal/workflow"
 	"github.com/go-chi/chi/v5"
@@ -78,6 +79,7 @@ func main() {
 	userService := user.NewService(db)
 	perfService := performance.NewService(db)
 	helpdeskService := helpdesk.NewService(db, auditService)
+	securityService := security.NewService(db)
 
 	r := chi.NewRouter()
 
@@ -163,6 +165,10 @@ func main() {
 
 			r.Route("/helpdesk", func(r chi.Router) {
 				helpdeskService.RegisterRoutes(r)
+			})
+
+			r.Route("/security", func(r chi.Router) {
+				securityService.RegisterRoutes(r)
 			})
 
 			r.Route("/users", func(r chi.Router) {
