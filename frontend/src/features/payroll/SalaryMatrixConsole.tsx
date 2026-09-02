@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
-import { DollarSign, Globe, Layers, Calculator, CheckCircle2, AlertTriangle, RefreshCw, ArrowRightLeft, ShieldCheck, Edit3 } from 'lucide-react'
+import { Globe, Calculator, CheckCircle2, AlertTriangle, ArrowRightLeft, ShieldCheck, Edit3 } from 'lucide-react'
 
 interface Currency {
   code: string
@@ -28,17 +28,6 @@ interface SalaryBreakdown {
   deductions: ComponentAmount[]
 }
 
-interface SalaryComponent {
-  id: string
-  code: string
-  name: string
-  component_type: string
-  calculation_type: string
-  default_value: number
-  is_taxable: boolean
-  is_statutory: boolean
-}
-
 export const SalaryMatrixConsole = () => {
   const qc = useQueryClient()
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -63,20 +52,8 @@ export const SalaryMatrixConsole = () => {
     }
   })
 
-  // Fetch Components
-  const { data: compRes } = useQuery({
-    queryKey: ['payroll-components'],
-    queryFn: async () => {
-      const res = await fetch('/api/v1/payroll/components', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      })
-      if (!res.ok) throw new Error('Failed to load components')
-      return res.json()
-    }
-  })
-
   // Calculate Breakdown Preview Mutation
-  const { data: breakdownRes, isPending: isCalcLoading } = useQuery({
+  const { data: breakdownRes } = useQuery({
     queryKey: ['payroll-breakdown-preview', simBaseSalary, simCurrency],
     queryFn: async () => {
       const amount = parseFloat(simBaseSalary) || 0
@@ -121,7 +98,6 @@ export const SalaryMatrixConsole = () => {
   })
 
   const currencies: Currency[] = currRes?.data || []
-  const components: SalaryComponent[] = compRes?.data || []
   const breakdown: SalaryBreakdown | null = breakdownRes?.data || null
 
   return (

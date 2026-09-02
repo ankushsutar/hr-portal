@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
-import { CheckCircle2, XCircle, AlertCircle, Clock, ShieldCheck, CheckSquare, Square, Filter } from 'lucide-react'
+import { CheckCircle2, XCircle, AlertCircle, Clock, ShieldCheck, CheckSquare, Square } from 'lucide-react'
 
 type ValidationStatus = 'TO_VALIDATE' | 'OT_PENDING' | 'VALIDATED' | 'REJECTED'
 
@@ -33,7 +33,7 @@ export const AttendanceValidation = () => {
   const [pendingAction, setPendingAction] = useState<'VALIDATE' | 'REJECT' | 'APPROVE_OT' | 'REJECT_OT' | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['attendance-validation-queue', activeTab],
     queryFn: async () => {
       const res = await fetch(`/api/v1/attendance/validation-queue?validation_status=${activeTab}`, {

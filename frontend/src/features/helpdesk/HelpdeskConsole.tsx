@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
-import { LifeBuoy, Plus, AlertOctagon, CheckCircle2, Clock, MessageSquare, User, Filter, ShieldCheck, Tag, ChevronRight, Send, AlertTriangle } from 'lucide-react'
+import { LifeBuoy, Plus, AlertOctagon, CheckCircle2, Clock, MessageSquare, Tag, ChevronRight, Send, AlertTriangle } from 'lucide-react'
 
 interface HelpdeskCategory {
   id: string
@@ -25,7 +25,7 @@ interface HelpdeskTicket {
   assigned_to?: string
   assigned_to_name?: string
   sla_hours: number
-  is_sla_breached: bool
+  is_sla_breached: boolean
   resolved_at?: string
   resolution_notes?: string
   created_at: string
@@ -383,6 +383,13 @@ export const HelpdeskConsole = () => {
                 {/* Workflow Status Controls */}
                 <div className="bg-[#0B0F19] p-4 rounded-lg border border-slate-800 space-y-3">
                   <span className="text-slate-400 font-bold block uppercase tracking-wider text-[11px]">HR Action Controls</span>
+                  <input
+                    type="text"
+                    value={resolutionNotes}
+                    onChange={e => setResolutionNotes(e.target.value)}
+                    placeholder="Resolution notes (optional)..."
+                    className="w-full bg-[#111827] border border-slate-800 rounded p-1.5 text-slate-200 text-[11px] focus:outline-none mb-2"
+                  />
                   <div className="flex flex-wrap gap-2">
                     {selectedTicket.status === 'OPEN' && (
                       <button

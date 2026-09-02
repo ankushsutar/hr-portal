@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
-import { ShieldAlert, Lock, Eye, EyeOff, FileText, Database, ShieldCheck, Key, UserCheck, AlertTriangle, RefreshCw, Terminal } from 'lucide-react'
+import { ShieldAlert, Lock, Eye, EyeOff, Database, ShieldCheck, Key, RefreshCw } from 'lucide-react'
 
 interface DataAccessLog {
   id: string
@@ -20,8 +20,8 @@ interface RbacPolicy {
   role: string
   module: string
   scope: string
-  can_read_sensitive: bool
-  can_export: bool
+  can_read_sensitive: boolean
+  can_export: boolean
   allowed_actions: string[]
 }
 

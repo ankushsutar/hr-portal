@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
-import { Calendar, Play, CheckCircle2, AlertTriangle, Settings, RefreshCw, ToggleLeft, ToggleRight, Layers, Clock } from 'lucide-react'
+import { Calendar, Play, CheckCircle2, AlertTriangle, Settings, ToggleLeft, ToggleRight, Layers, Clock } from 'lucide-react'
 
 interface LeavePolicy {
   id: string

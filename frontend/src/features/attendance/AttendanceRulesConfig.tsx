@@ -48,7 +48,7 @@ export const AttendanceRulesConfig = () => {
   const [fenceRadius, setFenceRadius] = useState('100')
 
   // Fetch global rules
-  const { data: rulesRes, isLoading: rulesLoading } = useQuery({
+  const { data: rulesRes } = useQuery({
     queryKey: ['attendance-rules'],
     queryFn: async () => {
       const res = await fetch('/api/v1/attendance/config/rules', {

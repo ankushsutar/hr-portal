@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Calendar, CheckCircle, Settings, Users, Search, DollarSign } from 'lucide-react';
+import { Plus, Calendar, Settings, Users, Search, DollarSign } from 'lucide-react';
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { LeaveApplicationForm } from './LeaveApplicationForm';
@@ -32,17 +32,6 @@ interface LeaveApplication {
   applied_on: string;
 }
 
-interface LeaveType {
-  id: string;
-  name: string;
-  code: string;
-  accrual_frequency: string;
-  accrual_days: number;
-  max_carry_forward: number;
-  sandwich_rule: boolean;
-  allow_half_day: boolean;
-  encashable: boolean;
-}
 
 export const LeaveDashboard = () => {
   const [isApplyOpen, setIsApplyOpen] = useState(false);
@@ -77,17 +66,6 @@ export const LeaveDashboard = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (!res.ok) throw new Error('Failed to fetch leave applications');
-      return res.json();
-    }
-  });
-
-  const { data: typesData, isLoading: typesLoading } = useQuery<{ data: LeaveType[] }>({
-    queryKey: ['leaveTypes'],
-    queryFn: async () => {
-      const res = await fetch('/api/v1/leave/types', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch leave types');
       return res.json();
     }
   });
@@ -237,53 +215,6 @@ export const LeaveDashboard = () => {
   };
 
   const applications = processApplications(appsData?.data);
-
-  const leaveTypes: LeaveType[] = typesData?.data || [
-    {
-      id: 'lt-pl',
-      name: 'Privilege Leave (PL)',
-      code: 'PL',
-      accrual_frequency: 'MONTHLY',
-      accrual_days: 1.5,
-      max_carry_forward: 30,
-      sandwich_rule: false,
-      allow_half_day: true,
-      encashable: true
-    },
-    {
-      id: 'lt-cl',
-      name: 'Casual Leave (CL)',
-      code: 'CL',
-      accrual_frequency: 'ANNUAL',
-      accrual_days: 12,
-      max_carry_forward: 0,
-      sandwich_rule: false,
-      allow_half_day: true,
-      encashable: false
-    },
-    {
-      id: 'lt-sl',
-      name: 'Sick Leave (SL)',
-      code: 'SL',
-      accrual_frequency: 'ANNUAL',
-      accrual_days: 10,
-      max_carry_forward: 0,
-      sandwich_rule: true,
-      allow_half_day: true,
-      encashable: false
-    },
-    {
-      id: 'lt-lwp',
-      name: 'Leave Without Pay (LWP)',
-      code: 'LWP',
-      accrual_frequency: 'N/A',
-      accrual_days: 0,
-      max_carry_forward: 0,
-      sandwich_rule: false,
-      allow_half_day: true,
-      encashable: false
-    }
-  ];
 
   // Accent mapping helper
   const getLeaveBadgeStyle = (code: string) => {
