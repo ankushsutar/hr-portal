@@ -554,10 +554,24 @@ func (s *Service) HandleBatchValidation(w http.ResponseWriter, r *http.Request) 
 
 // HandlePunchStatus handles live punch status queries for the top navbar widget
 func (s *Service) HandlePunchStatus(w http.ResponseWriter, r *http.Request) {
-	claims, _ := auth.GetClaims(r)
-	userID := "user-default"
-	if claims != nil {
-		userID = claims.UserID
+	claims, ok := auth.GetClaims(r)
+	if !ok {
+		authz.UnauthorizedResponse(w)
+		return
+	}
+
+	callerEmpID, _, _ := s.getCallerIDs(r.Context(), claims.UserID)
+	if callerEmpID == "" {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success":         true,
+			"is_checked_in":   false,
+			"check_in_time":   "",
+			"check_out_time":  "",
+			"elapsed_seconds": 0,
+			"user_id":         claims.UserID,
+		})
+		return
 	}
 
 	today := time.Now().Format("2006-01-02")
@@ -568,9 +582,9 @@ func (s *Service) HandlePunchStatus(w http.ResponseWriter, r *http.Request) {
 		_ = s.db.QueryRow(r.Context(), `
 			SELECT COALESCE(to_char(first_in, 'HH24:MI:SS'), ''), COALESCE(to_char(last_out, 'HH24:MI:SS'), '')
 			FROM attendance_daily_status
-			WHERE date = $1 AND employee_id::text = $2
+			WHERE date = $1 AND employee_id = $2
 			LIMIT 1
-		`, today, userID).Scan(&checkIn, &checkOut)
+		`, today, callerEmpID).Scan(&checkIn, &checkOut)
 	}
 
 	isCheckedIn := checkIn != "" && checkOut == ""
@@ -594,7 +608,7 @@ func (s *Service) HandlePunchStatus(w http.ResponseWriter, r *http.Request) {
 		"check_in_time":   checkIn,
 		"check_out_time":  checkOut,
 		"elapsed_seconds": elapsedSeconds,
-		"user_id":         userID,
+		"user_id":         claims.UserID,
 	})
 }
 

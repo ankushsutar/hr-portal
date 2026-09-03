@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../../contexts/AuthContext'
 import { Card } from '../../components/ui/Card'
 import { DollarSign, CheckCircle2, AlertTriangle, Plus, FileText, UserCheck } from 'lucide-react'
 
@@ -25,6 +26,8 @@ interface LeavePolicy {
 }
 
 export const LeaveEncashmentConsole = () => {
+  const { hasRole } = useAuth()
+  const isManagerOrAdmin = hasRole(['MANAGER', 'HR_ADMIN', 'SUPER_ADMIN'])
   const qc = useQueryClient()
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -155,43 +158,45 @@ export const LeaveEncashmentConsole = () => {
       </Card>
 
       {/* Multi-Level Workflow Visualizer Card */}
-      <Card className="p-5 space-y-4">
-        <h4 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-          <UserCheck size={16} className="text-blue-400" />
-          Standard 2-Level Leave Approval Hierarchy
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-          <div className="bg-[#0B0F19] border border-slate-800 p-3.5 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-500/20 text-blue-400 border border-blue-500/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
-                1
+      {isManagerOrAdmin && (
+        <Card className="p-5 space-y-4">
+          <h4 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
+            <UserCheck size={16} className="text-blue-400" />
+            Standard 2-Level Leave Approval Hierarchy
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+            <div className="bg-[#0B0F19] border border-slate-800 p-3.5 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-500/20 text-blue-400 border border-blue-500/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
+                  1
+                </div>
+                <div>
+                  <div className="text-slate-200 font-semibold">Level 1: Reporting Manager</div>
+                  <div className="text-[11px] text-slate-500">Reviews workload impact & team coverage</div>
+                </div>
               </div>
-              <div>
-                <div className="text-slate-200 font-semibold">Level 1: Reporting Manager</div>
-                <div className="text-[11px] text-slate-500">Reviews workload impact & team coverage</div>
-              </div>
+              <span className="bg-blue-500/10 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-500/20">
+                OPERATIONAL
+              </span>
             </div>
-            <span className="bg-blue-500/10 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-500/20">
-              OPERATIONAL
-            </span>
-          </div>
 
-          <div className="bg-[#0B0F19] border border-slate-800 p-3.5 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-500/20 text-purple-400 border border-purple-500/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
-                2
+            <div className="bg-[#0B0F19] border border-slate-800 p-3.5 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-500/20 text-purple-400 border border-purple-500/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
+                  2
+                </div>
+                <div>
+                  <div className="text-slate-200 font-semibold">Level 2: HR & Payroll Admin</div>
+                  <div className="text-[11px] text-slate-500">Verifies balance entitlement & processes payout</div>
+                </div>
               </div>
-              <div>
-                <div className="text-slate-200 font-semibold">Level 2: HR & Payroll Admin</div>
-                <div className="text-[11px] text-slate-500">Verifies balance entitlement & processes payout</div>
-              </div>
+              <span className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded border border-purple-500/20">
+                FINANCIAL AUDIT
+              </span>
             </div>
-            <span className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded border border-purple-500/20">
-              FINANCIAL AUDIT
-            </span>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Encashment Requests Queue */}
       <Card className="p-6 space-y-4">
@@ -246,7 +251,7 @@ export const LeaveEncashmentConsole = () => {
                       )}
                     </td>
                     <td className="py-3 text-right">
-                      {item.status === 'PENDING' && (
+                      {item.status === 'PENDING' && isManagerOrAdmin && (
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => reviewMut.mutate({ encashment_id: item.id, action: 'APPROVE' })}

@@ -3,6 +3,29 @@ import { Plus, Check, X, Search, Loader2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../../lib/api'
 
+function getInitials(name: string) {
+  if (!name) return '?'
+  const parts = name.split(' ')
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+  }
+  return name.substring(0, 2).toUpperCase()
+}
+
+function getAvatarColor(name: string) {
+  const colors = [
+    'bg-blue-900/60 text-blue-300 border border-blue-700/50',
+    'bg-indigo-900/60 text-indigo-300 border border-indigo-700/50',
+    'bg-violet-900/60 text-violet-300 border border-violet-700/50',
+    'bg-emerald-900/60 text-emerald-300 border border-emerald-700/50',
+    'bg-amber-900/60 text-amber-300 border border-amber-700/50',
+    'bg-rose-900/60 text-rose-300 border border-rose-700/50',
+    'bg-cyan-900/60 text-cyan-300 border border-cyan-700/50',
+  ]
+  const idx = name ? name.charCodeAt(0) % colors.length : 0
+  return colors[idx]
+}
+
 interface RequestItem {
   id: string
   employee_code: string
@@ -166,11 +189,16 @@ export const AttendanceRequestsView: React.FC = () => {
             <tbody className="divide-y divide-slate-800/50">
               {filteredRequests.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="p-4 font-medium text-white flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold text-[10px]">
-                      {r.employee_code}
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(r.employee_name)}`}>
+                        {getInitials(r.employee_name)}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-200 text-xs font-sans">{r.employee_name}</div>
+                        <div className="text-[11px] text-slate-400 font-mono">{r.employee_code}</div>
+                      </div>
                     </div>
-                    <span>{r.employee_name}</span>
                   </td>
                   <td className="p-4 font-mono text-slate-400">{r.date}</td>
                   <td className="p-4 font-mono text-emerald-400">{r.check_in}</td>

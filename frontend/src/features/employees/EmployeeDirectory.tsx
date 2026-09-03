@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
   Search, Plus, Download, RefreshCw, Users,
-  Building2, Filter, X
+  Building2, Filter, X, Upload
 } from 'lucide-react'
 import { useState } from 'react'
 import { AddEmployeeModal } from './AddEmployeeModal'
@@ -135,6 +135,12 @@ export const EmployeeDirectory = () => {
             >
               <Download size={14} /> Export CSV
             </a>
+            <Link
+              to="/import"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-blue-800 text-blue-300 bg-blue-900/20 rounded hover:bg-blue-900/40 transition-colors"
+            >
+              <Upload size={14} /> Bulk Import
+            </Link>
             <button
               onClick={() => setShowAdd(true)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded transition-colors shadow-sm"

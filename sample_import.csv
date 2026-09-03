@@ -1,0 +1,5 @@
+first_name,last_name,email,department,designation,join_date
+Alice,Smith,alice.smith@test.hrms.local,Engineering,Software Engineer,2026-09-01
+Bob,Jones,bob.jones@test.hrms.local,Marketing,Marketing Manager,2026-09-02
+Charlie,,charlie@test.hrms.local,Sales,Sales Rep,2026-09-03
+Dave,Brown,,HR,HR Manager,2026-09-04

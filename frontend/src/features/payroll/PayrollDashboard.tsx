@@ -27,7 +27,10 @@ const fetchAdvances = async () => {
 export const PayrollDashboard = () => {
   const qc = useQueryClient()
   const [selectedPayslipId, setSelectedPayslipId] = useState<string | null>(null)
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false)
+  const [isRunModalOpen, setIsRunModalOpen] = useState(false)
+  const [targetPeriod, setTargetPeriod] = useState({ month: new Date().getMonth() + 1, year: new Date().getFullYear() })
   const [advanceForm, setAdvanceForm] = useState({ employee_id: '', amount: '', reason: '', month: 8, year: 2026 })
 
   const { page, limit, search, setPage, setLimit, setSearch, queryParams } = useTableState({ initialLimit: 10 })
@@ -46,19 +49,31 @@ export const PayrollDashboard = () => {
   })
 
   const processMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (period?: { month: number; year: number }) => {
+      const month = period?.month || targetPeriod.month
+      const year = period?.year || targetPeriod.year
       const res = await fetch('/api/v1/payroll/runs/process', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('hrms_token') || localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ month: 8, year: 2026 })
+        body: JSON.stringify({ month, year })
       })
-      if (!res.ok) throw new Error('Processing failed')
-      return res.json()
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Processing failed')
+      }
+      return data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['payroll-runs'] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['payroll-runs'] })
+      qc.invalidateQueries({ queryKey: ['payslips'] })
+      setIsRunModalOpen(false)
+    },
+    onError: (err: any) => {
+      alert(`Payroll Processing Error: ${err.message}`)
+    }
   })
 
   const transitionMutation = useMutation({
@@ -71,10 +86,19 @@ export const PayrollDashboard = () => {
         },
         body: JSON.stringify({ action })
       })
-      if (!res.ok) throw new Error('Transition failed')
-      return res.json()
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Transition failed')
+      }
+      return data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['payroll-runs'] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['payroll-runs'] })
+      qc.invalidateQueries({ queryKey: ['payslips'] })
+    },
+    onError: (err: any) => {
+      alert(`State Transition Error: ${err.message}`)
+    }
   })
 
   const createAdvanceMutation = useMutation({
@@ -99,7 +123,7 @@ export const PayrollDashboard = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payroll-advances'] })
       setIsAdvanceModalOpen(false)
-      setAdvanceForm({ employee_id: '', amount: '', reason: '', month: 8, year: 2026 })
+      setAdvanceForm({ employee_id: '', amount: '', reason: '', month: new Date().getMonth() + 1, year: new Date().getFullYear() })
     }
   })
 
@@ -107,16 +131,16 @@ export const PayrollDashboard = () => {
     return <PayslipView id={selectedPayslipId} onBack={() => setSelectedPayslipId(null)} />
   }
 
-  const currentRun = runsData?.data?.[0] || {
-    id: 'prun-082026',
-    status: 'VALIDATED',
-    month: 8,
-    year: 2026,
-    total_employees: 128,
-    total_net_pay: 4120000,
-    total_lop_days: 12.5,
-    total_advances_deducted: 45000,
-    variance_percentage: 2.4
+  const currentRun = runsData?.data?.find((r: any) => r.id === selectedRunId) || runsData?.data?.[0] || {
+    id: '',
+    status: 'DRAFT',
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    total_employees: 0,
+    total_net_pay: 0,
+    total_lop_days: 0,
+    total_advances_deducted: 0,
+    variance_percentage: 0
   }
 
   const states = ['DRAFT', 'PROCESSING', 'VALIDATED', 'APPROVED', 'LOCKED', 'PUBLISHED']
@@ -138,8 +162,14 @@ export const PayrollDashboard = () => {
             <Plus size={14} /> Request Advance
           </button>
           <button 
+            onClick={() => setIsRunModalOpen(true)}
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors"
+          >
+            <Plus size={14} /> Start New Cycle
+          </button>
+          <button 
             onClick={() => processMutation.mutate()}
-            disabled={processMutation.isPending || currentRun.status === 'LOCKED' || currentRun.status === 'PUBLISHED'}
+            disabled={processMutation.isPending}
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors"
           >
             <Play size={14} /> {processMutation.isPending ? 'Processing...' : 'Run Payroll Calculation'}
@@ -292,7 +322,7 @@ export const PayrollDashboard = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-xs font-mono">
                   {runsData?.data?.map((r: any) => (
-                    <tr key={r.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={r.id} onClick={() => setSelectedRunId(r.id)} className={`hover:bg-slate-800/60 transition-colors cursor-pointer ${currentRun.id === r.id ? 'bg-blue-500/10' : ''}`}>
                       <td className="px-5 py-3 text-slate-200 font-bold">
                         {r.month}/{r.year} <span className="text-[11px] text-slate-500 font-normal">({r.total_employees} Emps)</span>
                       </td>
@@ -514,6 +544,53 @@ export const PayrollDashboard = () => {
                   className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded transition-colors"
                 >
                   Submit Advance Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* New Payroll Run Modal */}
+      {isRunModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-[#111827] rounded-lg border border-slate-800 shadow-2xl w-full max-w-md overflow-hidden animate-fade-in">
+            <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+              <h3 className="font-semibold text-slate-100 text-sm">Start New Payroll Cycle</h3>
+              <button onClick={() => setIsRunModalOpen(false)} className="text-slate-400 hover:text-slate-200 text-lg">
+                ×
+              </button>
+            </div>
+            <div className="p-5 space-y-4 text-xs font-mono">
+              <p className="text-slate-400">Select the target month and year to initialize payroll calculation, audit readiness, and compute payslips.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 mb-1">Target Month (1-12)</label>
+                  <input 
+                    type="number" 
+                    min={1}
+                    max={12}
+                    value={targetPeriod.month}
+                    onChange={e => setTargetPeriod({ ...targetPeriod, month: parseInt(e.target.value) || 1 })}
+                    className="w-full bg-[#0B0F19] border border-slate-800 rounded p-2 text-slate-200 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Target Year</label>
+                  <input 
+                    type="number" 
+                    value={targetPeriod.year}
+                    onChange={e => setTargetPeriod({ ...targetPeriod, year: parseInt(e.target.value) || 2026 })}
+                    className="w-full bg-[#0B0F19] border border-slate-800 rounded p-2 text-slate-200 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="pt-2">
+                <button 
+                  onClick={() => processMutation.mutate(targetPeriod)}
+                  disabled={processMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded transition-colors flex items-center justify-center gap-2"
+                >
+                  <Play size={14} /> {processMutation.isPending ? 'Calculating...' : 'Execute Payroll Calculation'}
                 </button>
               </div>
             </div>

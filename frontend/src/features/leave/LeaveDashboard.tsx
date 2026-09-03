@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../../contexts/AuthContext';
 import { Plus, Calendar, Settings, Users, Search, DollarSign } from 'lucide-react';
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
@@ -34,6 +35,9 @@ interface LeaveApplication {
 
 
 export const LeaveDashboard = () => {
+  const { hasRole } = useAuth();
+  const isManagerOrAdmin = hasRole(['MANAGER', 'HR_ADMIN', 'SUPER_ADMIN']);
+  const isAdmin = hasRole(['HR_ADMIN', 'SUPER_ADMIN']);
   const [isApplyOpen, setIsApplyOpen] = useState(false);
 
   const {
@@ -262,24 +266,28 @@ export const LeaveDashboard = () => {
           >
             <Calendar className="w-3.5 h-3.5" /> MY BALANCES (PL / CL / SL)
           </Tabs.Trigger>
-          <Tabs.Trigger
-            value="team-calendar"
-            className="px-3.5 py-2 text-xs font-mono font-medium text-slate-400 hover:text-slate-200 data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-1.5"
-          >
-            <Users className="w-3.5 h-3.5" /> TEAM CALENDAR
-          </Tabs.Trigger>
+          {isManagerOrAdmin && (
+            <Tabs.Trigger
+              value="team-calendar"
+              className="px-3.5 py-2 text-xs font-mono font-medium text-slate-400 hover:text-slate-200 data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-1.5"
+            >
+              <Users className="w-3.5 h-3.5" /> TEAM CALENDAR
+            </Tabs.Trigger>
+          )}
           <Tabs.Trigger
             value="encashment"
             className="px-3.5 py-2 text-xs font-mono font-medium text-slate-400 hover:text-slate-200 data-[state=active]:text-emerald-400 data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 transition-colors flex items-center gap-1.5"
           >
             <DollarSign className="w-3.5 h-3.5" /> ENCASHMENT & APPROVALS
           </Tabs.Trigger>
-          <Tabs.Trigger
-            value="settings"
-            className="px-3.5 py-2 text-xs font-mono font-medium text-slate-400 hover:text-slate-200 data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-1.5"
-          >
-            <Settings className="w-3.5 h-3.5" /> POLICY RULES & SETTINGS
-          </Tabs.Trigger>
+          {isAdmin && (
+            <Tabs.Trigger
+              value="settings"
+              className="px-3.5 py-2 text-xs font-mono font-medium text-slate-400 hover:text-slate-200 data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-1.5"
+            >
+              <Settings className="w-3.5 h-3.5" /> POLICY RULES & SETTINGS
+            </Tabs.Trigger>
+          )}
         </Tabs.List>
 
         <Tabs.Content value="my-leaves" className="space-y-6 focus:outline-none">
@@ -409,23 +417,27 @@ export const LeaveDashboard = () => {
           </Card>
         </Tabs.Content>
 
-        <Tabs.Content value="team-calendar" className="focus:outline-none">
-          <Card className="p-12 text-center flex flex-col items-center justify-center border-dashed border-slate-800 bg-[#111827]/40">
-            <Calendar className="w-10 h-10 text-slate-600 mb-3" />
-            <h3 className="text-sm font-semibold text-slate-200 font-mono">Department Team Calendar</h3>
-            <p className="text-xs text-slate-500 font-mono mt-1 max-w-sm">
-              Live schedule feed of active Privilege Leaves (PL), Casual Leaves (CL), and Sick Leaves (SL) across your engineering unit.
-            </p>
-          </Card>
-        </Tabs.Content>
+        {isManagerOrAdmin && (
+          <Tabs.Content value="team-calendar" className="focus:outline-none">
+            <Card className="p-12 text-center flex flex-col items-center justify-center border-dashed border-slate-800 bg-[#111827]/40">
+              <Calendar className="w-10 h-10 text-slate-600 mb-3" />
+              <h3 className="text-sm font-semibold text-slate-200 font-mono">Department Team Calendar</h3>
+              <p className="text-xs text-slate-500 font-mono mt-1 max-w-sm">
+                Live schedule feed of active Privilege Leaves (PL), Casual Leaves (CL), and Sick Leaves (SL) across your engineering unit.
+              </p>
+            </Card>
+          </Tabs.Content>
+        )}
 
         <Tabs.Content value="encashment" className="focus:outline-none">
           <LeaveEncashmentConsole />
         </Tabs.Content>
 
-        <Tabs.Content value="settings" className="focus:outline-none">
-          <LeavePolicyManager />
-        </Tabs.Content>
+        {isAdmin && (
+          <Tabs.Content value="settings" className="focus:outline-none">
+            <LeavePolicyManager />
+          </Tabs.Content>
+        )}
       </Tabs.Root>
 
       {isApplyOpen && <LeaveApplicationForm onClose={() => setIsApplyOpen(false)} />}

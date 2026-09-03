@@ -104,7 +104,7 @@ func CanManageUsers(claims *auth.Claims) bool {
 }
 
 func CanManagePayroll(claims *auth.Claims) bool {
-	return HasRole(claims, "SUPER_ADMIN", "PAYROLL_ADMIN")
+	return HasRole(claims, "SUPER_ADMIN", "HR_ADMIN", "PAYROLL_ADMIN")
 }
 
 func CanExportReports(claims *auth.Claims) bool {

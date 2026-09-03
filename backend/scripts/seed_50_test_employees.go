@@ -90,6 +90,30 @@ func main() {
 	hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	passHash := string(hash)
 
+	// Create Demo Preset Users
+	demoPresets := []struct {
+		email    string
+		pass     string
+		role     string
+		empID    string
+		fName    string
+		lName    string
+	}{
+		{"admin@company.com", "admin123", "SUPER_ADMIN", "SYS_ADMIN", "System", "Admin"},
+		{"hr@company.com", "hr123", "HR_ADMIN", "DEMO_HR", "Demo", "HR"},
+		{"manager@company.com", "mgr123", "MANAGER", "DEMO_MGR", "Demo", "Manager"},
+		{"employee@company.com", "emp123", "EMPLOYEE", "DEMO_EMP", "Demo", "Employee"},
+	}
+
+	for _, preset := range demoPresets {
+		presetHash, _ := bcrypt.GenerateFromPassword([]byte(preset.pass), bcrypt.DefaultCost)
+		var uID, eID string
+		err = db.QueryRow(ctx, "INSERT INTO users (email, password_hash) VALUES ($1, $2) ON CONFLICT (email) DO UPDATE SET password_hash=EXCLUDED.password_hash RETURNING id", preset.email, string(presetHash)).Scan(&uID)
+		if err != nil { log.Fatalf("Demo user %s: %v", preset.email, err) }
+		db.Exec(ctx, "INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", uID, roleIDs[preset.role])
+		err = db.QueryRow(ctx, "INSERT INTO employees (employee_id, first_name, last_name, user_id, department_id, status, joining_date) VALUES ($1, $2, $3, $4, $5, 'ACTIVE', NOW()) ON CONFLICT (employee_id) DO UPDATE SET user_id=EXCLUDED.user_id RETURNING id", preset.empID, preset.fName, preset.lName, uID, deptIDs[0]).Scan(&eID)
+		if err != nil { log.Fatalf("Demo employee %s: %v", preset.email, err) }
+	}
 	// Create HR Admin
 	var hrUserID, hrEmpID string
 	err = db.QueryRow(ctx, "INSERT INTO users (email, password_hash) VALUES ($1, $2) ON CONFLICT (email) DO UPDATE SET password_hash=EXCLUDED.password_hash RETURNING id", "hr_admin@test.hrms.local", passHash).Scan(&hrUserID)

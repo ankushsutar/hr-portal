@@ -11,10 +11,13 @@ export const BulkImportWizard = () => {
   const [batchId, setBatchId] = useState<string | null>(null)
   
   const uploadMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
       const res = await fetch('/api/v1/import/upload', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData
       })
       if (!res.ok) throw new Error('Failed to upload')
       return res.json()
@@ -94,20 +97,45 @@ export const BulkImportWizard = () => {
             </div>
             
             <div className="flex justify-center">
-              <button className="flex items-center gap-2 px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 text-slate-200 border border-slate-800 rounded text-xs font-mono transition-colors">
+              <button 
+                onClick={() => {
+                  const csvContent = "first_name,last_name,email,department,designation,join_date\nJohn,Doe,john.doe@company.com,Engineering,Software Engineer,2026-09-01\nJane,Smith,jane.smith@company.com,Product,Product Manager,2026-09-02";
+                  const blob = new Blob([csvContent], { type: 'text/csv' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'employee_import_template.csv';
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 text-slate-200 border border-slate-800 rounded text-xs font-mono transition-colors"
+              >
                 <FileDown size={14} /> Download Sample CSV Template
               </button>
             </div>
 
             <div 
-              onClick={() => uploadMutation.mutate()}
+              onClick={() => document.getElementById('csv-upload')?.click()}
               className={`border-2 border-dashed border-slate-800 rounded-xl p-10 text-center hover:border-blue-500/50 transition-colors bg-[#0F1523] cursor-pointer ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}
             >
+              <input 
+                id="csv-upload" 
+                type="file" 
+                accept=".csv,.tsv" 
+                className="hidden" 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    uploadMutation.mutate(e.target.files[0]);
+                  }
+                }} 
+              />
               <div className="w-12 h-12 bg-slate-800 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-700">
                 {uploadMutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
               </div>
               <p className="font-semibold text-slate-200 text-xs mb-1">
-                {uploadMutation.isPending ? 'Uploading batch file...' : 'Click to simulate uploading CSV dataset'}
+                {uploadMutation.isPending ? 'Uploading batch file...' : 'Click to upload CSV dataset'}
               </p>
               <p className="text-[11px] font-mono text-slate-400">Supported formats: CSV, TSV (max 10MB)</p>
             </div>
