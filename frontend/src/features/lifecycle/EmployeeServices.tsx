@@ -17,8 +17,8 @@ export const EmployeeServices = () => {
   return (
     <div className="space-y-6 animate-fade-in font-sans">
       <div>
-        <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Employee Self-Service Desk</h1>
-        <p className="text-xs font-mono text-slate-400 mt-1">SUBMIT SPECIAL REQUESTS & LIFECYCLE TICKET WORKFLOWS</p>
+        <h1 className="text-[28px] font-bold text-[var(--text-main)] leading-tight tracking-tight">Employee Self-Service Desk</h1>
+        <p className="text-xs font-mono text-[var(--text-muted)] mt-1">SUBMIT SPECIAL REQUESTS & LIFECYCLE TICKET WORKFLOWS</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -28,16 +28,16 @@ export const EmployeeServices = () => {
             <Card 
               key={svc.id}
               onClick={() => setActiveRequestType(svc.id)}
-              className="p-5 flex flex-col justify-between hover:border-blue-500/50 group"
+              className="p-5 flex flex-col justify-between hover:border-[var(--color-primary)] cursor-pointer group bg-[var(--bg-card)] border-[var(--border-color)] transition-colors"
             >
               <div>
-                <div className="w-10 h-10 bg-blue-500/10 rounded border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded border border-[var(--color-primary)]/20 flex items-center justify-center theme-accent-text mb-3 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors">
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-semibold text-slate-100 text-sm mb-1">{svc.title}</h3>
-                <p className="text-slate-400 text-xs font-mono leading-relaxed">{svc.description}</p>
+                <h3 className="font-semibold text-[var(--text-main)] text-sm mb-1">{svc.title}</h3>
+                <p className="text-[var(--text-muted)] text-xs font-mono leading-relaxed">{svc.description}</p>
               </div>
-              <div className="pt-4 mt-3 border-t border-slate-800/80 flex items-center justify-end font-mono text-xs text-blue-400 group-hover:text-blue-300">
+              <div className="pt-4 mt-3 border-t border-[var(--border-color)] flex items-center justify-end font-mono text-xs theme-accent-text group-hover:underline">
                 Initiate Request &rarr;
               </div>
             </Card>

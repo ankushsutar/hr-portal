@@ -63,20 +63,20 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-mono text-xs">
-      <Card className="bg-[#111827] border-slate-800 w-full max-w-2xl p-0 overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900/60">
+      <Card className="bg-[var(--bg-card)] border-[var(--border-color)] w-full max-w-2xl p-0 overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-color)] bg-[var(--bg-subtle)]">
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">Add New Employee Profile</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">REGISTER A NEW EMPLOYEE RECORD IN THE CENTRAL REPOSITORY</p>
+            <h2 className="text-sm font-semibold text-[var(--text-main)]">Add New Employee Profile</h2>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">REGISTER A NEW EMPLOYEE RECORD IN THE CENTRAL REPOSITORY</p>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300">
+          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
             <X size={16} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto max-h-[calc(100vh-200px)]">
+        <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto max-h-[calc(100vh-200px)] text-[var(--text-main)]">
           {mutation.isError && (
-            <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded text-rose-400 text-xs">
+            <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded text-rose-500 text-xs">
               <AlertCircle size={14} className="shrink-0" />
               {mutation.error instanceof Error ? mutation.error.message : 'An error occurred'}
             </div>
@@ -84,37 +84,37 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
 
           <div className="space-y-4">
             <section>
-              <h3 className="text-[11px] font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3 uppercase tracking-wider">Basic Demographics</h3>
+              <h3 className="text-[11px] font-bold text-[var(--text-muted)] border-b border-[var(--border-color)] pb-1 mb-3 uppercase tracking-wider">Basic Demographics</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">First Name *</label>
-                  <input required name="first_name" value={formData.first_name} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
+                  <label className="block text-[var(--text-muted)] mb-1">First Name *</label>
+                  <input required name="first_name" value={formData.first_name} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Last Name *</label>
-                  <input required name="last_name" value={formData.last_name} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
+                  <label className="block text-[var(--text-muted)] mb-1">Last Name *</label>
+                  <input required name="last_name" value={formData.last_name} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Corporate Email</label>
-                  <input type="email" name="work_email" spellCheck={false} value={formData.work_email} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus-visible:outline-none focus-visible:border-blue-500" placeholder="e.g. name@company.com" />
+                  <label className="block text-[var(--text-muted)] mb-1">Corporate Email</label>
+                  <input type="email" name="work_email" spellCheck={false} value={formData.work_email} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus-visible:outline-none focus-visible:border-[var(--color-primary)]" placeholder="e.g. name@company.com" />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Phone Contact</label>
-                  <input name="phone_number" value={formData.phone_number} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
+                  <label className="block text-[var(--text-muted)] mb-1">Phone Contact</label>
+                  <input name="phone_number" value={formData.phone_number} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]" />
                 </div>
               </div>
             </section>
 
             <section>
-              <h3 className="text-[11px] font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3 uppercase tracking-wider">Employment Assignment</h3>
+              <h3 className="text-[11px] font-bold text-[var(--text-muted)] border-b border-[var(--border-color)] pb-1 mb-3 uppercase tracking-wider">Employment Assignment</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Joining Date *</label>
-                  <input required type="date" name="joining_date" value={formData.joining_date} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" />
+                  <label className="block text-[var(--text-muted)] mb-1">Joining Date *</label>
+                  <input required type="date" name="joining_date" value={formData.joining_date} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Employment Type *</label>
-                  <select required name="employment_type" value={formData.employment_type} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
+                  <label className="block text-[var(--text-muted)] mb-1">Employment Type *</label>
+                  <select required name="employment_type" value={formData.employment_type} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]">
                     <option value="PERMANENT">Permanent</option>
                     <option value="CONTRACT">Contract</option>
                     <option value="INTERN">Intern</option>
@@ -122,22 +122,22 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Department</label>
-                  <select name="department_id" value={formData.department_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
+                  <label className="block text-[var(--text-muted)] mb-1">Department</label>
+                  <select name="department_id" value={formData.department_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]">
                     <option value="">Select Department</option>
                     {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Designation</label>
-                  <select name="designation_id" value={formData.designation_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
+                  <label className="block text-[var(--text-muted)] mb-1">Designation</label>
+                  <select name="designation_id" value={formData.designation_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]">
                     <option value="">Select Designation</option>
                     {designations.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Workplace Location</label>
-                  <select name="location_id" value={formData.location_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500">
+                  <label className="block text-[var(--text-muted)] mb-1">Workplace Location</label>
+                  <select name="location_id" value={formData.location_id} onChange={handleChange} className="w-full px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]">
                     <option value="">Select Location</option>
                     {locations.map((l: any) => <option key={l.id} value={l.id}>{l.name}</option>)}
                   </select>
@@ -146,11 +146,11 @@ export const AddEmployeeModal = ({ onClose, onSuccess }: AddEmployeeModalProps) 
             </section>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 border border-slate-800 text-slate-300 rounded font-semibold">
+          <div className="pt-3 border-t border-[var(--border-color)] flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] rounded font-semibold">
               Cancel
             </button>
-            <button type="submit" disabled={mutation.isPending} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold disabled:opacity-50 flex items-center gap-2">
+            <button type="submit" disabled={mutation.isPending} className="px-3 py-1.5 theme-accent-bg hover:opacity-90 text-white rounded font-semibold disabled:opacity-50 flex items-center gap-2">
               {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
               Create Employee
             </button>

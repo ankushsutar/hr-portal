@@ -85,10 +85,10 @@ export const QuickPunchWidget: React.FC = () => {
   }
 
   return (
-    <div className="relative flex items-center gap-3">
+    <div className="relative flex items-center gap-3 font-sans">
       {/* Success Toast */}
       {successToast && (
-        <div className="absolute top-12 right-0 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg backdrop-blur-md z-50 animate-fade-in">
+        <div className="absolute top-12 right-0 bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg backdrop-blur-md z-50 animate-fade-in font-semibold">
           <CheckCircle2 className="w-3.5 h-3.5" />
           <span>{successToast}</span>
         </div>
@@ -96,10 +96,10 @@ export const QuickPunchWidget: React.FC = () => {
 
       {/* Live Running Counter Badge when Checked In */}
       {isCheckedIn && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono font-medium shadow-inner">
-          <Clock className="w-3.5 h-3.5 animate-pulse text-amber-400" />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono font-medium shadow-inner">
+          <Clock className="w-3.5 h-3.5 animate-pulse text-amber-500" />
           <span>{formatTimer(elapsedSeconds)}</span>
-          {checkInTime && <span className="text-[10px] text-amber-400/60 font-sans">({checkInTime})</span>}
+          {checkInTime && <span className="text-[10px] text-amber-500/80 font-sans">({checkInTime})</span>}
         </div>
       )}
 
@@ -109,25 +109,25 @@ export const QuickPunchWidget: React.FC = () => {
         disabled={isLoading}
         className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-medium text-xs transition-all duration-200 shadow-md ${
           isCheckedIn
-            ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 hover:border-amber-500/50'
-            : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 hover:border-emerald-500/50'
+            ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/30'
+            : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-500 border border-emerald-500/30'
         } disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         {isCheckedIn ? (
           <>
-            <LogOut className="w-3.5 h-3.5 text-amber-400" />
+            <LogOut className="w-3.5 h-3.5 text-amber-500" />
             <span>Check Out</span>
           </>
         ) : (
           <>
-            <LogIn className="w-3.5 h-3.5 text-emerald-400" />
+            <LogIn className="w-3.5 h-3.5 text-emerald-500" />
             <span>Check In</span>
           </>
         )}
       </button>
 
       {/* Corporate IP Protection Indicator */}
-      <div title="Corporate IP Protection Active" className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hidden md:flex items-center">
+      <div title="Corporate IP Protection Active" className="p-1.5 rounded-lg bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 theme-accent-text hidden md:flex items-center">
         <ShieldCheck className="w-3.5 h-3.5" />
       </div>
     </div>

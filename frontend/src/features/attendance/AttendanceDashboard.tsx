@@ -43,14 +43,11 @@ export const AttendanceDashboard = () => {
     }
   })
 
-  // manualPunch mutation removed
-
-  if (isLoading) return <div className="p-8 text-slate-500 font-mono text-xs">Loading attendance records...</div>
+  if (isLoading) return <div className="p-8 text-[var(--text-muted)] font-mono text-xs">Loading attendance records...</div>
   const allAttendance = data?.data || []
   const pagination = data?.pagination
   const totalCount = data?.total ?? allAttendance.length
 
-  // Filter client-side if backend returns non-paginated or fallback
   const attendance = allAttendance.filter((a: any) => {
     const matchesSearch = !search || 
       a.employee_name?.toLowerCase().includes(search.toLowerCase()) || 
@@ -66,18 +63,18 @@ export const AttendanceDashboard = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Attendance</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">ATTENDANCE MANAGEMENT</p>
+          <h1 className="text-[28px] font-bold text-[var(--text-main)] leading-tight tracking-tight">Attendance</h1>
+          <p className="text-xs font-mono text-[var(--text-muted)] mt-1">ATTENDANCE MANAGEMENT</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-[#111827] border border-slate-800 rounded p-1 flex-wrap gap-1">
+          <div className="flex items-center bg-[var(--bg-card)] border border-[var(--border-color)] rounded p-1 flex-wrap gap-1">
             <button
               onClick={() => setViewMode('dashboard')}
               className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'dashboard' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                viewMode === 'dashboard' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
               Dashboard
@@ -86,7 +83,7 @@ export const AttendanceDashboard = () => {
               <button
                 onClick={() => setViewMode('daily')}
                 className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                  viewMode === 'daily' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  viewMode === 'daily' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 Attendances
@@ -95,7 +92,7 @@ export const AttendanceDashboard = () => {
             <button
               onClick={() => setViewMode('requests')}
               className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'requests' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                viewMode === 'requests' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
               Requests
@@ -103,7 +100,7 @@ export const AttendanceDashboard = () => {
             <button
               onClick={() => setViewMode('activity')}
               className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'activity' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                viewMode === 'activity' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
               Activity Log
@@ -111,7 +108,7 @@ export const AttendanceDashboard = () => {
             <button
               onClick={() => setViewMode('monthly')}
               className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                viewMode === 'monthly' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                viewMode === 'monthly' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
               }`}
             >
               Monthly Summary
@@ -120,7 +117,7 @@ export const AttendanceDashboard = () => {
               <button
                 onClick={() => setViewMode('validation')}
                 className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                  viewMode === 'validation' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  viewMode === 'validation' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 Validation
@@ -130,7 +127,7 @@ export const AttendanceDashboard = () => {
               <button
                 onClick={() => setViewMode('exceptions')}
                 className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                  viewMode === 'exceptions' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  viewMode === 'exceptions' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 Exceptions
@@ -140,7 +137,7 @@ export const AttendanceDashboard = () => {
               <button
                 onClick={() => setViewMode('rules')}
                 className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                  viewMode === 'rules' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  viewMode === 'rules' ? 'theme-accent-bg text-white shadow-xs' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 Rules
@@ -160,43 +157,43 @@ export const AttendanceDashboard = () => {
 
       {viewMode === 'daily' && hasRole(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER']) && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="p-5">
-              <p className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider">Total Scheduled</p>
-              <h2 className="text-3xl font-mono font-bold text-slate-100 mt-1">{attendance.length}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono">
+            <Card className="p-5 bg-[var(--bg-card)] border-[var(--border-color)]">
+              <p className="text-xs font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">Total Scheduled</p>
+              <h2 className="text-3xl font-mono font-bold text-[var(--text-main)] mt-1">{attendance.length}</h2>
             </Card>
-            <Card className="p-5">
-              <p className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider">On Time</p>
-              <h2 className="text-3xl font-mono font-bold text-emerald-400 mt-1">{stats.present}</h2>
+            <Card className="p-5 bg-[var(--bg-card)] border-[var(--border-color)]">
+              <p className="text-xs font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">On Time</p>
+              <h2 className="text-3xl font-mono font-bold text-emerald-500 mt-1">{stats.present}</h2>
             </Card>
-            <Card className="p-5">
-              <p className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider">Late Arrivals</p>
-              <h2 className="text-3xl font-mono font-bold text-amber-400 mt-1">{stats.late}</h2>
+            <Card className="p-5 bg-[var(--bg-card)] border-[var(--border-color)]">
+              <p className="text-xs font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">Late Arrivals</p>
+              <h2 className="text-3xl font-mono font-bold text-amber-500 mt-1">{stats.late}</h2>
             </Card>
-            <Card className="p-5">
-              <p className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider">Unexcused Absences</p>
-              <h2 className="text-3xl font-mono font-bold text-rose-400 mt-1">{stats.absent}</h2>
+            <Card className="p-5 bg-[var(--bg-card)] border-[var(--border-color)]">
+              <p className="text-xs font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">Unexcused Absences</p>
+              <h2 className="text-3xl font-mono font-bold text-rose-500 mt-1">{stats.absent}</h2>
             </Card>
           </div>
 
-          <Card className="p-0 overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-2 bg-[#0B0F19] border border-slate-800 px-3 py-1.5 rounded">
-                <Search size={14} className="text-slate-500" />
+          <Card className="p-0 overflow-hidden bg-[var(--bg-card)] border-[var(--border-color)]">
+            <div className="px-5 py-3 border-b border-[var(--border-color)] bg-[var(--bg-subtle)] flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-color)] px-3 py-1.5 rounded">
+                <Search size={14} className="text-[var(--text-muted)]" />
                 <input 
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Search employees or IDs..."
-                  className="bg-transparent border-none focus:outline-none text-xs text-slate-200 placeholder-slate-500 font-mono w-64"
+                  className="bg-transparent border-none focus:outline-none text-xs text-[var(--text-main)] placeholder-[var(--text-muted)] font-mono w-64"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-slate-400 font-mono text-xs">Filter Status:</label>
+                <label className="text-[var(--text-muted)] font-mono text-xs">Filter Status:</label>
                 <select
                   value={filters.status || ''}
                   onChange={e => setFilter('status', e.target.value)}
-                  className="bg-[#0B0F19] border border-slate-800 text-slate-200 rounded px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-blue-500"
+                  className="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] rounded px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-[var(--color-primary)]"
                 >
                   <option value="">All Statuses</option>
                   <option value="PRESENT">PRESENT</option>
@@ -205,41 +202,41 @@ export const AttendanceDashboard = () => {
                 </select>
               </div>
             </div>
-            <table className="w-full text-left">
+            <table className="w-full text-left font-sans">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/40">
-                  <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase">Employee</th>
-                  <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase text-center">First In</th>
-                  <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase text-center">Last Out</th>
-                  <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase text-center">Late By</th>
-                  <th className="px-5 py-2.5 text-xs font-mono text-slate-400 uppercase text-right">Status</th>
+                <tr className="border-b border-[var(--border-color)] bg-[var(--bg-subtle)]/60">
+                  <th className="px-5 py-2.5 text-xs font-mono text-[var(--text-muted)] uppercase">Employee</th>
+                  <th className="px-5 py-2.5 text-xs font-mono text-[var(--text-muted)] uppercase text-center">First In</th>
+                  <th className="px-5 py-2.5 text-xs font-mono text-[var(--text-muted)] uppercase text-center">Last Out</th>
+                  <th className="px-5 py-2.5 text-xs font-mono text-[var(--text-muted)] uppercase text-center">Late By</th>
+                  <th className="px-5 py-2.5 text-xs font-mono text-[var(--text-muted)] uppercase text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-xs">
+              <tbody className="divide-y divide-[var(--border-color)] text-xs text-[var(--text-main)]">
                 {attendance.map((row: any) => (
-                  <tr key={row.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={row.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
                     <td className="px-5 py-3">
                       <div>
-                        <div className="font-semibold text-slate-200">{row.employee_name}</div>
-                        <div className="text-[11px] font-mono text-slate-500">{row.employee_id} • {row.department}</div>
+                        <div className="font-semibold text-[var(--text-main)]">{row.employee_name}</div>
+                        <div className="text-[11px] font-mono text-[var(--text-muted)]">{row.employee_id} • {row.department}</div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-center font-mono text-blue-300">{row.first_in}</td>
-                    <td className="px-5 py-3 text-center font-mono text-blue-300">{row.last_out}</td>
+                    <td className="px-5 py-3 text-center font-mono theme-accent-text">{row.first_in}</td>
+                    <td className="px-5 py-3 text-center font-mono theme-accent-text">{row.last_out}</td>
                     <td className="px-5 py-3 text-center">
                       {row.late_by_minutes > 0 ? (
-                        <span className="inline-flex items-center gap-1 font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                        <span className="inline-flex items-center gap-1 font-mono text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
                           <Clock size={11}/> {row.late_by_minutes}m
                         </span>
                       ) : (
-                        <span className="text-slate-600 font-mono">-</span>
+                        <span className="text-[var(--text-muted)] font-mono">-</span>
                       )}
                     </td>
                     <td className="px-5 py-3 text-right">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono uppercase ${
-                        row.status === 'PRESENT' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                        row.status === 'LATE' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 
-                        'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        row.status === 'PRESENT' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
+                        row.status === 'LATE' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 
+                        'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                       }`}>
                         {row.status === 'PRESENT' && <CheckCircle2 size={11}/>}
                         {row.status === 'LATE' && <AlertCircle size={11}/>}
@@ -252,7 +249,7 @@ export const AttendanceDashboard = () => {
               </tbody>
             </table>
             {attendance.length === 0 && (
-              <div className="p-8 text-center text-slate-500 font-mono text-xs">No attendance records found.</div>
+              <div className="p-8 text-center text-[var(--text-muted)] font-mono text-xs">No attendance records found.</div>
             )}
             <PaginationBar
               meta={pagination}

@@ -207,37 +207,37 @@ export const AttendanceRulesConfig = () => {
   const fenceList: GeofenceItem[] = geoRes?.data || []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {successMsg && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded text-xs font-mono flex items-center justify-between">
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-3 rounded text-xs font-mono flex items-center justify-between">
           <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> {successMsg}</span>
-          <button onClick={() => setSuccessMsg(null)} className="font-bold">×</button>
+          <button onClick={() => setSuccessMsg(null)} className="font-bold text-emerald-700">×</button>
         </div>
       )}
 
       {errorMsg && (
-        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3 rounded text-xs font-mono flex items-center justify-between">
+        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-3 rounded text-xs font-mono flex items-center justify-between">
           <span className="flex items-center gap-1.5"><AlertTriangle size={14} /> {errorMsg}</span>
-          <button onClick={() => setErrorMsg(null)} className="font-bold">×</button>
+          <button onClick={() => setErrorMsg(null)} className="font-bold text-rose-700">×</button>
         </div>
       )}
 
       {/* Global Rules Section */}
-      <Card className="p-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <Card className="p-6 space-y-6 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+        <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
           <div>
-            <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <ShieldCheck size={18} className="text-blue-400" />
+            <h3 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+              <ShieldCheck size={18} className="theme-accent-text" />
               Central Security & Clocking Policies
             </h3>
-            <p className="text-xs font-mono text-slate-400 mt-0.5">
+            <p className="text-xs font-mono text-[var(--text-muted)] mt-0.5">
               Enforce organization-wide web punch constraints, IP boundaries, and geofence radii.
             </p>
           </div>
           <button
             onClick={() => updateRulesMut.mutate(formRules)}
             disabled={updateRulesMut.isPending}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-xs font-mono font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            className="theme-accent-bg hover:opacity-90 text-white px-4 py-2 rounded text-xs font-mono font-medium flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
           >
             <Save size={14} /> Save Security Policies
           </button>
@@ -245,96 +245,96 @@ export const AttendanceRulesConfig = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Web Clocking Toggle */}
-          <div className="bg-[#0B0F19] border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] p-4 rounded-lg flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-slate-200">Web Clocking</div>
-              <div className="text-[11px] font-mono text-slate-500">Allow portal browser punch</div>
+              <div className="text-xs font-semibold text-[var(--text-main)]">Web Clocking</div>
+              <div className="text-[11px] font-mono text-[var(--text-muted)]">Allow portal browser punch</div>
             </div>
             <button
               onClick={() => setFormRules(prev => ({ ...prev, web_clock_enabled: !prev.web_clock_enabled }))}
-              className="text-slate-200 hover:text-white"
+              className="text-[var(--text-main)]"
             >
               {formRules.web_clock_enabled ? (
-                <ToggleRight size={32} className="text-blue-500" />
+                <ToggleRight size={32} className="theme-accent-text" />
               ) : (
-                <ToggleLeft size={32} className="text-slate-600" />
+                <ToggleLeft size={32} className="text-[var(--text-muted)]" />
               )}
             </button>
           </div>
 
           {/* IP Restriction Toggle */}
-          <div className="bg-[#0B0F19] border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] p-4 rounded-lg flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-slate-200">IP Whitelist Guard</div>
-              <div className="text-[11px] font-mono text-slate-500">Restrict punch to corporate IPs</div>
+              <div className="text-xs font-semibold text-[var(--text-main)]">IP Whitelist Guard</div>
+              <div className="text-[11px] font-mono text-[var(--text-muted)]">Restrict punch to corporate IPs</div>
             </div>
             <button
               onClick={() => setFormRules(prev => ({ ...prev, ip_restriction_enabled: !prev.ip_restriction_enabled }))}
-              className="text-slate-200 hover:text-white"
+              className="text-[var(--text-main)]"
             >
               {formRules.ip_restriction_enabled ? (
                 <ToggleRight size={32} className="text-emerald-500" />
               ) : (
-                <ToggleLeft size={32} className="text-slate-600" />
+                <ToggleLeft size={32} className="text-[var(--text-muted)]" />
               )}
             </button>
           </div>
 
           {/* Geofence Guard Toggle */}
-          <div className="bg-[#0B0F19] border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] p-4 rounded-lg flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-slate-200">GPS Geofence Guard</div>
-              <div className="text-[11px] font-mono text-slate-500">Restrict punch to office radius</div>
+              <div className="text-xs font-semibold text-[var(--text-main)]">GPS Geofence Guard</div>
+              <div className="text-[11px] font-mono text-[var(--text-muted)]">Restrict punch to office radius</div>
             </div>
             <button
               onClick={() => setFormRules(prev => ({ ...prev, geofence_enabled: !prev.geofence_enabled }))}
-              className="text-slate-200 hover:text-white"
+              className="text-[var(--text-main)]"
             >
               {formRules.geofence_enabled ? (
                 <ToggleRight size={32} className="text-purple-500" />
               ) : (
-                <ToggleLeft size={32} className="text-slate-600" />
+                <ToggleLeft size={32} className="text-[var(--text-muted)]" />
               )}
             </button>
           </div>
 
           {/* Biometric Sync Toggle */}
-          <div className="bg-[#0B0F19] border border-slate-800 p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] p-4 rounded-lg flex items-center justify-between">
             <div>
-              <div className="text-xs font-semibold text-slate-200">Biometric Sync</div>
-              <div className="text-[11px] font-mono text-slate-500">Auto-sync biometric devices</div>
+              <div className="text-xs font-semibold text-[var(--text-main)]">Biometric Sync</div>
+              <div className="text-[11px] font-mono text-[var(--text-muted)]">Auto-sync biometric devices</div>
             </div>
             <button
               onClick={() => setFormRules(prev => ({ ...prev, biometric_sync_enabled: !prev.biometric_sync_enabled }))}
-              className="text-slate-200 hover:text-white"
+              className="text-[var(--text-main)]"
             >
               {formRules.biometric_sync_enabled ? (
                 <ToggleRight size={32} className="text-amber-500" />
               ) : (
-                <ToggleLeft size={32} className="text-slate-600" />
+                <ToggleLeft size={32} className="text-[var(--text-muted)]" />
               )}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0B0F19] p-4 rounded-lg border border-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[var(--bg-subtle)] p-4 rounded-lg border border-[var(--border-color)]">
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">Shift Late Grace Period (Minutes)</label>
+            <label className="block text-xs font-mono text-[var(--text-muted)] mb-1">Shift Late Grace Period (Minutes)</label>
             <input
               type="number"
               value={formRules.default_grace_period_minutes}
               onChange={e => setFormRules(prev => ({ ...prev, default_grace_period_minutes: parseInt(e.target.value) || 0 }))}
-              className="w-full bg-[#111827] border border-slate-800 rounded p-2 text-xs text-slate-200 font-mono focus:border-blue-500 focus:outline-none"
+              className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded p-2 text-xs text-[var(--text-main)] font-mono focus:border-[var(--color-primary)] focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">Half-Day Work Threshold (Hours)</label>
+            <label className="block text-xs font-mono text-[var(--text-muted)] mb-1">Half-Day Work Threshold (Hours)</label>
             <input
               type="number"
               step="0.5"
               value={formRules.half_day_threshold_hours}
               onChange={e => setFormRules(prev => ({ ...prev, half_day_threshold_hours: parseFloat(e.target.value) || 0 }))}
-              className="w-full bg-[#111827] border border-slate-800 rounded p-2 text-xs text-slate-200 font-mono focus:border-blue-500 focus:outline-none"
+              className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded p-2 text-xs text-[var(--text-main)] font-mono focus:border-[var(--color-primary)] focus:outline-none"
             />
           </div>
         </div>
@@ -343,13 +343,13 @@ export const AttendanceRulesConfig = () => {
       {/* IP Whitelist & Geofence Split View */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* IP Whitelist Card */}
-        <Card className="p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <Globe size={16} className="text-emerald-400" />
+        <Card className="p-5 space-y-4 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+            <h4 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+              <Globe size={16} className="text-emerald-500" />
               Corporate IP Whitelist
             </h4>
-            <span className="text-xs font-mono text-slate-500">{ipList.length} Active IPs</span>
+            <span className="text-xs font-mono text-[var(--text-muted)]">{ipList.length} Active IPs</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -358,37 +358,37 @@ export const AttendanceRulesConfig = () => {
               placeholder="e.g. 203.0.113.42"
               value={newIP}
               onChange={e => setNewIP(e.target.value)}
-              className="flex-1 bg-[#0B0F19] border border-slate-800 rounded p-2 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-2 text-xs font-mono text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
             />
             <input
               type="text"
               placeholder="Description (e.g. HQ Gateway)"
               value={newIPDesc}
               onChange={e => setNewIPDesc(e.target.value)}
-              className="flex-1 bg-[#0B0F19] border border-slate-800 rounded p-2 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-2 text-xs font-mono text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
             />
             <button
               onClick={() => addIPMut.mutate({ ip_address: newIP, description: newIPDesc })}
               disabled={!newIP}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded text-xs font-mono font-medium flex items-center gap-1 transition-colors disabled:opacity-50"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded text-xs font-mono font-medium flex items-center gap-1 transition-colors disabled:opacity-50 shadow-sm"
             >
               <Plus size={14} /> Add
             </button>
           </div>
 
-          <div className="divide-y divide-slate-800/60 text-xs font-mono">
+          <div className="divide-y divide-[var(--border-color)] text-xs font-mono">
             {ipList.length === 0 ? (
-              <div className="py-6 text-center text-slate-500">No IP addresses whitelisted yet.</div>
+              <div className="py-6 text-center text-[var(--text-muted)]">No IP addresses whitelisted yet.</div>
             ) : (
               ipList.map(ip => (
                 <div key={ip.id} className="py-2.5 flex items-center justify-between">
                   <div>
-                    <span className="text-emerald-400 font-semibold">{ip.ip_address}</span>
-                    <span className="text-slate-500 text-[11px] ml-2">({ip.description || 'No label'})</span>
+                    <span className="text-emerald-500 font-semibold">{ip.ip_address}</span>
+                    <span className="text-[var(--text-muted)] text-[11px] ml-2">({ip.description || 'No label'})</span>
                   </div>
                   <button
                     onClick={() => deleteIPMut.mutate(ip.id)}
-                    className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                    className="text-[var(--text-muted)] hover:text-rose-500 p-1 transition-colors"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -399,36 +399,36 @@ export const AttendanceRulesConfig = () => {
         </Card>
 
         {/* Geofence Locations Card */}
-        <Card className="p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <MapPin size={16} className="text-purple-400" />
+        <Card className="p-5 space-y-4 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+            <h4 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+              <MapPin size={16} className="text-purple-500" />
               Office Geofence Boundaries
             </h4>
-            <span className="text-xs font-mono text-slate-500">{fenceList.length} Active Boundaries</span>
+            <span className="text-xs font-mono text-[var(--text-muted)]">{fenceList.length} Active Boundaries</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <input
               type="text"
-              placeholder="Name (e.g. Mumbai HQ)"
+              placeholder="Name (e.g. HQ)"
               value={fenceName}
               onChange={e => setFenceName(e.target.value)}
-              className="bg-[#0B0F19] border border-slate-800 rounded p-1.5 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none"
+              className="bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-1.5 text-xs font-mono text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none"
             />
             <input
               type="text"
-              placeholder="Latitude (19.0760)"
+              placeholder="Latitude"
               value={fenceLat}
               onChange={e => setFenceLat(e.target.value)}
-              className="bg-[#0B0F19] border border-slate-800 rounded p-1.5 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none"
+              className="bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-1.5 text-xs font-mono text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none"
             />
             <input
               type="text"
-              placeholder="Longitude (72.8777)"
+              placeholder="Longitude"
               value={fenceLon}
               onChange={e => setFenceLon(e.target.value)}
-              className="bg-[#0B0F19] border border-slate-800 rounded p-1.5 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none"
+              className="bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-1.5 text-xs font-mono text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none"
             />
             <button
               onClick={() => addFenceMut.mutate({
@@ -438,25 +438,25 @@ export const AttendanceRulesConfig = () => {
                 radius_meters: parseInt(fenceRadius) || 100
               })}
               disabled={!fenceName || !fenceLat || !fenceLon}
-              className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded text-xs font-mono font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+              className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded text-xs font-mono font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50 shadow-sm"
             >
               <Plus size={14} /> Add Fence
             </button>
           </div>
 
-          <div className="divide-y divide-slate-800/60 text-xs font-mono">
+          <div className="divide-y divide-[var(--border-color)] text-xs font-mono">
             {fenceList.length === 0 ? (
-              <div className="py-6 text-center text-slate-500">No office geofences defined yet.</div>
+              <div className="py-6 text-center text-[var(--text-muted)]">No office geofences defined yet.</div>
             ) : (
               fenceList.map(fence => (
                 <div key={fence.id} className="py-2.5 flex items-center justify-between">
                   <div>
-                    <span className="text-purple-300 font-semibold">{fence.name}</span>
-                    <span className="text-slate-500 text-[11px] ml-2">
+                    <span className="text-purple-500 font-semibold">{fence.name}</span>
+                    <span className="text-[var(--text-muted)] text-[11px] ml-2">
                       ({fence.latitude}, {fence.longitude}) • Radius: {fence.radius_meters}m
                     </span>
                   </div>
-                  <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded text-[10px]">
+                  <span className="bg-purple-500/10 text-purple-500 border border-purple-500/20 px-2 py-0.5 rounded text-[10px]">
                     ACTIVE
                   </span>
                 </div>
@@ -467,16 +467,16 @@ export const AttendanceRulesConfig = () => {
       </div>
 
       {/* Biometric Adapter Hardware Section */}
-      <Card className="p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <Cpu size={16} className="text-amber-400" />
+      <Card className="p-5 space-y-4 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+        <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+          <h4 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+            <Cpu size={16} className="text-amber-500" />
             Biometric Hardware Provider Adapter Status
           </h4>
           <button
             onClick={() => bioSyncMut.mutate()}
             disabled={bioSyncMut.isPending}
-            className="bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded text-xs font-mono font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 px-3 py-1.5 rounded text-xs font-mono font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
           >
             <RefreshCw size={13} className={bioSyncMut.isPending ? 'animate-spin' : ''} />
             Trigger Device Log Sync
@@ -484,17 +484,17 @@ export const AttendanceRulesConfig = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
-          <div className="bg-[#0B0F19] p-3.5 rounded border border-slate-800">
-            <div className="text-slate-400 text-[11px]">Primary Adapter</div>
-            <div className="text-slate-200 font-bold mt-1">ZKTeco / Matrix Provider</div>
+          <div className="bg-[var(--bg-subtle)] p-3.5 rounded border border-[var(--border-color)]">
+            <div className="text-[var(--text-muted)] text-[11px]">Primary Adapter</div>
+            <div className="text-[var(--text-main)] font-bold mt-1">ZKTeco / Matrix Provider</div>
           </div>
-          <div className="bg-[#0B0F19] p-3.5 rounded border border-slate-800">
-            <div className="text-slate-400 text-[11px]">Sync Mode</div>
-            <div className="text-emerald-400 font-bold mt-1">Real-time Push & Poll</div>
+          <div className="bg-[var(--bg-subtle)] p-3.5 rounded border border-[var(--border-color)]">
+            <div className="text-[var(--text-muted)] text-[11px]">Sync Mode</div>
+            <div className="text-emerald-500 font-bold mt-1">Real-time Push & Poll</div>
           </div>
-          <div className="bg-[#0B0F19] p-3.5 rounded border border-slate-800">
-            <div className="text-slate-400 text-[11px]">Active Devices</div>
-            <div className="text-amber-400 font-bold mt-1">3 Connected Gateways</div>
+          <div className="bg-[var(--bg-subtle)] p-3.5 rounded border border-[var(--border-color)]">
+            <div className="text-[var(--text-muted)] text-[11px]">Active Devices</div>
+            <div className="text-amber-500 font-bold mt-1">3 Connected Gateways</div>
           </div>
         </div>
       </Card>

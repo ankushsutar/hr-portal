@@ -60,12 +60,11 @@ export const BulkImportWizard = () => {
     }
   })
 
-
   return (
     <div className="space-y-6 animate-fade-in font-sans">
       <div>
-        <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Bulk Import Wizard</h1>
-        <p className="text-xs font-mono text-slate-400 mt-1">BATCH INGESTION & DATA VALIDATION ENGINE FOR EMPLOYEES & MASTERS</p>
+        <h1 className="text-[28px] font-bold text-[var(--text-main)] leading-tight tracking-tight">Bulk Import Wizard</h1>
+        <p className="text-xs font-mono text-[var(--text-muted)] mt-1">BATCH INGESTION & DATA VALIDATION ENGINE FOR EMPLOYEES & MASTERS</p>
       </div>
 
       {/* Stepper */}
@@ -75,25 +74,25 @@ export const BulkImportWizard = () => {
           { number: 2, title: 'Validation' },
           { number: 3, title: 'Import Summary' },
         ].map((s) => (
-          <div key={s.number} className="flex items-center gap-2 z-10 bg-[#0B0F19] px-3">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold transition-colors ${
-              step >= s.number ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500 border border-slate-700'
+          <div key={s.number} className="flex items-center gap-2 z-10 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded-full px-4 py-1 shadow-xs">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] transition-colors ${
+              step >= s.number ? 'theme-accent-bg text-white' : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-color)]'
             }`}>
               {s.number}
             </div>
-            <span className={`font-medium ${step >= s.number ? 'text-slate-200' : 'text-slate-500'}`}>
+            <span className={`font-semibold ${step >= s.number ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
               {s.title}
             </span>
           </div>
         ))}
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
         {step === 1 && (
           <div className="space-y-6 animate-fade-in text-center max-w-lg mx-auto">
             <div>
-              <h3 className="text-base font-semibold text-slate-100 mb-1">Upload Data Batch File</h3>
-              <p className="text-xs font-mono text-slate-400">Select standard CSV template to format records correctly.</p>
+              <h3 className="text-base font-semibold text-[var(--text-main)] mb-1">Upload Data Batch File</h3>
+              <p className="text-xs font-mono text-[var(--text-muted)]">Select standard CSV template to format records correctly.</p>
             </div>
             
             <div className="flex justify-center">
@@ -110,7 +109,7 @@ export const BulkImportWizard = () => {
                   window.URL.revokeObjectURL(url);
                   document.body.removeChild(a);
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 text-slate-200 border border-slate-800 rounded text-xs font-mono transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] text-[var(--text-main)] border border-[var(--border-color)] rounded text-xs font-mono transition-colors font-medium"
               >
                 <FileDown size={14} /> Download Sample CSV Template
               </button>
@@ -118,7 +117,7 @@ export const BulkImportWizard = () => {
 
             <div 
               onClick={() => document.getElementById('csv-upload')?.click()}
-              className={`border-2 border-dashed border-slate-800 rounded-xl p-10 text-center hover:border-blue-500/50 transition-colors bg-[#0F1523] cursor-pointer ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}
+              className={`border-2 border-dashed border-[var(--border-color)] rounded-xl p-10 text-center hover:border-[var(--color-primary)] transition-colors bg-[var(--bg-subtle)] cursor-pointer ${uploadMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}
             >
               <input 
                 id="csv-upload" 
@@ -131,13 +130,13 @@ export const BulkImportWizard = () => {
                   }
                 }} 
               />
-              <div className="w-12 h-12 bg-slate-800 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-700">
+              <div className="w-12 h-12 bg-[var(--bg-card)] theme-accent-text rounded-full flex items-center justify-center mx-auto mb-3 border border-[var(--border-color)]">
                 {uploadMutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
               </div>
-              <p className="font-semibold text-slate-200 text-xs mb-1">
+              <p className="font-semibold text-[var(--text-main)] text-xs mb-1">
                 {uploadMutation.isPending ? 'Uploading batch file...' : 'Click to upload CSV dataset'}
               </p>
-              <p className="text-[11px] font-mono text-slate-400">Supported formats: CSV, TSV (max 10MB)</p>
+              <p className="text-[11px] font-mono text-[var(--text-muted)]">Supported formats: CSV, TSV (max 10MB)</p>
             </div>
           </div>
         )}
@@ -146,43 +145,43 @@ export const BulkImportWizard = () => {
           <div className="space-y-6 animate-fade-in font-mono text-xs">
             {isLoadingBatch || batchData?.data?.status === 'VALIDATING' ? (
               <div className="text-center py-12 space-y-3">
-                <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto" />
-                <p className="font-semibold text-slate-200">Running validation checks...</p>
-                <p className="text-slate-400 text-[11px]">Verifying email unique constraints, department keys, and date formats.</p>
+                <Loader2 className="w-8 h-8 theme-accent-text animate-spin mx-auto" />
+                <p className="font-semibold text-[var(--text-main)]">Running validation checks...</p>
+                <p className="text-[var(--text-muted)] text-[11px]">Verifying email unique constraints, department keys, and date formats.</p>
               </div>
             ) : (
               <>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-[#0B0F19] border border-slate-800 p-4 rounded text-center">
-                    <p className="text-slate-400 text-[11px] uppercase">Total Records</p>
-                    <p className="text-2xl font-bold text-slate-100 mt-1">{batchData?.data?.total_rows}</p>
+                  <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] p-4 rounded text-center">
+                    <p className="text-[var(--text-muted)] text-[11px] uppercase">Total Records</p>
+                    <p className="text-2xl font-bold text-[var(--text-main)] mt-1">{batchData?.data?.total_rows}</p>
                   </div>
                   <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded text-center">
-                    <p className="text-emerald-400 text-[11px] uppercase">Valid Records</p>
-                    <p className="text-2xl font-bold text-emerald-400 mt-1">{batchData?.data?.valid_rows}</p>
+                    <p className="text-emerald-500 text-[11px] uppercase font-semibold">Valid Records</p>
+                    <p className="text-2xl font-bold text-emerald-500 mt-1">{batchData?.data?.valid_rows}</p>
                   </div>
                   <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded text-center">
-                    <p className="text-rose-400 text-[11px] uppercase">Validation Errors</p>
-                    <p className="text-2xl font-bold text-rose-400 mt-1">{batchData?.data?.error_rows}</p>
+                    <p className="text-rose-500 text-[11px] uppercase font-semibold">Validation Errors</p>
+                    <p className="text-2xl font-bold text-rose-500 mt-1">{batchData?.data?.error_rows}</p>
                   </div>
                 </div>
 
-                <div className="border border-slate-800 rounded overflow-hidden">
-                  <div className="bg-slate-900/60 px-4 py-2 border-b border-slate-800 font-semibold text-slate-200">
+                <div className="border border-[var(--border-color)] rounded overflow-hidden">
+                  <div className="bg-[var(--bg-subtle)] px-4 py-2 border-b border-[var(--border-color)] font-semibold text-[var(--text-main)]">
                     Row Audit Inspection
                   </div>
-                  <div className="max-h-60 overflow-y-auto divide-y divide-slate-800/60">
+                  <div className="max-h-60 overflow-y-auto divide-y divide-[var(--border-color)]">
                     {batchData?.data?.errors?.map((err: any, idx: number) => (
                       <div key={idx} className="p-3 bg-rose-500/5 flex items-center justify-between text-[11px]">
                         <div className="flex items-center gap-2">
-                          <AlertCircle size={14} className="text-rose-400" />
-                          <span className="font-bold text-rose-400">Row {err.row_number}:</span>
-                          <span className="text-slate-300">{err.error_message}</span>
+                          <AlertCircle size={14} className="text-rose-500" />
+                          <span className="font-bold text-rose-500">Row {err.row_number}:</span>
+                          <span className="text-[var(--text-main)]">{err.error_message}</span>
                         </div>
                       </div>
                     ))}
                     {(!batchData?.data?.errors || batchData.data.errors.length === 0) && (
-                      <div className="p-6 text-center text-emerald-400 flex items-center justify-center gap-2">
+                      <div className="p-6 text-center text-emerald-500 flex items-center justify-center gap-2 font-semibold">
                         <CheckCircle2 size={16} /> All rows passed validation tests.
                       </div>
                     )}
@@ -195,24 +194,24 @@ export const BulkImportWizard = () => {
 
         {step === 3 && (
           <div className="space-y-6 animate-fade-in font-mono text-xs text-center py-6">
-            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 size={24} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-100 mb-1">Batch Ingestion Completed</h3>
-              <p className="text-slate-400">All valid employee records have been inserted into the master repository.</p>
+              <h3 className="text-base font-bold text-[var(--text-main)] mb-1">Batch Ingestion Completed</h3>
+              <p className="text-[var(--text-muted)]">All valid employee records have been inserted into the master repository.</p>
             </div>
 
             <div className="flex justify-center gap-3">
               <button 
                 onClick={() => navigate({ to: '/import/history' })}
-                className="px-4 py-2 bg-[#0B0F19] hover:bg-slate-800 text-slate-200 border border-slate-800 rounded font-semibold transition-colors"
+                className="px-4 py-2 bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] text-[var(--text-main)] border border-[var(--border-color)] rounded font-semibold transition-colors"
               >
                 View Batch History
               </button>
               <button 
                 onClick={() => navigate({ to: '/employees' })}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold transition-colors"
+                className="px-4 py-2 theme-accent-bg hover:opacity-90 text-white rounded font-semibold transition-all shadow-sm"
               >
                 Go to Directory
               </button>
@@ -221,11 +220,11 @@ export const BulkImportWizard = () => {
         )}
 
         {/* Wizard Footer Controls */}
-        <div className="flex items-center justify-between pt-5 mt-6 border-t border-slate-800 font-mono text-xs">
+        <div className="flex items-center justify-between pt-5 mt-6 border-t border-[var(--border-color)] font-mono text-xs">
           <button
             onClick={() => setStep(prev => Math.max(1, prev - 1))}
             disabled={step === 1 || uploadMutation.isPending || processMutation.isPending}
-            className="px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 text-slate-400 border border-slate-800 rounded disabled:opacity-30 transition-colors"
+            className="px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-color)] rounded disabled:opacity-30 transition-colors font-medium"
           >
             Previous
           </button>
@@ -234,7 +233,7 @@ export const BulkImportWizard = () => {
             <button
               onClick={() => processMutation.mutate()}
               disabled={processMutation.isPending || batchData?.data?.valid_rows === 0}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-1.5 theme-accent-bg hover:opacity-90 text-white rounded font-semibold disabled:opacity-50 transition-all shadow-sm"
             >
               {processMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Confirm & Process Batch'} <ArrowRight size={14} />
             </button>

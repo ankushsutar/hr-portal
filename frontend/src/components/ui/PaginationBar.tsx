@@ -56,21 +56,21 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-[#0B0F19] border-t border-slate-800 text-xs font-mono text-slate-400">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-[var(--bg-page)] border-t border-[var(--border-color)] text-xs font-mono text-[var(--text-muted)]">
       {/* Items count & Per Page Selector */}
       <div className="flex items-center gap-4">
         <span>
-          Showing <span className="text-slate-200 font-bold">{startItem}</span> to{' '}
-          <span className="text-slate-200 font-bold">{endItem}</span> of{' '}
-          <span className="text-slate-200 font-bold">{total}</span> items
+          Showing <span className="text-[var(--text-main)] font-bold">{startItem}</span> to{' '}
+          <span className="text-[var(--text-main)] font-bold">{endItem}</span> of{' '}
+          <span className="text-[var(--text-main)] font-bold">{total}</span> items
         </span>
 
-        <div className="flex items-center gap-1.5 border-l border-slate-800 pl-4">
-          <span className="text-slate-500">Per page:</span>
+        <div className="flex items-center gap-1.5 border-l border-[var(--border-color)] pl-4">
+          <span className="text-[var(--text-muted)]">Per page:</span>
           <select
             value={limit}
             onChange={(e) => onLimitChange(Number(e.target.value))}
-            className="bg-[#111827] border border-slate-800 rounded px-2 py-1 text-slate-200 focus:outline-none focus:border-blue-500 text-xs"
+            className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded px-2 py-1 text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)] text-xs"
           >
             {limitOptions.map((opt) => (
               <option key={opt} value={opt}>
@@ -87,7 +87,7 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
           onClick={() => onPageChange(1)}
           disabled={page <= 1}
           title="First Page"
-          className="p-1.5 rounded border border-slate-800 bg-[#111827] hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-[#111827] text-slate-300 transition-colors"
+          className="p-1.5 rounded border border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--bg-subtle)] disabled:opacity-40 text-[var(--text-main)] transition-colors"
         >
           <ChevronsLeft size={14} />
         </button>
@@ -95,7 +95,7 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           title="Previous Page"
-          className="p-1.5 rounded border border-slate-800 bg-[#111827] hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-[#111827] text-slate-300 transition-colors"
+          className="p-1.5 rounded border border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--bg-subtle)] disabled:opacity-40 text-[var(--text-main)] transition-colors"
         >
           <ChevronLeft size={14} />
         </button>
@@ -109,14 +109,14 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
                 onClick={() => onPageChange(p)}
                 className={`min-w-[28px] h-7 px-2 rounded font-semibold transition-colors ${
                   page === p
-                    ? 'bg-blue-600 text-white border border-blue-500'
-                    : 'bg-[#111827] text-slate-300 border border-slate-800 hover:bg-slate-800'
+                    ? 'theme-accent-bg text-white border border-[var(--color-primary)]'
+                    : 'bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] hover:bg-[var(--bg-subtle)]'
                 }`}
               >
                 {p}
               </button>
             ) : (
-              <span key={idx} className="px-1 text-slate-600">
+              <span key={idx} className="px-1 text-[var(--text-muted)]">
                 {p}
               </span>
             )
@@ -127,7 +127,7 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
           title="Next Page"
-          className="p-1.5 rounded border border-slate-800 bg-[#111827] hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-[#111827] text-slate-300 transition-colors"
+          className="p-1.5 rounded border border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--bg-subtle)] disabled:opacity-40 text-[var(--text-main)] transition-colors"
         >
           <ChevronRight size={14} />
         </button>
@@ -135,7 +135,7 @@ export const PaginationBar: React.FC<PaginationBarProps> = ({
           onClick={() => onPageChange(totalPages)}
           disabled={page >= totalPages}
           title="Last Page"
-          className="p-1.5 rounded border border-slate-800 bg-[#111827] hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-[#111827] text-slate-300 transition-colors"
+          className="p-1.5 rounded border border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--bg-subtle)] disabled:opacity-40 text-[var(--text-main)] transition-colors"
         >
           <ChevronsRight size={14} />
         </button>

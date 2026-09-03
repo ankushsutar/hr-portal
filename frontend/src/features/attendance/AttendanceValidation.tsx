@@ -113,14 +113,14 @@ export const AttendanceValidation = () => {
   return (
     <div className="space-y-6">
       {/* Tab Navigation Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-800 pb-3">
+      <div className="flex items-center justify-between flex-wrap gap-4 border-b border-[var(--border-color)] pb-3">
         <div className="flex items-center gap-2">
           <button
             onClick={() => { setActiveTab('TO_VALIDATE'); setSelectedIds([]) }}
             className={`px-4 py-2 rounded text-xs font-mono font-medium transition-all flex items-center gap-2 ${
               activeTab === 'TO_VALIDATE'
-                ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500 shadow-sm font-bold'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-subtle)]'
             }`}
           >
             <Clock size={14} /> To Validate
@@ -129,8 +129,8 @@ export const AttendanceValidation = () => {
             onClick={() => { setActiveTab('OT_PENDING'); setSelectedIds([]) }}
             className={`px-4 py-2 rounded text-xs font-mono font-medium transition-all flex items-center gap-2 ${
               activeTab === 'OT_PENDING'
-                ? 'bg-purple-500/10 border border-purple-500/30 text-purple-400 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                ? 'bg-purple-500/10 border border-purple-500/30 text-purple-500 shadow-sm font-bold'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-subtle)]'
             }`}
           >
             <AlertCircle size={14} /> OT Attendances
@@ -139,8 +139,8 @@ export const AttendanceValidation = () => {
             onClick={() => { setActiveTab('VALIDATED'); setSelectedIds([]) }}
             className={`px-4 py-2 rounded text-xs font-mono font-medium transition-all flex items-center gap-2 ${
               activeTab === 'VALIDATED'
-                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 shadow-sm font-bold'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-subtle)]'
             }`}
           >
             <CheckCircle2 size={14} /> Validated
@@ -149,8 +149,8 @@ export const AttendanceValidation = () => {
             onClick={() => { setActiveTab('REJECTED'); setSelectedIds([]) }}
             className={`px-4 py-2 rounded text-xs font-mono font-medium transition-all flex items-center gap-2 ${
               activeTab === 'REJECTED'
-                ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                ? 'bg-rose-500/10 border border-rose-500/30 text-rose-500 shadow-sm font-bold'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-subtle)]'
             }`}
           >
             <XCircle size={14} /> Rejected
@@ -159,20 +159,20 @@ export const AttendanceValidation = () => {
 
         {/* Action Toolbar */}
         {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded animate-fade-in">
-            <span className="text-xs font-mono text-slate-300 font-semibold">{selectedIds.length} Selected</span>
-            <div className="h-4 w-px bg-slate-800 mx-1" />
+          <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-color)] px-3 py-1.5 rounded animate-fade-in shadow-sm">
+            <span className="text-xs font-mono text-[var(--text-main)] font-semibold">{selectedIds.length} Selected</span>
+            <div className="h-4 w-px bg-[var(--border-color)] mx-1" />
             {activeTab === 'TO_VALIDATE' && (
               <>
                 <button
                   onClick={() => triggerAction('VALIDATE')}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors shadow-sm"
                 >
                   Validate Selected
                 </button>
                 <button
                   onClick={() => triggerAction('REJECT')}
-                  className="bg-rose-600/80 hover:bg-rose-600 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  className="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors shadow-sm"
                 >
                   Reject Selected
                 </button>
@@ -182,13 +182,13 @@ export const AttendanceValidation = () => {
               <>
                 <button
                   onClick={() => triggerAction('APPROVE_OT')}
-                  className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors shadow-sm"
                 >
                   Approve OT
                 </button>
                 <button
                   onClick={() => triggerAction('REJECT_OT')}
-                  className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  className="bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] px-3 py-1 rounded text-xs font-medium transition-colors"
                 >
                   Reject OT
                 </button>
@@ -199,27 +199,27 @@ export const AttendanceValidation = () => {
       </div>
 
       {actionError && (
-        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3 rounded text-xs font-mono flex items-center justify-between">
+        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-3 rounded text-xs font-mono flex items-center justify-between">
           <span>⚠️ {actionError}</span>
-          <button onClick={() => setActionError(null)} className="text-rose-400 hover:text-white font-bold">×</button>
+          <button onClick={() => setActionError(null)} className="text-rose-500 hover:text-rose-700 font-bold">×</button>
         </div>
       )}
 
       {/* Main Validation Table Card */}
-      <Card className="p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden bg-[var(--bg-card)] border-[var(--border-color)]">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-400 font-mono text-xs">Loading validation queue...</div>
+          <div className="p-8 text-center text-[var(--text-muted)] font-mono text-xs">Loading validation queue...</div>
         ) : queue.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 font-mono text-xs">
-            No attendance records in status <span className="text-slate-300 font-semibold">{activeTab}</span>.
+          <div className="p-12 text-center text-[var(--text-muted)] font-mono text-xs">
+            No attendance records in status <span className="text-[var(--text-main)] font-semibold">{activeTab}</span>.
           </div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/60 text-slate-400 font-mono text-[11px] uppercase tracking-wider">
+              <tr className="border-b border-[var(--border-color)] bg-[var(--bg-subtle)] text-[var(--text-muted)] font-mono text-[11px] uppercase tracking-wider">
                 <th className="p-3 w-10 text-center">
-                  <button onClick={toggleSelectAll} className="text-slate-400 hover:text-white">
-                    {selectedIds.length === queue.length && queue.length > 0 ? <CheckSquare size={16} className="text-blue-400" /> : <Square size={16} />}
+                  <button onClick={toggleSelectAll} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
+                    {selectedIds.length === queue.length && queue.length > 0 ? <CheckSquare size={16} className="theme-accent-text" /> : <Square size={16} />}
                   </button>
                 </th>
                 <th className="p-3">Employee</th>
@@ -233,46 +233,46 @@ export const AttendanceValidation = () => {
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-xs">
+            <tbody className="divide-y divide-[var(--border-color)] text-xs text-[var(--text-main)]">
               {queue.map(row => {
                 const isSelected = selectedIds.includes(row.id)
                 return (
-                  <tr key={row.id} className={`hover:bg-slate-800/30 transition-colors ${isSelected ? 'bg-blue-500/5' : ''}`}>
+                  <tr key={row.id} className={`hover:bg-[var(--bg-subtle)] transition-colors ${isSelected ? 'bg-[var(--color-primary)]/10' : ''}`}>
                     <td className="p-3 text-center">
-                      <button onClick={() => toggleSelectRow(row.id)} className="text-slate-400 hover:text-white">
-                        {isSelected ? <CheckSquare size={16} className="text-blue-400" /> : <Square size={16} />}
+                      <button onClick={() => toggleSelectRow(row.id)} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
+                        {isSelected ? <CheckSquare size={16} className="theme-accent-text" /> : <Square size={16} />}
                       </button>
                     </td>
                     <td className="p-3">
-                      <div className="font-semibold text-slate-100">{row.employee_name}</div>
-                      <div className="text-[11px] font-mono text-slate-500">{row.employee_code} • {row.department}</div>
+                      <div className="font-semibold text-[var(--text-main)]">{row.employee_name}</div>
+                      <div className="text-[11px] font-mono text-[var(--text-muted)]">{row.employee_code} • {row.department}</div>
                     </td>
-                    <td className="p-3 font-mono text-slate-300">{row.date}</td>
-                    <td className="p-3 text-slate-400">{row.shift_name}</td>
-                    <td className="p-3 font-mono text-slate-200">{row.check_in_time}</td>
-                    <td className="p-3 font-mono text-slate-200">{row.check_out_time}</td>
-                    <td className="p-3 font-mono font-medium text-slate-200">{row.worked_hours.toFixed(1)} hrs</td>
-                    <td className="p-3 font-mono font-bold text-purple-400">
+                    <td className="p-3 font-mono text-[var(--text-muted)]">{row.date}</td>
+                    <td className="p-3 text-[var(--text-muted)]">{row.shift_name}</td>
+                    <td className="p-3 font-mono text-[var(--text-main)]">{row.check_in_time}</td>
+                    <td className="p-3 font-mono text-[var(--text-main)]">{row.check_out_time}</td>
+                    <td className="p-3 font-mono font-medium text-[var(--text-main)]">{row.worked_hours.toFixed(1)} hrs</td>
+                    <td className="p-3 font-mono font-bold text-purple-500">
                       {row.ot_hours > 0 ? `+${row.ot_hours.toFixed(1)} hrs` : '--'}
                     </td>
                     <td className="p-3">
                       {row.validation_status === 'TO_VALIDATE' && (
-                        <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
+                        <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
                           TO VALIDATE
                         </span>
                       )}
                       {row.validation_status === 'OT_PENDING' && (
-                        <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
+                        <span className="bg-purple-500/10 text-purple-500 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
                           OT PENDING
                         </span>
                       )}
                       {row.validation_status === 'VALIDATED' && (
-                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
+                        <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
                           VALIDATED
                         </span>
                       )}
                       {row.validation_status === 'REJECTED' && (
-                        <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
+                        <span className="bg-rose-500/10 text-rose-500 border border-rose-500/20 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">
                           REJECTED
                         </span>
                       )}
@@ -282,13 +282,13 @@ export const AttendanceValidation = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => { setSelectedIds([row.id]); triggerAction('VALIDATE') }}
-                            className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded text-[11px] font-mono font-medium"
+                            className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-500 border border-emerald-500/30 px-2 py-1 rounded text-[11px] font-mono font-medium"
                           >
                             Validate
                           </button>
                           <button
                             onClick={() => { setSelectedIds([row.id]); triggerAction('REJECT') }}
-                            className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 border border-rose-500/30 px-2 py-1 rounded text-[11px] font-mono font-medium"
+                            className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-500 border border-rose-500/30 px-2 py-1 rounded text-[11px] font-mono font-medium"
                           >
                             Reject
                           </button>
@@ -298,7 +298,7 @@ export const AttendanceValidation = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => { setSelectedIds([row.id]); triggerAction('APPROVE_OT') }}
-                            className="bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 border border-purple-500/30 px-2 py-1 rounded text-[11px] font-mono font-medium"
+                            className="bg-purple-600/20 hover:bg-purple-600/40 text-purple-500 border border-purple-500/30 px-2 py-1 rounded text-[11px] font-mono font-medium"
                           >
                             Approve OT
                           </button>
@@ -315,36 +315,36 @@ export const AttendanceValidation = () => {
 
       {/* Validation Comments Modal */}
       {isCommentModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-[#0D1322] border border-slate-800 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <ShieldCheck size={20} className="text-blue-400" />
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in font-mono">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg max-w-md w-full p-6 space-y-4 shadow-2xl text-[var(--text-main)]">
+            <h3 className="text-lg font-bold text-[var(--text-main)] flex items-center gap-2">
+              <ShieldCheck size={20} className="theme-accent-text" />
               Confirm Attendance Action ({pendingAction})
             </h3>
-            <p className="text-xs text-slate-400 font-mono">
-              You are performing <span className="text-slate-200 font-semibold">{pendingAction}</span> on {selectedIds.length} attendance record(s).
+            <p className="text-xs text-[var(--text-muted)] font-mono">
+              You are performing <span className="text-[var(--text-main)] font-semibold">{pendingAction}</span> on {selectedIds.length} attendance record(s).
             </p>
             <div>
-              <label className="block text-xs font-mono text-slate-300 mb-1">Audit Comments / Reason:</label>
+              <label className="block text-xs font-mono text-[var(--text-muted)] mb-1">Audit Comments / Reason:</label>
               <textarea
                 value={comments}
                 onChange={e => setComments(e.target.value)}
                 placeholder="Enter mandatory audit comments..."
                 rows={3}
-                className="w-full bg-[#070A12] border border-slate-800 rounded p-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-2 text-xs text-[var(--text-main)] font-mono focus:outline-none focus:border-[var(--color-primary)]"
               />
             </div>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 onClick={() => { setIsCommentModalOpen(false); setPendingAction(null) }}
-                className="px-4 py-1.5 rounded text-xs font-mono text-slate-400 hover:bg-slate-800"
+                className="px-4 py-1.5 rounded text-xs font-mono text-[var(--text-muted)] hover:text-[var(--text-main)]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmAction}
                 disabled={batchMutation.isPending}
-                className="px-4 py-1.5 rounded text-xs font-mono font-medium bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
+                className="px-4 py-1.5 rounded text-xs font-mono font-medium theme-accent-bg hover:opacity-90 text-white disabled:opacity-50 shadow-sm"
               >
                 {batchMutation.isPending ? 'Processing...' : 'Confirm Action'}
               </button>

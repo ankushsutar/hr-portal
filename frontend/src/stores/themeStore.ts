@@ -85,34 +85,59 @@ function hexToRgbString(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
+let systemThemeCleanup: (() => void) | null = null;
+
 // Apply CSS variables and document classes
 function applyThemeToDocument(mode: ThemeMode, primary: string, accent: string, cardBg: string) {
   const root = document.documentElement;
+
+  // Clean up previous system media query listener if any
+  if (systemThemeCleanup) {
+    systemThemeCleanup();
+    systemThemeCleanup = null;
+  }
 
   // Set Primary & Accent CSS Custom Properties
   root.style.setProperty('--color-primary', primary);
   root.style.setProperty('--color-primary-rgb', hexToRgbString(primary));
   root.style.setProperty('--color-accent', accent);
+  root.style.setProperty('--color-accent-rgb', hexToRgbString(accent));
 
   const applyLightModeVars = () => {
     root.style.setProperty('--color-card-bg', '#FFFFFF');
     root.style.setProperty('--bg-page', '#F8FAFC');
+    root.style.setProperty('--bg-card', '#FFFFFF');
     root.style.setProperty('--bg-sidebar', '#FFFFFF');
     root.style.setProperty('--bg-header', 'rgba(255, 255, 255, 0.95)');
+    root.style.setProperty('--bg-subtle', '#F1F5F9');
+    root.style.setProperty('--bg-elevated', '#FFFFFF');
+    root.style.setProperty('--bg-hover', '#F1F5F9');
+    root.style.setProperty('--bg-input', '#FFFFFF');
     root.style.setProperty('--border-color', '#E2E8F0');
+    root.style.setProperty('--border-strong', '#CBD5E1');
     root.style.setProperty('--text-main', '#0F172A');
     root.style.setProperty('--text-muted', '#64748B');
+    root.style.setProperty('--text-subtle', '#94A3B8');
+    root.style.setProperty('--text-inverse', '#FFFFFF');
     root.classList.remove('dark');
   };
 
   const applyDarkModeVars = () => {
     root.style.setProperty('--color-card-bg', cardBg || '#111827');
     root.style.setProperty('--bg-page', '#0B0F19');
+    root.style.setProperty('--bg-card', cardBg || '#111827');
     root.style.setProperty('--bg-sidebar', '#111827');
     root.style.setProperty('--bg-header', 'rgba(17, 24, 39, 0.85)');
+    root.style.setProperty('--bg-subtle', '#1E293B');
+    root.style.setProperty('--bg-elevated', '#1F2937');
+    root.style.setProperty('--bg-hover', '#1E293B');
+    root.style.setProperty('--bg-input', '#0B0F19');
     root.style.setProperty('--border-color', 'rgba(31, 41, 55, 0.8)');
+    root.style.setProperty('--border-strong', '#374151');
     root.style.setProperty('--text-main', '#F3F4F6');
     root.style.setProperty('--text-muted', '#94A3B8');
+    root.style.setProperty('--text-subtle', '#64748B');
+    root.style.setProperty('--text-inverse', '#0F172A');
     root.classList.add('dark');
   };
 
@@ -122,12 +147,18 @@ function applyThemeToDocument(mode: ThemeMode, primary: string, accent: string, 
     applyLightModeVars();
   } else {
     // System mode
-    const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (isSystemDark) {
-      applyDarkModeVars();
-    } else {
-      applyLightModeVars();
-    }
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches) {
+        applyDarkModeVars();
+      } else {
+        applyLightModeVars();
+      }
+    };
+    handleChange(mediaQuery);
+    const listener = (e: MediaQueryListEvent) => handleChange(e);
+    mediaQuery.addEventListener('change', listener);
+    systemThemeCleanup = () => mediaQuery.removeEventListener('change', listener);
   }
 }
 

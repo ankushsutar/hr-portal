@@ -174,36 +174,36 @@ export const Layout = () => {
             <div className="relative">
               <button 
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className="relative p-2 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-800/60 transition-colors"
+                className="relative p-2 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded hover:bg-[var(--bg-subtle)] transition-colors"
               >
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+                  <span className="absolute top-1 right-1 block h-2 w-2 rounded-full theme-accent-bg animate-pulse"></span>
                 )}
                 <Bell className="h-4 w-4" />
               </button>
 
               {/* Notification Drawer Popover */}
               {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[#111827] border border-slate-800 rounded-lg shadow-2xl z-50 overflow-hidden animate-fade-in font-mono text-xs">
-                  <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
-                    <span className="font-semibold text-slate-200 text-xs">System Alerts ({unreadCount} unread)</span>
-                    <button onClick={() => setIsNotifOpen(false)} className="text-slate-500 hover:text-slate-300">
+                <div className="absolute right-0 mt-2 w-80 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-2xl z-50 overflow-hidden animate-fade-in font-mono text-xs text-[var(--text-main)]">
+                  <div className="px-4 py-3 border-b border-[var(--border-color)] bg-[var(--bg-subtle)] flex items-center justify-between">
+                    <span className="font-semibold text-[var(--text-main)] text-xs">System Alerts ({unreadCount} unread)</span>
+                    <button onClick={() => setIsNotifOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
                       <X size={14} />
                     </button>
                   </div>
-                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-800/60">
+                  <div className="max-h-72 overflow-y-auto divide-y divide-[var(--border-color)]">
                     {notifications.length === 0 ? (
-                      <div className="p-4 text-center text-slate-500 text-[11px]">No alerts</div>
+                      <div className="p-4 text-center text-[var(--text-muted)] text-[11px]">No alerts</div>
                     ) : (
                       notifications.map((n: any) => (
-                        <div key={n.id} className={`p-3 hover:bg-slate-800/40 transition-colors ${!n.is_read ? 'bg-blue-500/5' : ''}`}>
+                        <div key={n.id} className={`p-3 hover:bg-[var(--bg-subtle)] transition-colors ${!n.is_read ? 'bg-[var(--color-primary)]/5' : ''}`}>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-slate-200 text-xs truncate max-w-[180px]">{n.title}</span>
-                            <span className="text-[10px] text-blue-400 uppercase bg-blue-500/10 px-1 py-0.2 rounded border border-blue-500/20">
+                            <span className="font-bold text-[var(--text-main)] text-xs truncate max-w-[180px]">{n.title}</span>
+                            <span className="text-[10px] theme-accent-text uppercase bg-[var(--color-primary)]/10 px-1 py-0.2 rounded border border-[var(--color-primary)]/20">
                               {n.module}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-400 leading-tight">{n.message}</p>
+                          <p className="text-[11px] text-[var(--text-muted)] leading-tight">{n.message}</p>
                         </div>
                       ))
                     )}

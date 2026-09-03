@@ -123,34 +123,34 @@ export const LeaveEncashmentConsole = () => {
   return (
     <div className="space-y-6">
       {successMsg && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded text-xs font-mono flex items-center justify-between">
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-3 rounded text-xs font-mono flex items-center justify-between">
           <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> {successMsg}</span>
           <button onClick={() => setSuccessMsg(null)} className="font-bold">×</button>
         </div>
       )}
 
       {errorMsg && (
-        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3 rounded text-xs font-mono flex items-center justify-between">
+        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-3 rounded text-xs font-mono flex items-center justify-between">
           <span className="flex items-center gap-1.5"><AlertTriangle size={14} /> {errorMsg}</span>
           <button onClick={() => setErrorMsg(null)} className="font-bold">×</button>
         </div>
       )}
 
       {/* Header Banner */}
-      <Card className="p-6">
+      <Card className="p-6 bg-[var(--bg-card)] border-[var(--border-color)]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <DollarSign size={18} className="text-emerald-400" />
+            <h3 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+              <DollarSign size={18} className="text-emerald-500" />
               Leave Encashment & Multi-Level Approval Engine
             </h3>
-            <p className="text-xs font-mono text-slate-400 mt-1">
+            <p className="text-xs font-mono text-[var(--text-muted)] mt-1">
               Monetize accumulated encashable leave balances and manage multi-stage managerial and HR payroll approvals.
             </p>
           </div>
           <button
             onClick={() => setIsRequestModalOpen(true)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
             <Plus size={14} /> Request Encashment
           </button>
@@ -159,38 +159,38 @@ export const LeaveEncashmentConsole = () => {
 
       {/* Multi-Level Workflow Visualizer Card */}
       {isManagerOrAdmin && (
-        <Card className="p-5 space-y-4">
-          <h4 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-            <UserCheck size={16} className="text-blue-400" />
+        <Card className="p-5 space-y-4 bg-[var(--bg-card)] border-[var(--border-color)]">
+          <h4 className="text-xs font-mono font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2 border-b border-[var(--border-color)] pb-3">
+            <UserCheck size={16} className="theme-accent-text" />
             Standard 2-Level Leave Approval Hierarchy
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-            <div className="bg-[#0B0F19] border border-slate-800 p-3.5 rounded-lg flex items-center justify-between">
+            <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] p-3.5 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="bg-blue-500/20 text-blue-400 border border-blue-500/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
+                <div className="bg-[var(--color-primary)]/20 theme-accent-text border border-[var(--color-primary)]/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
                   1
                 </div>
                 <div>
-                  <div className="text-slate-200 font-semibold">Level 1: Reporting Manager</div>
-                  <div className="text-[11px] text-slate-500">Reviews workload impact & team coverage</div>
+                  <div className="text-[var(--text-main)] font-semibold">Level 1: Reporting Manager</div>
+                  <div className="text-[11px] text-[var(--text-muted)]">Reviews workload impact & team coverage</div>
                 </div>
               </div>
-              <span className="bg-blue-500/10 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-500/20">
+              <span className="bg-[var(--color-primary)]/10 theme-accent-text text-[10px] px-2 py-0.5 rounded border border-[var(--color-primary)]/20">
                 OPERATIONAL
               </span>
             </div>
 
-            <div className="bg-[#0B0F19] border border-slate-800 p-3.5 rounded-lg flex items-center justify-between">
+            <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] p-3.5 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-500/20 text-purple-400 border border-purple-500/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
+                <div className="bg-purple-500/20 text-purple-500 border border-purple-500/30 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs">
                   2
                 </div>
                 <div>
-                  <div className="text-slate-200 font-semibold">Level 2: HR & Payroll Admin</div>
-                  <div className="text-[11px] text-slate-500">Verifies balance entitlement & processes payout</div>
+                  <div className="text-[var(--text-main)] font-semibold">Level 2: HR & Payroll Admin</div>
+                  <div className="text-[11px] text-[var(--text-muted)]">Verifies balance entitlement & processes payout</div>
                 </div>
               </div>
-              <span className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded border border-purple-500/20">
+              <span className="bg-purple-500/10 text-purple-500 text-[10px] px-2 py-0.5 rounded border border-purple-500/20">
                 FINANCIAL AUDIT
               </span>
             </div>
@@ -199,23 +199,23 @@ export const LeaveEncashmentConsole = () => {
       )}
 
       {/* Encashment Requests Queue */}
-      <Card className="p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <FileText size={16} className="text-emerald-400" />
+      <Card className="p-6 space-y-4 bg-[var(--bg-card)] border-[var(--border-color)]">
+        <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+          <h4 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+            <FileText size={16} className="text-emerald-500" />
             Leave Encashment Requests Queue ({encashments.length})
           </h4>
         </div>
 
         {isLoading ? (
-          <div className="py-8 text-center text-slate-500 font-mono text-xs">Loading encashment requests...</div>
+          <div className="py-8 text-center text-[var(--text-muted)] font-mono text-xs">Loading encashment requests...</div>
         ) : encashments.length === 0 ? (
-          <div className="py-8 text-center text-slate-500 font-mono text-xs">No leave encashment requests submitted yet.</div>
+          <div className="py-8 text-center text-[var(--text-muted)] font-mono text-xs">No leave encashment requests submitted yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400">
+                <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] uppercase">
                   <th className="pb-3 font-semibold">Employee</th>
                   <th className="pb-3 font-semibold">Leave Type</th>
                   <th className="pb-3 font-semibold">Days</th>
@@ -225,27 +225,27 @@ export const LeaveEncashmentConsole = () => {
                   <th className="pb-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-main)]">
                 {encashments.map(item => (
-                  <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 font-semibold text-slate-200">
-                      {item.employee_name || 'Employee'} <span className="text-slate-500 text-[11px]">({item.employee_code || 'EMP'})</span>
+                  <tr key={item.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
+                    <td className="py-3 font-semibold text-[var(--text-main)]">
+                      {item.employee_name || 'Employee'} <span className="text-[var(--text-muted)] text-[11px]">({item.employee_code || 'EMP'})</span>
                     </td>
                     <td className="py-3">{item.leave_type_name}</td>
-                    <td className="py-3 font-bold text-slate-200">{item.days_to_encash} Days</td>
-                    <td className="py-3 text-slate-400">₹{item.per_day_rate?.toLocaleString()} / day</td>
-                    <td className="py-3 text-emerald-400 font-bold">₹{item.total_amount?.toLocaleString()}</td>
+                    <td className="py-3 font-bold text-[var(--text-main)]">{item.days_to_encash} Days</td>
+                    <td className="py-3 text-[var(--text-muted)]">₹{item.per_day_rate?.toLocaleString()} / day</td>
+                    <td className="py-3 text-emerald-500 font-bold">₹{item.total_amount?.toLocaleString()}</td>
                     <td className="py-3">
                       {item.status === 'APPROVED' ? (
-                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                        <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                           APPROVED
                         </span>
                       ) : item.status === 'REJECTED' ? (
-                        <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                        <span className="bg-rose-500/10 text-rose-500 border border-rose-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                           REJECTED
                         </span>
                       ) : (
-                        <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                        <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                           PENDING HR AUDIT
                         </span>
                       )}
@@ -255,13 +255,13 @@ export const LeaveEncashmentConsole = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => reviewMut.mutate({ encashment_id: item.id, action: 'APPROVE' })}
-                            className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded text-[11px] font-medium transition-colors"
+                            className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-500 border border-emerald-500/30 px-2.5 py-1 rounded text-[11px] font-medium transition-colors"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => reviewMut.mutate({ encashment_id: item.id, action: 'REJECT' })}
-                            className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded text-[11px] font-medium transition-colors"
+                            className="bg-rose-600/20 hover:bg-rose-600/40 text-rose-500 border border-rose-500/30 px-2.5 py-1 rounded text-[11px] font-medium transition-colors"
                           >
                             Reject
                           </button>
@@ -279,22 +279,22 @@ export const LeaveEncashmentConsole = () => {
       {/* Request Encashment Modal */}
       {isRequestModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-slate-800 rounded-lg w-full max-w-md p-6 space-y-5 animate-scale-in">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <DollarSign size={16} className="text-emerald-400" />
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg w-full max-w-md p-6 space-y-5 animate-scale-in text-[var(--text-main)]">
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+              <h3 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+                <DollarSign size={16} className="text-emerald-500" />
                 Submit Leave Encashment Request
               </h3>
-              <button onClick={() => setIsRequestModalOpen(false)} className="text-slate-400 hover:text-white font-bold">×</button>
+              <button onClick={() => setIsRequestModalOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)] font-bold">×</button>
             </div>
 
             <div className="space-y-4 text-xs font-mono">
               <div>
-                <label className="block text-slate-400 mb-1">Encashable Leave Category</label>
+                <label className="block text-[var(--text-muted)] mb-1">Encashable Leave Category</label>
                 <select
                   value={selectedLeaveType}
                   onChange={e => setSelectedLeaveType(e.target.value)}
-                  className="w-full bg-[#0B0F19] border border-slate-800 rounded p-2 text-slate-200 focus:outline-none"
+                  className="w-full bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-2 text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]"
                 >
                   <option value="">-- Select Category --</option>
                   {encashablePolicies.map(p => (
@@ -306,35 +306,35 @@ export const LeaveEncashmentConsole = () => {
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Number of Days to Encash</label>
+                <label className="block text-[var(--text-muted)] mb-1">Number of Days to Encash</label>
                 <input
                   type="number"
                   value={encashDays}
                   onChange={e => setEncashDays(e.target.value)}
-                  className="w-full bg-[#0B0F19] border border-slate-800 rounded p-2 text-slate-200 focus:outline-none"
+                  className="w-full bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-2 text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </div>
 
               {/* Real-time Calculation Preview */}
-              <div className="bg-[#0B0F19] p-3.5 rounded border border-slate-800 space-y-1.5">
-                <div className="flex justify-between text-slate-400">
+              <div className="bg-[var(--bg-subtle)] p-3.5 rounded border border-[var(--border-color)] space-y-1.5">
+                <div className="flex justify-between text-[var(--text-muted)]">
                   <span>Estimated Daily Rate:</span>
-                  <span className="text-slate-200 font-semibold">₹{estPerDayRate.toLocaleString()}</span>
+                  <span className="text-[var(--text-main)] font-semibold">₹{estPerDayRate.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-slate-400 border-t border-slate-800 pt-1.5 font-bold">
+                <div className="flex justify-between text-[var(--text-muted)] border-t border-[var(--border-color)] pt-1.5 font-bold">
                   <span>Estimated Total Payout:</span>
-                  <span className="text-emerald-400 text-sm">₹{estTotalPayout.toLocaleString()}</span>
+                  <span className="text-emerald-500 text-sm">₹{estTotalPayout.toLocaleString()}</span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Justification / Remarks</label>
+                <label className="block text-[var(--text-muted)] mb-1">Justification / Remarks</label>
                 <textarea
                   rows={3}
                   value={encashReason}
                   onChange={e => setEncashReason(e.target.value)}
                   placeholder="e.g. Year-end leave monetization request"
-                  className="w-full bg-[#0B0F19] border border-slate-800 rounded p-2 text-slate-200 placeholder-slate-600 focus:outline-none"
+                  className="w-full bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded p-2 text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
                 />
               </div>
             </div>
@@ -342,7 +342,7 @@ export const LeaveEncashmentConsole = () => {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setIsRequestModalOpen(false)}
-                className="px-3 py-1.5 rounded text-xs font-mono text-slate-400 hover:text-white"
+                className="px-3 py-1.5 rounded text-xs font-mono text-[var(--text-muted)] hover:text-[var(--text-main)]"
               >
                 Cancel
               </button>
@@ -353,7 +353,7 @@ export const LeaveEncashmentConsole = () => {
                   reason: encashReason
                 })}
                 disabled={!selectedLeaveType || submitMut.isPending}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-xs font-mono font-medium transition-colors disabled:opacity-50"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-xs font-mono font-medium transition-colors disabled:opacity-50 shadow-sm"
               >
                 Submit Request
               </button>

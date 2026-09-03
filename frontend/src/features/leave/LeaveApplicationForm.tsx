@@ -80,21 +80,21 @@ export const LeaveApplicationForm = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 font-mono">
-      <Card className="w-full max-w-lg bg-[#111827] border-slate-800 p-0 overflow-hidden shadow-2xl">
-        <div className="flex justify-between items-center px-5 py-3.5 border-b border-slate-800 bg-slate-900/60">
-          <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">Request Leave Application</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300" aria-label="Close modal">
+      <Card className="w-full max-w-lg bg-[var(--bg-card)] border-[var(--border-color)] p-0 overflow-hidden shadow-2xl text-[var(--text-main)]">
+        <div className="flex justify-between items-center px-5 py-3.5 border-b border-[var(--border-color)] bg-[var(--bg-subtle)]">
+          <h3 className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider">Request Leave Application</h3>
+          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)]" aria-label="Close modal">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <form className="p-5 space-y-4 text-xs" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-slate-400 mb-1">Leave Category *</label>
+            <label className="block text-[var(--text-muted)] mb-1">Leave Category *</label>
             <select
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value)}
-              className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+              className="w-full px-3 py-1.5 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)]"
             >
               {leaveTypes.map((lt) => (
                 <option key={lt.id} value={lt.name}>
@@ -106,58 +106,58 @@ export const LeaveApplicationForm = ({ onClose }: { onClose: () => void }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-400 mb-1">Start Date *</label>
+              <label className="block text-[var(--text-muted)] mb-1">Start Date *</label>
               <input
                 type="date"
                 required
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                className="w-full px-3 py-1.5 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)]"
               />
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">End Date *</label>
+              <label className="block text-[var(--text-muted)] mb-1">End Date *</label>
               <input
                 type="date"
                 required
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                className="w-full px-3 py-1.5 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)]"
               />
             </div>
           </div>
 
           {startDate && endDate && (
-            <div className="p-2.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-between">
+            <div className="p-2.5 rounded bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 theme-accent-text flex items-center justify-between">
               <span>Total Requested Duration:</span>
               <span className="font-bold text-sm">{totalDays} {totalDays === 1 ? 'Day' : 'Days'}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-slate-400 mb-1">Reason & Coverage Details *</label>
+            <label className="block text-[var(--text-muted)] mb-1">Reason & Coverage Details *</label>
             <textarea
               required
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide reason for leave and hand-over context..."
-              className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 resize-none"
+              className="w-full px-3 py-1.5 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] resize-none"
             />
           </div>
 
-          <div className="pt-3 flex gap-3 justify-end border-t border-slate-800">
+          <div className="pt-3 flex gap-3 justify-end border-t border-[var(--border-color)]">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 border border-slate-800 text-slate-300 rounded font-semibold"
+              className="px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] rounded font-semibold"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitMutation.isPending}
-              className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+              className="px-4 py-1.5 theme-accent-bg hover:opacity-90 text-white rounded font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] shadow-sm"
             >
               {submitMutation.isPending ? 'Submitting...' : 'Submit Request'}
             </button>

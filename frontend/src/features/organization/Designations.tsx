@@ -44,48 +44,48 @@ export const Designations = () => {
     <div className="space-y-6 animate-fade-in font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Job Designations & Grades</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">MANAGE OFFICIAL TITLES & CAREER LEVEL GRADINGS</p>
+          <h1 className="text-[28px] font-bold text-[var(--text-main)] leading-tight tracking-tight">Job Designations & Grades</h1>
+          <p className="text-xs font-mono text-[var(--text-muted)] mt-1">MANAGE OFFICIAL TITLES & CAREER LEVEL GRADINGS</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-mono font-medium transition-colors shadow-sm"
+          className="flex items-center gap-2 px-3.5 py-1.5 theme-accent-bg hover:opacity-90 text-white rounded text-xs font-mono font-medium transition-colors shadow-sm"
         >
           <Plus size={14} /> Add Designation
         </button>
       </div>
 
-      <Card className="p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden bg-[var(--bg-card)] border-[var(--border-color)]">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-900/60 border-b border-slate-800 font-mono text-xs text-slate-400 uppercase">
+              <tr className="bg-[var(--bg-subtle)] border-b border-[var(--border-color)] font-mono text-xs text-[var(--text-muted)] uppercase">
                 <th className="px-5 py-2.5">Designation Name</th>
                 <th className="px-5 py-2.5">Grade Level</th>
                 <th className="px-5 py-2.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono text-xs">
+            <tbody className="divide-y divide-[var(--border-color)] font-mono text-xs text-[var(--text-main)]">
               {isLoading ? (
-                <tr><td colSpan={3} className="p-8 text-center text-slate-500">Loading designation catalog...</td></tr>
+                <tr><td colSpan={3} className="p-8 text-center text-[var(--text-muted)]">Loading designation catalog...</td></tr>
               ) : designations.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="p-10 text-center">
-                    <Building2 className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                    <p className="text-slate-400 text-xs font-semibold">No designations configured.</p>
+                    <Building2 className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2" />
+                    <p className="text-[var(--text-muted)] text-xs font-semibold">No designations configured.</p>
                   </td>
                 </tr>
               ) : (
                 designations.map((d: any) => (
-                  <tr key={d.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-5 py-3 font-semibold text-slate-200">{d.name}</td>
-                    <td className="px-5 py-3 text-slate-400">
-                      <span className="px-2 py-0.5 bg-slate-800 text-slate-300 border border-slate-700 rounded text-[11px] font-bold">
+                  <tr key={d.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
+                    <td className="px-5 py-3 font-semibold text-[var(--text-main)]">{d.name}</td>
+                    <td className="px-5 py-3 text-[var(--text-muted)]">
+                      <span className="px-2 py-0.5 bg-[var(--bg-subtle)] text-[var(--text-main)] border border-[var(--border-color)] rounded text-[11px] font-bold">
                         {d.grade || 'GRADED'}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <button className="text-xs text-blue-400 hover:text-blue-300">Edit</button>
+                      <button className="text-xs theme-accent-text hover:underline">Edit</button>
                     </td>
                   </tr>
                 ))
@@ -97,43 +97,43 @@ export const Designations = () => {
 
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in font-mono">
-          <Card className="w-full max-w-md bg-[#111827] border-slate-800 p-0 overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900/60">
-              <h2 className="text-sm font-semibold text-slate-100">Add Designation</h2>
-              <button onClick={() => setShowAdd(false)} className="text-slate-500 hover:text-slate-300">
+          <Card className="w-full max-w-md bg-[var(--bg-card)] border-[var(--border-color)] p-0 overflow-hidden shadow-2xl text-[var(--text-main)]">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-color)] bg-[var(--bg-subtle)]">
+              <h2 className="text-sm font-semibold text-[var(--text-main)]">Add Designation</h2>
+              <button onClick={() => setShowAdd(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
                 <X size={16} />
               </button>
             </div>
             <form onSubmit={e => { e.preventDefault(); addMutation.mutate() }} className="p-5 space-y-4 text-xs">
               {addMutation.isError && (
-                <div className="flex items-center gap-2 p-2.5 bg-rose-500/10 border border-rose-500/20 rounded text-rose-400">
+                <div className="flex items-center gap-2 p-2.5 bg-rose-500/10 border border-rose-500/20 rounded text-rose-500">
                   <AlertCircle size={14} /> Failed to add designation
                 </div>
               )}
               <div>
-                <label className="block text-slate-400 mb-1">Designation Name *</label>
+                <label className="block text-[var(--text-muted)] mb-1">Designation Name *</label>
                 <input 
                   required 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
-                  className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" 
+                  className="w-full px-3 py-1.5 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]" 
                   placeholder="e.g. Senior Software Engineer" 
                 />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">Grade Level (Optional)</label>
+                <label className="block text-[var(--text-muted)] mb-1">Grade Level (Optional)</label>
                 <input 
                   value={grade} 
                   onChange={e => setGrade(e.target.value)} 
-                  className="w-full px-3 py-1.5 bg-[#0B0F19] border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-blue-500" 
+                  className="w-full px-3 py-1.5 bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded text-[var(--text-main)] focus:outline-none focus:border-[var(--color-primary)]" 
                   placeholder="e.g. L4, E2" 
                 />
               </div>
               <div className="pt-2 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowAdd(false)} className="px-3 py-1.5 bg-[#0B0F19] hover:bg-slate-800 border border-slate-800 text-slate-300 rounded">
+                <button type="button" onClick={() => setShowAdd(false)} className="px-3 py-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] rounded">
                   Cancel
                 </button>
-                <button type="submit" disabled={addMutation.isPending || !name} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded disabled:opacity-50 flex items-center gap-2 font-semibold">
+                <button type="submit" disabled={addMutation.isPending || !name} className="px-3 py-1.5 theme-accent-bg hover:opacity-90 text-white rounded disabled:opacity-50 flex items-center gap-2 font-semibold shadow-sm">
                   {addMutation.isPending && <Loader2 size={14} className="animate-spin" />} Save
                 </button>
               </div>

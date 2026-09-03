@@ -44,17 +44,17 @@ export const DataQualityCenter = () => {
   })
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Data Quality & Health Center</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">PROACTIVE AUDIT ENGINE FOR EMPLOYEE DATA INTEGRITY</p>
+          <h1 className="text-[28px] font-bold text-[var(--text-main)] leading-tight tracking-tight">Data Quality & Health Center</h1>
+          <p className="text-xs font-mono text-[var(--text-muted)] mt-1">PROACTIVE AUDIT ENGINE FOR EMPLOYEE DATA INTEGRITY</p>
         </div>
         <button 
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex items-center gap-1.5 bg-[#111827] hover:bg-slate-800 text-slate-200 border border-slate-800 px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] text-[var(--text-main)] border border-[var(--border-color)] px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors"
         >
           <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} /> Run System Audit
         </button>
@@ -62,74 +62,74 @@ export const DataQualityCenter = () => {
 
       {/* Main Health Index & Category Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 font-mono">
-        <Card className="p-5 md:col-span-1 bg-gradient-to-br from-blue-950/40 to-slate-900 border-blue-500/30 flex flex-col justify-between">
+        <Card className="p-5 md:col-span-1 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-slate-400 text-xs uppercase mb-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)] text-xs uppercase mb-1">
               <span>Data Health Index</span>
-              <ShieldCheck size={16} className="text-emerald-400" />
+              <ShieldCheck size={16} className="text-emerald-500" />
             </div>
-            <h3 className="text-4xl font-bold text-emerald-400">{summary.health_score}%</h3>
+            <h3 className="text-4xl font-bold text-emerald-500">{summary.health_score}%</h3>
           </div>
-          <div className="text-[11px] text-slate-400 mt-3 pt-3 border-t border-slate-800">
+          <div className="text-[11px] text-[var(--text-muted)] mt-3 pt-3 border-t border-[var(--border-color)]">
             {summary.clean_record_count} OF {summary.total_employees} RECORDS FULLY COMPLIANT
           </div>
         </Card>
 
         <div onClick={() => setSelectedFilter('MANAGER')} className="cursor-pointer">
-          <Card className={`p-4 transition-all ${selectedFilter === 'MANAGER' ? 'border-amber-500 bg-amber-500/10' : 'hover:border-slate-700'}`}>
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <Card className={`p-4 transition-all bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm ${selectedFilter === 'MANAGER' ? 'border-amber-500 bg-amber-500/10' : 'hover:border-[var(--border-hover)]'}`}>
+            <div className="flex items-center justify-between text-[var(--text-muted)] text-xs mb-1">
               <span>Missing Manager</span>
-              <UserX size={15} className="text-amber-400" />
+              <UserX size={15} className="text-amber-500" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-100">{summary.missing_manager_count}</h3>
-            <p className="text-[10px] text-slate-500 mt-1">ORG CHART ANOMALIES</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)]">{summary.missing_manager_count}</h3>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold">ORG CHART ANOMALIES</p>
           </Card>
         </div>
 
         <div onClick={() => setSelectedFilter('BANK')} className="cursor-pointer">
-          <Card className={`p-4 transition-all ${selectedFilter === 'BANK' ? 'border-amber-500 bg-amber-500/10' : 'hover:border-slate-700'}`}>
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <Card className={`p-4 transition-all bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm ${selectedFilter === 'BANK' ? 'border-rose-500 bg-rose-500/10' : 'hover:border-[var(--border-hover)]'}`}>
+            <div className="flex items-center justify-between text-[var(--text-muted)] text-xs mb-1">
               <span>Bank & PAN Missing</span>
-              <CreditCard size={15} className="text-rose-400" />
+              <CreditCard size={15} className="text-rose-500" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-100">{summary.missing_bank_pan_count}</h3>
-            <p className="text-[10px] text-slate-500 mt-1">STATUTORY PAYROLL RISKS</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)]">{summary.missing_bank_pan_count}</h3>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold">STATUTORY PAYROLL RISKS</p>
           </Card>
         </div>
 
         <div onClick={() => setSelectedFilter('SHIFT')} className="cursor-pointer">
-          <Card className={`p-4 transition-all ${selectedFilter === 'SHIFT' ? 'border-amber-500 bg-amber-500/10' : 'hover:border-slate-700'}`}>
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <Card className={`p-4 transition-all bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm ${selectedFilter === 'SHIFT' ? 'border-blue-500 bg-blue-500/10' : 'hover:border-[var(--border-hover)]'}`}>
+            <div className="flex items-center justify-between text-[var(--text-muted)] text-xs mb-1">
               <span>Shift Unassigned</span>
-              <Clock size={15} className="text-blue-400" />
+              <Clock size={15} className="theme-accent-text" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-100">{summary.missing_shift_count}</h3>
-            <p className="text-[10px] text-slate-500 mt-1">ATTENDANCE FALLBACKS</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)]">{summary.missing_shift_count}</h3>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold">ATTENDANCE FALLBACKS</p>
           </Card>
         </div>
 
         <div onClick={() => setSelectedFilter('EMAIL')} className="cursor-pointer">
-          <Card className={`p-4 transition-all ${selectedFilter === 'EMAIL' ? 'border-amber-500 bg-amber-500/10' : 'hover:border-slate-700'}`}>
-            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+          <Card className={`p-4 transition-all bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm ${selectedFilter === 'EMAIL' ? 'border-purple-500 bg-purple-500/10' : 'hover:border-[var(--border-hover)]'}`}>
+            <div className="flex items-center justify-between text-[var(--text-muted)] text-xs mb-1">
               <span>Email Conflicts</span>
-              <Mail size={15} className="text-purple-400" />
+              <Mail size={15} className="text-purple-500" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-100">{summary.duplicate_email_count}</h3>
-            <p className="text-[10px] text-slate-500 mt-1">DUPLICATE ALIASES</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)]">{summary.duplicate_email_count}</h3>
+            <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold">DUPLICATE ALIASES</p>
           </Card>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-slate-800 pb-3 font-mono text-xs">
+      <div className="flex gap-2 border-b border-[var(--border-color)] pb-3 font-mono text-xs">
         {['ALL', 'MANAGER', 'BANK', 'SHIFT', 'EMAIL'].map(f => (
           <button
             key={f}
             onClick={() => setSelectedFilter(f)}
             className={`px-3 py-1.5 rounded transition-colors ${
               selectedFilter === f 
-                ? 'bg-blue-600 text-white font-semibold' 
-                : 'bg-[#111827] text-slate-400 border border-slate-800 hover:text-slate-200'
+                ? 'theme-accent-bg text-white font-semibold shadow-xs' 
+                : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] border border-[var(--border-color)] hover:text-[var(--text-main)]'
             }`}
           >
             {f === 'ALL' ? 'SHOW ALL ISSUES' : f}
@@ -138,24 +138,24 @@ export const DataQualityCenter = () => {
       </div>
 
       {/* Issues Directory Table */}
-      <Card className="p-0 overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
-          <h3 className="font-semibold text-slate-100 text-sm">Detected Data Anomalies</h3>
-          <span className="text-[11px] font-mono text-slate-400">CLICK "RESOLVE" TO DIRECTLY EDIT EMPLOYEE MASTER</span>
+      <Card className="p-0 overflow-hidden bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+        <div className="px-5 py-3 border-b border-[var(--border-color)] bg-[var(--bg-subtle)] flex items-center justify-between">
+          <h3 className="font-semibold text-[var(--text-main)] text-sm">Detected Data Anomalies</h3>
+          <span className="text-[11px] font-mono text-[var(--text-muted)]">CLICK "RESOLVE" TO DIRECTLY EDIT EMPLOYEE MASTER</span>
         </div>
 
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500 font-mono text-xs">Running diagnostic scan...</div>
+          <div className="p-8 text-center text-[var(--text-muted)] font-mono text-xs">Running diagnostic scan...</div>
         ) : filteredIssues.length === 0 ? (
           <div className="p-10 text-center flex flex-col items-center">
-            <CheckCircle2 className="w-10 h-10 text-emerald-400 mb-2" />
-            <h3 className="text-sm font-semibold text-slate-200">Zero Anomalies Found</h3>
-            <p className="text-slate-500 text-xs font-mono mt-1">Selected category contains no data quality issues.</p>
+            <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2" />
+            <h3 className="text-sm font-semibold text-[var(--text-main)]">Zero Anomalies Found</h3>
+            <p className="text-[var(--text-muted)] text-xs font-mono mt-1">Selected category contains no data quality issues.</p>
           </div>
         ) : (
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/40 font-mono text-xs text-slate-400 uppercase">
+              <tr className="border-b border-[var(--border-color)] bg-[var(--bg-subtle)] font-mono text-xs text-[var(--text-muted)] uppercase">
                 <th className="px-5 py-2.5">Employee</th>
                 <th className="px-5 py-2.5">Issue Category</th>
                 <th className="px-5 py-2.5">Audit Description</th>
@@ -163,24 +163,24 @@ export const DataQualityCenter = () => {
                 <th className="px-5 py-2.5 text-right">Fix Shortcut</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-xs font-mono">
+            <tbody className="divide-y divide-[var(--border-color)] text-xs font-mono text-[var(--text-main)]">
               {filteredIssues.map((item: any) => (
-                <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                <tr key={item.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
                   <td className="px-5 py-3">
-                    <div className="font-semibold text-slate-200">{item.employee_name}</div>
-                    <div className="text-[11px] text-slate-500">{item.employee_id} • {item.department}</div>
+                    <div className="font-semibold text-[var(--text-main)]">{item.employee_name}</div>
+                    <div className="text-[11px] text-[var(--text-muted)]">{item.employee_id} • {item.department}</div>
                   </td>
                   <td className="px-5 py-3">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-bold">
+                    <span className="px-2 py-0.5 rounded bg-[var(--bg-subtle)] border border-[var(--border-color)] text-[var(--text-main)] text-[11px] font-bold">
                       {item.issue_type}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-slate-400 max-w-[320px]">{item.description}</td>
+                  <td className="px-5 py-3 text-[var(--text-muted)] max-w-[320px]">{item.description}</td>
                   <td className="px-5 py-3">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                       item.severity === 'HIGH' 
-                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
-                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' 
+                        : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                     }`}>
                       <AlertTriangle size={10} /> {item.severity}
                     </span>
@@ -188,7 +188,7 @@ export const DataQualityCenter = () => {
                   <td className="px-5 py-3 text-right">
                     <button 
                       onClick={() => navigate({ to: item.fix_url })}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 theme-accent-bg hover:opacity-90 text-white rounded text-xs font-medium transition-all shadow-sm"
                     >
                       Resolve <ExternalLink size={12} />
                     </button>

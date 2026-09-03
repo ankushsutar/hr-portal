@@ -51,16 +51,16 @@ export const ReportsDashboard = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Standard Reports & CSV Export</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">REAL-TIME OPERATIONAL HR INTELLIGENCE & EXPORT ENGINE</p>
+          <h1 className="text-[28px] font-bold text-[var(--text-main)] leading-tight tracking-tight">Standard Reports & CSV Export</h1>
+          <p className="text-xs font-mono text-[var(--text-muted)] mt-1">REAL-TIME OPERATIONAL HR INTELLIGENCE & EXPORT ENGINE</p>
         </div>
         <button 
           onClick={handleExportCSV}
-          className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded text-xs font-mono font-medium transition-colors shadow-sm"
+          className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded text-xs font-mono font-semibold transition-all shadow-sm"
         >
           <Download size={14} /> Export Report to CSV
         </button>
@@ -68,7 +68,7 @@ export const ReportsDashboard = () => {
 
       {/* Report Selector Tabs */}
       <Tabs.Root value={activeReport} onValueChange={setActiveReport} className="w-full">
-        <Tabs.List className="flex border-b border-slate-800 mb-6 gap-2 font-mono text-xs overflow-x-auto custom-scrollbar">
+        <Tabs.List className="flex border-b border-[var(--border-color)] mb-6 gap-2 font-mono text-xs overflow-x-auto custom-scrollbar">
           {[
             { key: 'headcount', label: 'HEADCOUNT REPORT', icon: Users },
             { key: 'new_joiners', label: 'NEW JOINERS', icon: UserPlus },
@@ -80,7 +80,7 @@ export const ReportsDashboard = () => {
             <Tabs.Trigger
               key={t.key}
               value={t.key}
-              className="px-3.5 py-2 text-slate-400 hover:text-slate-200 data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-colors flex items-center gap-1.5 shrink-0"
+              className="px-3.5 py-2 text-[var(--text-muted)] hover:text-[var(--text-main)] data-[state=active]:theme-accent-text data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-primary)] transition-colors flex items-center gap-1.5 shrink-0 font-semibold"
             >
               <t.icon size={14} /> {t.label}
             </Tabs.Trigger>
@@ -88,32 +88,32 @@ export const ReportsDashboard = () => {
         </Tabs.List>
 
         {/* Report Content Table */}
-        <Card className="p-0 overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between font-mono text-xs">
-            <div className="flex items-center gap-2 text-slate-200 font-semibold">
-              <FileSpreadsheet size={15} className="text-blue-400" />
+        <Card className="p-0 overflow-hidden bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <div className="px-5 py-3 border-b border-[var(--border-color)] bg-[var(--bg-subtle)] flex items-center justify-between font-mono text-xs">
+            <div className="flex items-center gap-2 text-[var(--text-main)] font-semibold">
+              <FileSpreadsheet size={15} className="theme-accent-text" />
               <span className="uppercase">{activeReport.replace('_', ' ')} REGISTER</span>
             </div>
-            <span className="text-slate-400">{report.rows?.length || 0} TOTAL RECORDS</span>
+            <span className="text-[var(--text-muted)]">{report.rows?.length || 0} TOTAL RECORDS</span>
           </div>
 
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500 font-mono text-xs">Generating report data...</div>
+            <div className="p-8 text-center text-[var(--text-muted)] font-mono text-xs">Generating report data...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-900/40 font-mono text-xs text-slate-400 uppercase">
+                  <tr className="border-b border-[var(--border-color)] bg-[var(--bg-subtle)] font-mono text-xs text-[var(--text-muted)] uppercase">
                     {report.columns?.map((col: string, idx: number) => (
-                      <th key={idx} className="px-5 py-2.5">{col}</th>
+                      <th key={idx} className="px-5 py-2.5 font-semibold">{col}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs font-mono">
+                <tbody className="divide-y divide-[var(--border-color)] text-xs font-mono">
                   {report.rows?.map((row: any, rIdx: number) => (
-                    <tr key={rIdx} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={rIdx} className="hover:bg-[var(--bg-subtle)] transition-colors">
                       {Object.values(row).map((val: any, cIdx: number) => (
-                        <td key={cIdx} className="px-5 py-3 text-slate-300">
+                        <td key={cIdx} className="px-5 py-3 text-[var(--text-main)]">
                           {String(val)}
                         </td>
                       ))}

@@ -19,10 +19,10 @@ export const RecruitmentDashboard = () => {
     <div className="space-y-6 animate-fade-in font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-slate-100 leading-tight tracking-tight">Applicant Tracking System (ATS)</h1>
-          <p className="text-xs font-mono text-slate-400 mt-1">JOB REQUISITIONS & APPLICANT STAGE PIPELINE MANAGEMENT</p>
+          <h1 className="text-[28px] font-bold text-[var(--text-main)] leading-tight tracking-tight">Applicant Tracking System (ATS)</h1>
+          <p className="text-xs font-mono text-[var(--text-muted)] mt-1">JOB REQUISITIONS & APPLICANT STAGE PIPELINE MANAGEMENT</p>
         </div>
-        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded font-mono text-xs font-semibold transition-colors shadow-sm">
+        <button className="flex items-center gap-2 theme-accent-bg hover:opacity-90 text-white px-3.5 py-1.5 rounded font-mono text-xs font-semibold transition-all shadow-sm">
           <Plus className="w-3.5 h-3.5" /> New Requisition
         </button>
       </div>
@@ -30,22 +30,22 @@ export const RecruitmentDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Active Jobs Sidebar */}
         <div className="lg:col-span-1 space-y-4">
-          <h3 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <Briefcase className="w-4 h-4 text-blue-400" /> Active Job Requisitions
+          <h3 className="text-xs font-mono font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
+            <Briefcase className="w-4 h-4 theme-accent-text" /> Active Job Requisitions
           </h3>
           <div className="space-y-3">
             {jobsLoading ? (
-              <div className="text-xs font-mono text-slate-500">Loading requisitions...</div>
+              <div className="text-xs font-mono text-[var(--text-muted)]">Loading requisitions...</div>
             ) : (
               jobsData?.data?.map((job: any) => (
-                <Card key={job.id} className="p-3.5 hover:border-blue-500/50 cursor-pointer group">
-                  <h4 className="font-semibold text-slate-200 text-xs group-hover:text-blue-400 transition-colors">{job.title}</h4>
-                  <p className="text-[11px] font-mono text-slate-400 mt-1">{job.department} • {job.location}</p>
+                <Card key={job.id} className="p-3.5 hover:border-[var(--color-primary)]/50 cursor-pointer group bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+                  <h4 className="font-semibold text-[var(--text-main)] text-xs group-hover:theme-accent-text transition-colors">{job.title}</h4>
+                  <p className="text-[11px] font-mono text-[var(--text-muted)] mt-1">{job.department} • {job.location}</p>
                   <div className="flex items-center justify-between mt-3 text-[11px] font-mono">
-                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">
+                    <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">
                       Target: {job.headcount}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-blue-400 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:theme-accent-text transition-colors" />
                   </div>
                 </Card>
               ))
@@ -56,8 +56,8 @@ export const RecruitmentDashboard = () => {
         {/* Candidate Pipeline */}
         <div className="lg:col-span-3 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-400" /> Candidate Stage Funnel
+            <h3 className="text-xs font-mono font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
+              <Users className="w-4 h-4 theme-accent-text" /> Candidate Stage Funnel
             </h3>
           </div>
           <CandidatePipeline />

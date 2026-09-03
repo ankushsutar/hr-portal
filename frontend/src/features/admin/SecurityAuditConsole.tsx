@@ -73,22 +73,22 @@ export const SecurityAuditConsole = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header Banner */}
-      <Card className="p-6">
+      <Card className="p-6 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <ShieldAlert size={18} className="text-emerald-400" />
+            <h3 className="text-base font-bold text-[var(--text-main)] flex items-center gap-2">
+              <ShieldAlert size={18} className="text-emerald-500" />
               Security, Audit Trail Engine & RBAC Data Scoping Audit
             </h3>
-            <p className="text-xs font-mono text-slate-400 mt-1">
+            <p className="text-xs font-mono text-[var(--text-muted)] mt-1">
               Inspect real-time data access logs, verify organizational RBAC scoping boundaries, and test sensitive PII field redaction policies.
             </p>
           </div>
           <button
             onClick={() => refetchLogs()}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded text-xs font-mono font-medium flex items-center gap-1.5 transition-colors"
+            className="bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] text-[var(--text-main)] border border-[var(--border-color)] px-3.5 py-2 rounded text-xs font-mono font-medium flex items-center gap-1.5 transition-colors"
           >
             <RefreshCw size={14} /> Refresh Logs
           </button>
@@ -97,50 +97,50 @@ export const SecurityAuditConsole = () => {
 
       {/* Security Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 font-mono text-xs">
-        <Card className="p-4 space-y-1 border-l-2 border-l-emerald-500">
-          <span className="text-slate-400 uppercase tracking-wider text-[10px]">PII Redaction Shield</span>
-          <div className="text-xl font-bold text-emerald-400 flex items-center gap-1.5">
+        <Card className="p-4 space-y-1 border-l-4 border-l-emerald-500 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <span className="text-[var(--text-muted)] uppercase tracking-wider text-[10px]">PII Redaction Shield</span>
+          <div className="text-xl font-bold text-emerald-500 flex items-center gap-1.5">
             <ShieldCheck size={18} /> ACTIVE
           </div>
-          <span className="text-slate-500 text-[11px]">AUTOMATIC PII FIELD MASKING</span>
+          <span className="text-[var(--text-muted)] text-[11px]">AUTOMATIC PII FIELD MASKING</span>
         </Card>
 
-        <Card className="p-4 space-y-1 border-l-2 border-l-blue-500">
-          <span className="text-slate-400 uppercase tracking-wider text-[10px]">Access Events Logged</span>
-          <div className="text-2xl font-bold text-slate-100">{logs.length}</div>
-          <span className="text-blue-400 text-[11px]">AUDITED READ/WRITE ACTIONS</span>
+        <Card className="p-4 space-y-1 border-l-4 border-l-blue-500 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <span className="text-[var(--text-muted)] uppercase tracking-wider text-[10px]">Access Events Logged</span>
+          <div className="text-2xl font-bold text-[var(--text-main)]">{logs.length}</div>
+          <span className="theme-accent-text text-[11px] font-semibold">AUDITED READ/WRITE ACTIONS</span>
         </Card>
 
-        <Card className="p-4 space-y-1 border-l-2 border-l-purple-500">
-          <span className="text-slate-400 uppercase tracking-wider text-[10px]">RBAC Policy Boundaries</span>
-          <div className="text-xl font-bold text-purple-400">ENFORCED</div>
-          <span className="text-slate-500 text-[11px]">STRICT SCOPE CONTROLS</span>
+        <Card className="p-4 space-y-1 border-l-4 border-l-purple-500 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <span className="text-[var(--text-muted)] uppercase tracking-wider text-[10px]">RBAC Policy Boundaries</span>
+          <div className="text-xl font-bold text-purple-500">ENFORCED</div>
+          <span className="text-[var(--text-muted)] text-[11px]">STRICT SCOPE CONTROLS</span>
         </Card>
 
-        <Card className="p-4 space-y-1 border-l-2 border-l-amber-500">
-          <span className="text-slate-400 uppercase tracking-wider text-[10px]">Unusual Access Alerts</span>
-          <div className="text-2xl font-bold text-emerald-400">0</div>
-          <span className="text-emerald-400 text-[11px]">ZERO ANOMALIES DETECTED</span>
+        <Card className="p-4 space-y-1 border-l-4 border-l-amber-500 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <span className="text-[var(--text-muted)] uppercase tracking-wider text-[10px]">Unusual Access Alerts</span>
+          <div className="text-2xl font-bold text-emerald-500">0</div>
+          <span className="text-emerald-500 text-[11px] font-semibold">ZERO ANOMALIES DETECTED</span>
         </Card>
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex border-b border-slate-800 gap-4 font-mono text-xs">
+      <div className="flex border-b border-[var(--border-color)] gap-4 font-mono text-xs">
         <button
           onClick={() => setActiveTab('logs')}
-          className={`pb-2.5 font-bold transition-colors border-b-2 ${activeTab === 'logs' ? 'text-blue-400 border-blue-500' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
+          className={`pb-2.5 font-bold transition-colors border-b-2 ${activeTab === 'logs' ? 'theme-accent-text border-[var(--color-primary)]' : 'text-[var(--text-muted)] border-transparent hover:text-[var(--text-main)]'}`}
         >
           Data Access Audit Trail ({logs.length})
         </button>
         <button
           onClick={() => setActiveTab('matrix')}
-          className={`pb-2.5 font-bold transition-colors border-b-2 ${activeTab === 'matrix' ? 'text-blue-400 border-blue-500' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
+          className={`pb-2.5 font-bold transition-colors border-b-2 ${activeTab === 'matrix' ? 'theme-accent-text border-[var(--color-primary)]' : 'text-[var(--text-muted)] border-transparent hover:text-[var(--text-main)]'}`}
         >
           RBAC Data Scoping Matrix
         </button>
         <button
           onClick={() => setActiveTab('tester')}
-          className={`pb-2.5 font-bold transition-colors border-b-2 ${activeTab === 'tester' ? 'text-blue-400 border-blue-500' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
+          className={`pb-2.5 font-bold transition-colors border-b-2 ${activeTab === 'tester' ? 'theme-accent-text border-[var(--color-primary)]' : 'text-[var(--text-muted)] border-transparent hover:text-[var(--text-main)]'}`}
         >
           PII Field Redaction Tester
         </button>
@@ -148,48 +148,48 @@ export const SecurityAuditConsole = () => {
 
       {/* Tab 1: Access Logs */}
       {activeTab === 'logs' && (
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <Database size={16} className="text-blue-400" />
+        <Card className="p-6 space-y-4 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+            <h4 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+              <Database size={16} className="theme-accent-text" />
               Real-Time Audit Trail
             </h4>
           </div>
 
           {logsLoading ? (
-            <div className="py-8 text-center text-slate-500 font-mono text-xs">Loading audit logs...</div>
+            <div className="py-8 text-center text-[var(--text-muted)] font-mono text-xs">Loading audit logs...</div>
           ) : logs.length === 0 ? (
-            <div className="py-8 text-center text-slate-500 font-mono text-xs">No data access events recorded yet.</div>
+            <div className="py-8 text-center text-[var(--text-muted)] font-mono text-xs">No data access events recorded yet.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-mono">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="pb-3 font-semibold">User</th>
-                    <th className="pb-3 font-semibold">Role</th>
-                    <th className="pb-3 font-semibold">Module</th>
-                    <th className="pb-3 font-semibold">Action</th>
-                    <th className="pb-3 font-semibold">IP Address</th>
-                    <th className="pb-3 font-semibold">Timestamp</th>
+                  <tr className="border-b border-[var(--border-color)] bg-[var(--bg-subtle)] text-[var(--text-muted)]">
+                    <th className="py-2.5 px-3 font-semibold">User</th>
+                    <th className="py-2.5 px-3 font-semibold">Role</th>
+                    <th className="py-2.5 px-3 font-semibold">Module</th>
+                    <th className="py-2.5 px-3 font-semibold">Action</th>
+                    <th className="py-2.5 px-3 font-semibold">IP Address</th>
+                    <th className="py-2.5 px-3 font-semibold">Timestamp</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-main)]">
                   {logs.map(l => (
-                    <tr key={l.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3 font-semibold text-slate-200">{l.user_email}</td>
-                      <td className="py-3">
-                        <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">
+                    <tr key={l.id} className="hover:bg-[var(--bg-subtle)] transition-colors">
+                      <td className="py-3 px-3 font-semibold text-[var(--text-main)]">{l.user_email}</td>
+                      <td className="py-3 px-3">
+                        <span className="bg-[var(--bg-subtle)] text-[var(--text-main)] border border-[var(--border-color)] px-2 py-0.5 rounded text-[10px] font-bold">
                           {l.user_role}
                         </span>
                       </td>
-                      <td className="py-3 text-blue-400 font-bold">{l.module}</td>
-                      <td className="py-3">
-                        <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                      <td className="py-3 px-3 theme-accent-text font-bold">{l.module}</td>
+                      <td className="py-3 px-3">
+                        <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                           {l.action}
                         </span>
                       </td>
-                      <td className="py-3 text-slate-400">{l.ip_address || '127.0.0.1'}</td>
-                      <td className="py-3 text-slate-400">{l.accessed_at}</td>
+                      <td className="py-3 px-3 text-[var(--text-muted)]">{l.ip_address || '127.0.0.1'}</td>
+                      <td className="py-3 px-3 text-[var(--text-muted)]">{l.accessed_at}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -201,10 +201,10 @@ export const SecurityAuditConsole = () => {
 
       {/* Tab 2: RBAC Matrix */}
       {activeTab === 'matrix' && (
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <Key size={16} className="text-purple-400" />
+        <Card className="p-6 space-y-4 bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+            <h4 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+              <Key size={16} className="text-purple-500" />
               Role-Based Access Control (RBAC) Data Scoping Boundaries
             </h4>
           </div>
@@ -212,36 +212,36 @@ export const SecurityAuditConsole = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400">
-                  <th className="pb-3 font-semibold">Role</th>
-                  <th className="pb-3 font-semibold">Accessible Modules</th>
-                  <th className="pb-3 font-semibold">Data Scope Boundary</th>
-                  <th className="pb-3 font-semibold">Read Sensitive PII</th>
-                  <th className="pb-3 font-semibold">Export Rights</th>
+                <tr className="border-b border-[var(--border-color)] bg-[var(--bg-subtle)] text-[var(--text-muted)]">
+                  <th className="py-2.5 px-3 font-semibold">Role</th>
+                  <th className="py-2.5 px-3 font-semibold">Accessible Modules</th>
+                  <th className="py-2.5 px-3 font-semibold">Data Scope Boundary</th>
+                  <th className="py-2.5 px-3 font-semibold">Read Sensitive PII</th>
+                  <th className="py-2.5 px-3 font-semibold">Export Rights</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-main)]">
                 {matrix.map(m => (
-                  <tr key={m.role} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 font-bold text-purple-400">{m.role}</td>
-                    <td className="py-3 text-slate-300">{m.module}</td>
-                    <td className="py-3">
-                      <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-bold">
+                  <tr key={m.role} className="hover:bg-[var(--bg-subtle)] transition-colors">
+                    <td className="py-3 px-3 font-bold text-purple-500">{m.role}</td>
+                    <td className="py-3 px-3 text-[var(--text-main)]">{m.module}</td>
+                    <td className="py-3 px-3">
+                      <span className="bg-[var(--color-primary)]/10 theme-accent-text border border-[var(--color-primary)]/20 px-2 py-0.5 rounded font-bold">
                         {m.scope}
                       </span>
                     </td>
-                    <td className="py-3">
+                    <td className="py-3 px-3">
                       {m.can_read_sensitive ? (
-                        <span className="text-emerald-400 font-bold">ALLOWED</span>
+                        <span className="text-emerald-500 font-bold">ALLOWED</span>
                       ) : (
-                        <span className="text-rose-400 font-bold">RESTRICTED</span>
+                        <span className="text-rose-500 font-bold">RESTRICTED</span>
                       )}
                     </td>
-                    <td className="py-3">
+                    <td className="py-3 px-3">
                       {m.can_export ? (
-                        <span className="text-emerald-400 font-bold">ALLOWED</span>
+                        <span className="text-emerald-500 font-bold">ALLOWED</span>
                       ) : (
-                        <span className="text-slate-500 font-bold">DISABLED</span>
+                        <span className="text-[var(--text-muted)] font-bold">DISABLED</span>
                       )}
                     </td>
                   </tr>
@@ -254,15 +254,15 @@ export const SecurityAuditConsole = () => {
 
       {/* Tab 3: PII Tester */}
       {activeTab === 'tester' && (
-        <Card className="p-6 space-y-5 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <Lock size={16} className="text-emerald-400" />
+        <Card className="p-6 space-y-5 font-mono text-xs bg-[var(--bg-card)] border-[var(--border-color)] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+            <h4 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+              <Lock size={16} className="text-emerald-500" />
               Interactive Sensitive Field Redaction Engine
             </h4>
             <button
               onClick={() => setShowUnmasked(!showUnmasked)}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors"
+              className="bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)] text-[var(--text-main)] border border-[var(--border-color)] px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors font-semibold"
             >
               {showUnmasked ? <EyeOff size={14} /> : <Eye size={14} />}
               {showUnmasked ? 'Mask Fields' : 'Unmask (Admin Mode)'}
@@ -270,73 +270,73 @@ export const SecurityAuditConsole = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4 bg-[#0B0F19] p-4 rounded-lg border border-slate-800">
-              <span className="font-bold text-slate-200 block uppercase text-[11px]">Simulated Data Inputs</span>
+            <div className="space-y-4 bg-[var(--bg-subtle)] p-4 rounded-lg border border-[var(--border-color)]">
+              <span className="font-bold text-[var(--text-main)] block uppercase text-[11px]">Simulated Data Inputs</span>
               
               <div>
-                <label className="block text-slate-400 mb-1">Bank Account Number</label>
+                <label className="block text-[var(--text-muted)] mb-1">Bank Account Number</label>
                 <input
                   type="text"
                   value={testBank}
                   onChange={e => setTestBank(e.target.value)}
-                  className="w-full bg-[#111827] border border-slate-800 rounded p-2 text-slate-200 focus:outline-none"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded p-2 text-[var(--text-main)] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Tax ID / SSN / PAN</label>
+                <label className="block text-[var(--text-muted)] mb-1">Tax ID / SSN / PAN</label>
                 <input
                   type="text"
                   value={testTax}
                   onChange={e => setTestTax(e.target.value)}
-                  className="w-full bg-[#111827] border border-slate-800 rounded p-2 text-slate-200 focus:outline-none"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded p-2 text-[var(--text-main)] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Base Salary</label>
+                <label className="block text-[var(--text-muted)] mb-1">Base Salary</label>
                 <input
                   type="text"
                   value={testSalary}
                   onChange={e => setTestSalary(e.target.value)}
-                  className="w-full bg-[#111827] border border-slate-800 rounded p-2 text-slate-200 focus:outline-none"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded p-2 text-[var(--text-main)] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Email Address</label>
+                <label className="block text-[var(--text-muted)] mb-1">Email Address</label>
                 <input
                   type="text"
                   value={testEmail}
                   onChange={e => setTestEmail(e.target.value)}
-                  className="w-full bg-[#111827] border border-slate-800 rounded p-2 text-slate-200 focus:outline-none"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded p-2 text-[var(--text-main)] focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Masked Output */}
-            <div className="space-y-4 bg-[#0B0F19] p-4 rounded-lg border border-slate-800">
-              <span className="font-bold text-emerald-400 block uppercase text-[11px]">Rendered UI Output (Redacted)</span>
+            <div className="space-y-4 bg-[var(--bg-subtle)] p-4 rounded-lg border border-[var(--border-color)]">
+              <span className="font-bold text-emerald-500 block uppercase text-[11px]">Rendered UI Output (Redacted)</span>
 
               <div className="space-y-3">
-                <div className="bg-[#111827] p-2.5 rounded border border-slate-800 flex justify-between">
-                  <span className="text-slate-400">Bank Account:</span>
-                  <span className="font-bold text-slate-100">{showUnmasked ? testBank : maskBank(testBank)}</span>
+                <div className="bg-[var(--bg-card)] p-2.5 rounded border border-[var(--border-color)] flex justify-between">
+                  <span className="text-[var(--text-muted)]">Bank Account:</span>
+                  <span className="font-bold text-[var(--text-main)]">{showUnmasked ? testBank : maskBank(testBank)}</span>
                 </div>
 
-                <div className="bg-[#111827] p-2.5 rounded border border-slate-800 flex justify-between">
-                  <span className="text-slate-400">Tax ID / SSN:</span>
-                  <span className="font-bold text-slate-100">{showUnmasked ? testTax : maskTax(testTax)}</span>
+                <div className="bg-[var(--bg-card)] p-2.5 rounded border border-[var(--border-color)] flex justify-between">
+                  <span className="text-[var(--text-muted)]">Tax ID / SSN:</span>
+                  <span className="font-bold text-[var(--text-main)]">{showUnmasked ? testTax : maskTax(testTax)}</span>
                 </div>
 
-                <div className="bg-[#111827] p-2.5 rounded border border-slate-800 flex justify-between">
-                  <span className="text-slate-400">Salary:</span>
-                  <span className="font-bold text-rose-400">{showUnmasked ? `₹${testSalary}` : '[RESTRICTED - ADMIN ONLY]'}</span>
+                <div className="bg-[var(--bg-card)] p-2.5 rounded border border-[var(--border-color)] flex justify-between">
+                  <span className="text-[var(--text-muted)]">Salary:</span>
+                  <span className="font-bold text-rose-500">{showUnmasked ? `₹${testSalary}` : '[RESTRICTED - ADMIN ONLY]'}</span>
                 </div>
 
-                <div className="bg-[#111827] p-2.5 rounded border border-slate-800 flex justify-between">
-                  <span className="text-slate-400">Email Address:</span>
-                  <span className="font-bold text-slate-100">{showUnmasked ? testEmail : maskEmail(testEmail)}</span>
+                <div className="bg-[var(--bg-card)] p-2.5 rounded border border-[var(--border-color)] flex justify-between">
+                  <span className="text-[var(--text-muted)]">Email Address:</span>
+                  <span className="font-bold text-[var(--text-main)]">{showUnmasked ? testEmail : maskEmail(testEmail)}</span>
                 </div>
               </div>
             </div>
